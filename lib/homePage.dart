@@ -1,18 +1,54 @@
 import 'package:flutter/material.dart';
 
-class MyHomePage extends StatefulWidget {
+class homePage extends StatefulWidget{
   @override
-  _MyHomePageState createState() {
-    return _MyHomePageState();
-  }
+  _homePageState createState() => _homePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _homePageState extends State<homePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Project Locals')),
-      body: Text("this should be Home Page"),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
+      children: [
+        Text("인기글"),
+        SizedBox(height: 10,),
+        Container(
+          height: 100,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.black.withOpacity(0.60),
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(12),
+
+          ),
+          child: Column(
+            children: [
+              Text("hot posts")
+            ],
+          ),
+        ),
+        SizedBox(height: 50,),
+        Container(
+          height: 100,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.black.withOpacity(0.60),
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(12)
+        ),
+          child: Column(
+            children: [
+
+            ],
+          ),
+        ),
+
+      ]
     );
   }
 }

@@ -1,76 +1,54 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:cupertino_icons/cupertino_icons.dart';
-class homePage extends StatefulWidget {
+
+class homePage extends StatefulWidget{
   @override
-  _MyHomePageState createState() {
-    return _MyHomePageState();
-  }
+  _homePageState createState() => _homePageState();
 }
 
-class _MyHomePageState extends State<homePage> {
-  int _selectedIndex = 0;
+class _homePageState extends State<homePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Project Locals')),
-      bottomNavigationBar:BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey.withOpacity(.60),
-        selectedFontSize: 15,
-        unselectedFontSize: 14,
-        currentIndex: _selectedIndex,
-        onTap: (int index){
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined)
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
+      children: [
+        Text("인기글"),
+        SizedBox(height: 10,),
+        Container(
+          height: 100,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.black.withOpacity(0.60),
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(12),
+
           ),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.search)
+          child: Column(
+            children: [
+              Text("hot posts")
+            ],
           ),
-          BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.list_dash)
+        ),
+        SizedBox(height: 50,),
+        Container(
+          height: 100,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.black.withOpacity(0.60),
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(12)
+        ),
+          child: Column(
+            children: [
+
+            ],
           ),
-          BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.paperplane)
-          ),
-          BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.person)
-          ),
-        ],
-      ),
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      )
+        ),
+
+      ]
     );
   }
-  List _widgetOptions = [
-
-  ];
-}
-
-
-class Record_post {
-  final String name;
-  final int votes;
-  final DocumentReference reference;
-
-  Record_post.fromMap(Map<String, dynamic> map, {this.reference})
-      : assert(map['name'] != null),
-        assert(map['votes'] != null),
-        name = map['name'],
-        votes = map['votes'];
-
-  Record_post.fromSnapshot(DocumentSnapshot snapshot)
-      : this.fromMap(snapshot.data, reference: snapshot.reference);
-
-  @override
-  String toString() => "Record<$name:$votes>";
 }

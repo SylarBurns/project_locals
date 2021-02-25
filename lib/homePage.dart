@@ -39,7 +39,10 @@ class _homePageState extends State<homePage> {
           child: Column(
             children:<Widget>[
               StreamBuilder<QuerySnapshot>(
-                stream: Firestore.instance.collection("board").snapshots(),
+                stream: Firestore.instance.collection("board")
+                    .orderBy("like", descending: true)
+                    .limit(3)
+                    .snapshots(),
                 builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
                   if (snapshot.hasError) return Text("Error: ${snapshot.error}");
                   switch (snapshot.connectionState){
@@ -202,7 +205,11 @@ class _homePageState extends State<homePage> {
                           ),
                         ),
                         StreamBuilder<QuerySnapshot>(
-                          stream: Firestore.instance.collection("board").where("boardType", isEqualTo: boardTypes[index]).snapshots(),
+                          stream: Firestore.instance.collection("board")
+                              .where("boardType", isEqualTo: boardTypes[index])
+                              .orderBy("date", descending: false)
+                              .limit(3)
+                              .snapshots(),
                           builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
                             if (snapshot.hasError) return Text("Error: ${snapshot.error}");
                             switch (snapshot.connectionState){

@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:intl/date_symbols.dart';
+import 'package:intl/intl.dart';
 class homePage extends StatefulWidget{
   @override
   _homePageState createState() => _homePageState();
@@ -53,8 +54,8 @@ class _homePageState extends State<homePage> {
                           String title = document["title"];
                           String writer = document["writer"];
                           Timestamp tt = document["date"];
-                          DateTime date = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
-
+                          DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+                          String date = DateFormat.Md().add_Hm().format(dateTime);
                           int like = document["like"];
                           String content = document["content"];
                           String boardT = document["boardType"];
@@ -87,7 +88,7 @@ class _homePageState extends State<homePage> {
                                             ],
                                           ),
                                         ),
-                                        Text(date.toString())
+                                        Text(date)
                                       ],
                                     ),
                                     Padding(padding: EdgeInsets.only(top: 3.0)),
@@ -207,7 +208,7 @@ class _homePageState extends State<homePage> {
                         StreamBuilder<QuerySnapshot>(
                           stream: Firestore.instance.collection("board")
                               .where("boardType", isEqualTo: boardTypes[index])
-                              .orderBy("date", descending: false)
+                              .orderBy("date", descending: true)
                               .limit(3)
                               .snapshots(),
                           builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
@@ -219,7 +220,13 @@ class _homePageState extends State<homePage> {
                                   children: snapshot.data.documents.map((DocumentSnapshot document){
                                     String title = document["title"];
                                     Timestamp tt = document["date"];
-                                    DateTime date = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+                                    DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+                                    String date = "";
+                                    if(DateTime.now().difference(dateTime)<=new Duration(hours: 24)){
+                                      date = DateFormat.Hm().format(dateTime);
+                                    }else{
+                                      date = DateFormat.Md().format(dateTime);
+                                    }
                                     int like = document["like"];
                                     return InkWell(
                                       onTap: () => print(title),

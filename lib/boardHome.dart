@@ -13,7 +13,7 @@ class _boardHomeState extends State<boardHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Board')),
+      // appBar: AppBar(title: Text('Board')),
       body: ListView(
         children: <Widget>[
           ListTile(
@@ -29,6 +29,10 @@ class _boardHomeState extends State<boardHome> {
           ListTile(
             leading: Icon(Icons.push_pin_outlined),
             title: Text('Anonymous Board'),
+          ),
+          ListTile(
+            leading: Icon(Icons.push_pin_outlined),
+            title: Text('Lost & Found'),
           ),
           ListTile(
             leading: Icon(Icons.push_pin_outlined),

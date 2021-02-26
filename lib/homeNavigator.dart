@@ -15,7 +15,15 @@ class _MyHomePageState extends State<homeNavigator> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('Project Locals')),
+        appBar: AppBar(
+          title: Text(
+              'Project Locals',
+              style: TextStyle(
+                color: Colors.black,
+              ),
+            ),
+          backgroundColor: Colors.white,
+        ),
         bottomNavigationBar:BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,

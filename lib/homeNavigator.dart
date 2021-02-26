@@ -3,6 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
 import 'homePage.dart';
+import 'boardHome.dart';
+
+
+
 class homeNavigator extends StatefulWidget {
   @override
   _MyHomePageState createState() {
@@ -73,10 +77,7 @@ class _MyHomePageState extends State<homeNavigator> {
       'Search',
       style: TextStyle(fontSize: 30,),
     ),
-    Text(
-      'board list',
-      style: TextStyle(fontSize: 30,),
-    ),
+    boardHome(),
     Text(
       'messages',
       style: TextStyle(fontSize: 30,),

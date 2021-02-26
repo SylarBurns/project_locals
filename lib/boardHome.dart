@@ -4,41 +4,32 @@ import 'freeBoard.dart';
 
 class boardHome extends StatefulWidget {
   @override
-  _boardHomeState createState() {
-    return _boardHomeState();
-  }
+  _boardHomeState createState() => _boardHomeState();
 }
 
 class _boardHomeState extends State<boardHome> {
   @override
   Widget build(BuildContext context) {
+    List<String> boardNames = ['자유 게시판', '익명 게시판', 'Lost & Found', '홍보 게시판'];
+    List<String> boardTypes = ['free', 'anonymous', 'lostAndFound', 'promo'];
+
     return Scaffold(
-      // appBar: AppBar(title: Text('Board')),
-      body: ListView(
-        children: <Widget>[
-          ListTile(
+      body: ListView.builder(
+        itemCount: boardNames.length,
+        itemBuilder: (context, index) {
+          String boardName = boardNames[index];
+          String boardT = boardTypes[index];
+          return ListTile(
             leading: Icon(Icons.push_pin_outlined),
-            title: Text('Free Board'),
+            title: Text('$boardName'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => FreeBoard()),
+                MaterialPageRoute(builder: (context) => FreeBoard(boardName: boardName, boardType: boardT,)),
               );
             }
-          ),
-          ListTile(
-            leading: Icon(Icons.push_pin_outlined),
-            title: Text('Anonymous Board'),
-          ),
-          ListTile(
-            leading: Icon(Icons.push_pin_outlined),
-            title: Text('Lost & Found'),
-          ),
-          ListTile(
-            leading: Icon(Icons.push_pin_outlined),
-            title: Text('Promotion Board'),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

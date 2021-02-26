@@ -31,11 +31,10 @@ class _homePageState extends State<homePage> {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
               border: Border.all(
-                color: Colors.black.withOpacity(0.60),
+                color: Colors.black.withOpacity(0.20),
                 width: 1,
               ),
               borderRadius: BorderRadius.circular(12),
-
           ),
           child: Column(
             children:<Widget>[
@@ -187,7 +186,7 @@ class _homePageState extends State<homePage> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.black.withOpacity(0.60),
+                        color: Colors.black.withOpacity(0.20),
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(12)

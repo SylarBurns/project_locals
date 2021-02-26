@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
+
 import 'homePage.dart';
 import 'boardHome.dart';
 
-
+final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class homeNavigator extends StatefulWidget {
   @override
@@ -15,9 +17,20 @@ class homeNavigator extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<homeNavigator> {
+  UserInfo dbUser;
   int _selectedIndex = 0;
+  void getUser() async{
+    FirebaseUser currentUser = await _auth.currentUser();
+    setState(() {
+      if(currentUser != null){
+        dbUser = new UserInfo(currentUser);
+        dbUser.getUserFromDB();
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
+    if(dbUser == null)getUser();
     return Scaffold(
         appBar: AppBar(
           title: Text(
@@ -27,6 +40,14 @@ class _MyHomePageState extends State<homeNavigator> {
               ),
             ),
           backgroundColor: Colors.white,
+          actions: [
+            InkWell(
+              child: Text(
+                dbUser._region,
+                style: TextStyle(color: Colors.black),
+              ),
+            )
+          ],
         ),
         bottomNavigationBar:BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
@@ -88,7 +109,21 @@ class _MyHomePageState extends State<homeNavigator> {
     ),
   ];
 }
-
+class UserInfo{
+  FirebaseUser _user;
+  String _nickName = "Loading..";
+  String _region = "Loading..";
+  UserInfo(FirebaseUser newUser) {
+    _user = newUser;
+  }
+  void getUserFromDB() async{
+    print("User ID: "+_user.uid);
+    DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(_user.uid).get();
+    print(dbUser.data["region"]);
+    _nickName = dbUser.data["nickName"];
+    _region = dbUser.data["region"];
+  }
+}
 
 class Record_post {
   final String name;
@@ -103,7 +138,6 @@ class Record_post {
 
   Record_post.fromSnapshot(DocumentSnapshot snapshot)
       : this.fromMap(snapshot.data, reference: snapshot.reference);
-
   @override
   String toString() => "Record<$name:$votes>";
 }

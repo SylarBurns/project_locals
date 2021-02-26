@@ -4,7 +4,7 @@ import 'package:project_locals/homeNavigator.dart';
 import 'boardHome.dart';
 
 final routes = {
-  '/': (BuildContext context) => loginPage(),
+  '/login': (BuildContext context) => loginPage(),
   '/homeNavigator': (BuildContext context) => homeNavigator(),
   '/board': (BuildContext context) => boardHome(),
 };

@@ -54,7 +54,6 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
                 if(_success!=null){
                   if(_success){
                     print("login success");
-
                   }
                 }
               });
@@ -67,11 +66,12 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
     );
   }
 
-  void getUser(FirebaseUser currentUser) async {
-    setState(() {
+  Future getUser(FirebaseUser currentUser) async {
+    setState(() async {
       if(currentUser != null){
         globals.dbUser = new globals.UserInfo(currentUser);
-        globals.dbUser.getUserFromDB();
+        await globals.dbUser.getUserFromDB();
+        Navigator.pushNamed(context, '/homeNavigator');
       }
     });
   }
@@ -93,14 +93,13 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
 
     final FirebaseUser currentUser = await _auth.currentUser();
     assert(user.uid == currentUser.uid);
-    setState(() {
+    setState(() async {
       if (user != null) {
         _success = true;
         _userID = user.uid;
         if(_success){
           handleGoogleSignIn();
           getUser(currentUser);
-          Navigator.pushNamed(context, '/homeNavigator');
         }
       } else {
         _success = false;

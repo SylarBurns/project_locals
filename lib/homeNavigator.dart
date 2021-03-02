@@ -49,10 +49,13 @@ class _MyHomePageState extends State<homeNavigator> {
             ),
           backgroundColor: Colors.white,
           actions: [
-            InkWell(
-              child: Text(
-                globals.dbUser != null ? globals.dbUser.getRegion() : "Loading...",
-                style: TextStyle(color: Colors.black),
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+              child: InkWell(
+                child: Text(
+                  globals.dbUser != null ? globals.dbUser.getRegion() : "Loading...",
+                  style: TextStyle(color: Colors.black),
+                ),
               ),
             )
           ],

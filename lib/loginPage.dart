@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'routes.dart';
 import 'globals.dart' as globals;
 import 'homeNavigator.dart' as home;
 
@@ -54,6 +54,7 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
                 if(_success!=null){
                   if(_success){
                     print("login success");
+
                   }
                 }
               });
@@ -69,9 +70,8 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
   void getUser(FirebaseUser currentUser) async {
     setState(() {
       if(currentUser != null){
-        globals.dbUser = globals.UserInfo(currentUser);
+        globals.dbUser = new globals.UserInfo(currentUser);
         globals.dbUser.getUserFromDB();
-
       }
     });
   }
@@ -98,11 +98,9 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
         _success = true;
         _userID = user.uid;
         if(_success){
-          globals.dbUser = new globals.UserInfo(currentUser);
-          getUser(currentUser);
-
           handleGoogleSignIn();
-          Navigator.pop(context);
+          getUser(currentUser);
+          Navigator.pushNamed(context, '/homeNavigator');
         }
       } else {
         _success = false;

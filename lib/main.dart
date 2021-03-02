@@ -10,9 +10,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ProjectLocals',
-      home: homeNavigator(),
-      initialRoute: '/login',
-      onGenerateRoute: _getRoute,
       routes: routes,
     );
   }

@@ -6,10 +6,17 @@ import 'package:cupertino_icons/cupertino_icons.dart';
 
 import 'homePage.dart';
 import 'boardHome.dart';
+import 'globals.dart' as globals;
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class homeNavigator extends StatefulWidget {
+  // void refresh() {
+  //   setState(() {
+  //
+  //   });
+  // }
+
   @override
   _MyHomePageState createState() {
     return _MyHomePageState();
@@ -17,20 +24,21 @@ class homeNavigator extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<homeNavigator> {
-  UserInfo dbUser;
+  // UserInfo dbUser;
   int _selectedIndex = 0;
-  void getUser() async{
-    FirebaseUser currentUser = await _auth.currentUser();
-    setState(() {
-      if(currentUser != null){
-        dbUser = new UserInfo(currentUser);
-        dbUser.getUserFromDB();
-      }
-    });
-  }
+  // void getUser() async{
+  //   FirebaseUser currentUser = await _auth.currentUser();
+  //   setState(() {
+  //     if(currentUser != null){
+  //       dbUser = new UserInfo(currentUser);
+  //       dbUser.getUserFromDB();
+  //     }
+  //   });
+  // }
+
   @override
   Widget build(BuildContext context) {
-    if(dbUser == null)getUser();
+    // if(dbUser == null)getUser();
     return Scaffold(
         appBar: AppBar(
           title: Text(
@@ -45,7 +53,7 @@ class _MyHomePageState extends State<homeNavigator> {
               padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
               child: InkWell(
                 child: Text(
-                  dbUser._region,
+                  globals.dbUser != null ? globals.dbUser.getRegion() : "Loading...",
                   style: TextStyle(color: Colors.black),
                 ),
               ),
@@ -112,21 +120,21 @@ class _MyHomePageState extends State<homeNavigator> {
     ),
   ];
 }
-class UserInfo{
-  FirebaseUser _user;
-  String _nickName = "Loading..";
-  String _region = "Loading..";
-  UserInfo(FirebaseUser newUser) {
-    _user = newUser;
-  }
-  void getUserFromDB() async{
-    print("User ID: "+_user.uid);
-    DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(_user.uid).get();
-    print(dbUser.data["region"]);
-    _nickName = dbUser.data["nickName"];
-    _region = dbUser.data["region"];
-  }
-}
+// class UserInfo{
+//   FirebaseUser _user;
+//   String _nickName = "Loading..";
+//   String _region = "Loading..";
+//   UserInfo(FirebaseUser newUser) {
+//     _user = newUser;
+//   }
+//   void getUserFromDB() async{
+//     print("User ID: "+_user.uid);
+//     DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(_user.uid).get();
+//     print(dbUser.data["region"]);
+//     _nickName = dbUser.data["nickName"];
+//     _region = dbUser.data["region"];
+//   }
+// }
 
 class Record_post {
   final String name;

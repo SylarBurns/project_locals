@@ -7,7 +7,7 @@ UserInfo dbUser;
 class UserInfo{
   FirebaseUser _user;
   String _nickName = "Loading..";
-  String _region = "Loading..";
+  String _region = "fake region";
   UserInfo(FirebaseUser newUser) {
     _user = newUser;
   }

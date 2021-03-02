@@ -40,68 +40,68 @@ class _MyHomePageState extends State<homeNavigator> {
   Widget build(BuildContext context) {
     // if(dbUser == null)getUser();
     return Scaffold(
-        appBar: AppBar(
-          title: Text(
+          appBar: AppBar(
+            title: Text(
               'Project Locals',
               style: TextStyle(
                 color: Colors.black,
               ),
             ),
-          backgroundColor: Colors.white,
-          actions: [
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-              child: InkWell(
-                child: Text(
-                  globals.dbUser != null ? globals.dbUser.getRegion() : "Loading...",
-                  style: TextStyle(color: Colors.black),
+            backgroundColor: Colors.white,
+            actions: [
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                child: InkWell(
+                  child: Text(
+                    globals.dbUser.getRegion(),
+                    style: TextStyle(color: Colors.black),
+                  ),
                 ),
+              )
+            ],
+          ),
+          bottomNavigationBar:BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Colors.white,
+            selectedItemColor: Colors.black,
+            unselectedItemColor: Colors.grey.withOpacity(.60),
+            selectedFontSize: 15,
+            unselectedFontSize: 14,
+            currentIndex: _selectedIndex,
+            showSelectedLabels: false,
+            showUnselectedLabels: false,
+            onTap: (int index){
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            items: [
+              BottomNavigationBarItem(
+                  label: "home",
+                  icon: Icon(Icons.home_outlined)
               ),
-            )
-          ],
-        ),
-        bottomNavigationBar:BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.black,
-          unselectedItemColor: Colors.grey.withOpacity(.60),
-          selectedFontSize: 15,
-          unselectedFontSize: 14,
-          currentIndex: _selectedIndex,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          onTap: (int index){
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          items: [
-            BottomNavigationBarItem(
-                label: "home",
-                icon: Icon(Icons.home_outlined)
-            ),
-            BottomNavigationBarItem(
-                label: "search",
-                icon: Icon(Icons.search)
-            ),
-            BottomNavigationBarItem(
-                label: "board list",
-                icon: Icon(CupertinoIcons.list_dash)
-            ),
-            BottomNavigationBarItem(
-                label: "messages",
-                icon: Icon(CupertinoIcons.paperplane)
-            ),
-            BottomNavigationBarItem(
-                label: "personal info",
-                icon: Icon(CupertinoIcons.person)
-            ),
-          ],
-        ),
-        body: Center(
-          child: _widgetOptions.elementAt(_selectedIndex),
-        )
-    );
+              BottomNavigationBarItem(
+                  label: "search",
+                  icon: Icon(Icons.search)
+              ),
+              BottomNavigationBarItem(
+                  label: "board list",
+                  icon: Icon(CupertinoIcons.list_dash)
+              ),
+              BottomNavigationBarItem(
+                  label: "messages",
+                  icon: Icon(CupertinoIcons.paperplane)
+              ),
+              BottomNavigationBarItem(
+                  label: "personal info",
+                  icon: Icon(CupertinoIcons.person)
+              ),
+            ],
+          ),
+          body: Center(
+            child: _widgetOptions.elementAt(_selectedIndex),
+          )
+      );
   }
   List _widgetOptions = [
     homePage(),

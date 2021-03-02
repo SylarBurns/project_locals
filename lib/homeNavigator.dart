@@ -41,10 +41,13 @@ class _MyHomePageState extends State<homeNavigator> {
             ),
           backgroundColor: Colors.white,
           actions: [
-            InkWell(
-              child: Text(
-                dbUser._region,
-                style: TextStyle(color: Colors.black),
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+              child: InkWell(
+                child: Text(
+                  dbUser._region,
+                  style: TextStyle(color: Colors.black),
+                ),
               ),
             )
           ],

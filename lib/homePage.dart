@@ -5,7 +5,7 @@ import 'package:intl/date_symbols.dart';
 import 'package:intl/intl.dart';
 import 'globals.dart' as globals;
 import 'freeBoard.dart';
-
+import 'postView.dart';
 final db = Firestore.instance;
 
 class homePage extends StatefulWidget {
@@ -117,7 +117,12 @@ class _homePageState extends State<homePage> {
     }
     return Container(
       child: InkWell(
-        onTap: () => print(title),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PostView(post: document, boardName: '',),
+          ),
+        ),
         child: Container(
           padding: const EdgeInsets.all(8),
           child: Column(
@@ -291,7 +296,12 @@ class _homePageState extends State<homePage> {
     }
     int like = document["like"];
     return InkWell(
-      onTap: () => print(title),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PostView(post: document, boardName: '',),
+        ),
+      ),
       child: Container(
         padding: const EdgeInsets.all(8),
         child: Column(

@@ -66,16 +66,6 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
     );
   }
 
-  Future getUser(FirebaseUser currentUser) async {
-    setState(() async {
-      if(currentUser != null){
-        globals.dbUser = new globals.UserInfo(currentUser);
-        await globals.dbUser.getUserFromDB();
-        Navigator.pushNamed(context, '/homeNavigator');
-      }
-    });
-  }
-
   void _signInWithGoogle() async {
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleAuth =
@@ -98,24 +88,29 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
         _success = true;
         _userID = user.uid;
         if(_success){
-          handleGoogleSignIn();
-          getUser(currentUser);
+          handleGoogleSignIn(currentUser);
         }
       } else {
         _success = false;
       }
     });
   }
-  void handleGoogleSignIn() async {
+  Future handleGoogleSignIn(FirebaseUser currentUser) async {
     DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(_userID).get();
     if(!dbUser.exists){
-      print("No user with ID"+_userID+"\n");
-      await Firestore.instance.collection('user').document(_userID).setData({
-        "nickName":"SylarBurns",
-        "region":"포항시 북구"
-      });
+      Navigator.pushNamed(context, '/registration');
     }else{
+      getUser(currentUser);
       print("User with ID "+dbUser.documentID+" is in the DB\n");
     }
+  }
+  Future getUser(FirebaseUser currentUser) async {
+    setState(() async {
+      if(currentUser != null){
+        globals.dbUser = new globals.UserInfo(currentUser);
+        await globals.dbUser.getUserFromDB();
+        Navigator.pushReplacementNamed(context, '/homeNavigator');
+      }
+    });
   }
 }

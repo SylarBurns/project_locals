@@ -11,7 +11,7 @@ class UserInfo{
   UserInfo(FirebaseUser newUser) {
     _user = newUser;
   }
-  void getUserFromDB() async{
+  Future getUserFromDB() async {
     print("User ID: "+_user.uid);
     DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(_user.uid).get();
     print(dbUser.data["region"]);
@@ -25,5 +25,9 @@ class UserInfo{
 
   String getRegion() {
     return _region;
+  }
+
+  String getUID() {
+    return _user.uid;
   }
 }

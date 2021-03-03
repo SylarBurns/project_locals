@@ -18,11 +18,9 @@ class _PostTile extends StatelessWidget {
   Widget build(BuildContext context) {
     String title = post['title'];
     String content = post['content'];
-    String writer = post['writer'];
+    String writer = post['writerNick'];
     int like = post['like'];
-
-    int comments = 0;
-
+    int comments = post['comments'];
     String region = post['region'];
     Timestamp tt = post['date'];
 
@@ -152,7 +150,10 @@ class _FreeBoardState extends State<FreeBoard> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          print('write');
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => PostWrite(boardType: boardType,)),
+          );
         },
         child: Icon(Icons.add),
       ),

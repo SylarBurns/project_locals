@@ -95,7 +95,7 @@ class _homePageState extends State<homePage> {
   Widget _buildHotPostListItem(
       BuildContext context, DocumentSnapshot document) {
     String title = document["title"];
-    String writer = document["writer"];
+    String writer = document["writerNick"];
     Timestamp tt = document["date"];
     DateTime dateTime =
         DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);

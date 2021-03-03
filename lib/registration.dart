@@ -75,7 +75,7 @@ class _registrationState extends State<registration> {
   void searchNickname() async {
     QuerySnapshot dbUser = await Firestore.instance
         .collection('user')
-        .where('nickname', isEqualTo: _nicknameController.text)
+        .where('nickName', isEqualTo: _nicknameController.text)
         .getDocuments();
     if (dbUser.documents.isNotEmpty) {
       _showDuplicateDialog();
@@ -109,7 +109,7 @@ class _registrationState extends State<registration> {
                     child: TextField(
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        hintText: '닉네임',
+                        labelText: 'Nickname',
                         suffix: FlatButton(child: Text("중복 확인"), onPressed: searchNickname)
                       ),
                       controller: _nicknameController,

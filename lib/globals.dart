@@ -11,12 +11,12 @@ class UserInfo{
   UserInfo(FirebaseUser newUser) {
     _user = newUser;
   }
-  void getUserFromDB() async{
+  Future getUserFromDB() async{
     print("User ID: "+_user.uid);
     DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(_user.uid).get();
     print(dbUser.data["region"]);
-    _nickName = dbUser.data["nickName"];
-    _region = dbUser.data["region"];
+    _nickName = await dbUser.data["nickName"];
+    _region = await dbUser.data["region"];
   }
 
   String getNickName() {

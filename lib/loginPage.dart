@@ -54,7 +54,6 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
                 if(_success!=null){
                   if(_success){
                     print("login success");
-
                   }
                 }
               });
@@ -65,15 +64,6 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
         ),
       ],
     );
-  }
-
-  void getUser(FirebaseUser currentUser) async {
-    setState(() {
-      if(currentUser != null){
-        globals.dbUser = new globals.UserInfo(currentUser);
-        globals.dbUser.getUserFromDB();
-      }
-    });
   }
 
   void _signInWithGoogle() async {
@@ -93,30 +83,34 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
 
     final FirebaseUser currentUser = await _auth.currentUser();
     assert(user.uid == currentUser.uid);
-    setState(() {
+    setState(() async {
       if (user != null) {
         _success = true;
         _userID = user.uid;
         if(_success){
-          handleGoogleSignIn();
-          getUser(currentUser);
-          Navigator.pushNamed(context, '/homeNavigator');
+          handleGoogleSignIn(currentUser);
         }
       } else {
         _success = false;
       }
     });
   }
-  void handleGoogleSignIn() async {
+  Future handleGoogleSignIn(FirebaseUser currentUser) async {
     DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(_userID).get();
     if(!dbUser.exists){
-      print("No user with ID"+_userID+"\n");
-      await Firestore.instance.collection('user').document(_userID).setData({
-        "nickName":"SylarBurns",
-        "region":"포항시 북구"
-      });
+      Navigator.pushNamed(context, '/registration');
     }else{
+      getUser(currentUser);
       print("User with ID "+dbUser.documentID+" is in the DB\n");
     }
+  }
+  Future getUser(FirebaseUser currentUser) async {
+    setState(() async {
+      if(currentUser != null){
+        globals.dbUser = new globals.UserInfo(currentUser);
+        await globals.dbUser.getUserFromDB();
+        Navigator.pushReplacementNamed(context, '/homeNavigator');
+      }
+    });
   }
 }

@@ -2,25 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
+import 'globals.dart' as globals;
+
+final scaffoldKey = GlobalKey<ScaffoldState>();
+
 class _Post extends StatelessWidget {
   _Post ({
     Key key,
-    this.title,
-    this.content,
-    this.writer,
-    this.like,
-    this.comments,
-    this.tt,
+    this.post,
 }) : super(key: key);
-  final String title;
-  final String content;
-  final String writer;
-  final int like;
-  final int comments;
-  final Timestamp tt;
+
+  final DocumentSnapshot post;
 
   @override
   Widget build(BuildContext context) {
+    String title = post['title'];
+    String content = post['content'];
+    String writer = post['writerNick'];
+    int like = post['like'];
+    int comments = post['comments'];
+    Timestamp tt = post['date'];
+
     DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
 
@@ -73,8 +75,25 @@ class _Post extends StatelessWidget {
                     ),
                   ],
                 ),
-                onPressed: () {
-                  print('like');
+                onPressed: () async {
+                  DocumentReference docRef = Firestore.instance.collection('user').document(globals.dbUser.getUID());
+                  DocumentSnapshot doc = await docRef.get();
+                  List tags = doc.data['likeList'];
+
+                  if(tags.contains(post.documentID)) {
+                    scaffoldKey.currentState
+                        .showSnackBar(SnackBar(content: Text("Already liked it")));
+                  }
+                  else {
+                    docRef.updateData({
+                      'likeList': FieldValue.arrayUnion([post.documentID]),
+                    });
+                    Firestore.instance.collection('board').document(post.documentID).updateData({
+                      'like': FieldValue.increment(1),
+                    });
+                    scaffoldKey.currentState
+                        .showSnackBar(SnackBar(content: Text("Successfully liked")));
+                  }
                 },
               ),
             ],
@@ -138,6 +157,7 @@ class _PostViewState extends State<PostView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
         iconTheme: IconThemeData(
           color: Colors.black,
@@ -165,12 +185,7 @@ class _PostViewState extends State<PostView> {
       body: ListView(
         children: [
           _Post(
-            title: post['title'],
-            content: post['content'],
-            writer: post['writer'],
-            like: post['like'],
-            comments: 0,
-            tt: post['date'],
+            post: post,
           ),
         ],
       ),

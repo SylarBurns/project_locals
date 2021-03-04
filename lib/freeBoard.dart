@@ -89,7 +89,7 @@ class _PostTile extends StatelessWidget {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PostView(post: post, boardName: boardName,),
+            builder: (context) => PostView(postDocID: post.documentID, boardName: boardName,),
           ),
         ),
       ),

@@ -95,7 +95,7 @@ class _homePageState extends State<homePage> {
   Widget _buildHotPostListItem(
       BuildContext context, DocumentSnapshot document) {
     String title = document["title"];
-    String writer = document["writer"];
+    String writer = document["writerNick"];
     Timestamp tt = document["date"];
     DateTime dateTime =
         DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
@@ -120,7 +120,7 @@ class _homePageState extends State<homePage> {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PostView(post: document, boardName: '',),
+            builder: (context) => PostView(postDocID: document.documentID, boardName: '',),
           ),
         ),
         child: Container(
@@ -299,7 +299,7 @@ class _homePageState extends State<homePage> {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PostView(post: document, boardName: '',),
+          builder: (context) => PostView(postDocID: document.documentID, boardName: '',),
         ),
       ),
       child: Container(

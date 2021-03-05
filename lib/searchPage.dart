@@ -75,7 +75,8 @@ class _searchPageState extends State<searchPage> {
         .documents;
     List<DocumentSnapshot> result = new List<DocumentSnapshot>();
     titleResults.forEach((document) {
-      if(document["title"].contains(_searchController.text) || document["content"].contains(_searchController.text)){
+      if((document["title"].toString().toLowerCase()).contains(_searchController.text.toLowerCase())
+          || (document["content"].toString().toLowerCase()).contains(_searchController.text)){
         result.add(document);
       }
     });
@@ -104,8 +105,7 @@ class _searchPageState extends State<searchPage> {
               shrinkWrap: true,
               itemCount: snapshot.data.length,
               itemBuilder: (context, index){
-                DocumentSnapshot document = snapshot.data[index];
-                return _buildSearchedPostListItem(context, document);
+                return _buildSearchedPostListItem(context, snapshot.data[index]);
               },
             );
           }else{
@@ -143,7 +143,7 @@ class _searchPageState extends State<searchPage> {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PostView(post: document, boardName: '',),
+            builder: (context) => PostView(postDocID: document.documentID, boardName: '',),
           ),
         ),
         child: Container(

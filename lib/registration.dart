@@ -57,7 +57,8 @@ class _registrationState extends State<registration> {
                         .setData({
                       "nickName": _nicknameController.text,
                       "region": "포항시 북구",
-                      "likeList": []
+                      "postLikeList": [],
+                      "commentLikeList": [],
                     });
                     await getUser(currentUser);
                   },

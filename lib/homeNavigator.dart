@@ -7,7 +7,7 @@ import 'package:cupertino_icons/cupertino_icons.dart';
 import 'homePage.dart';
 import 'boardHome.dart';
 import 'globals.dart' as globals;
-
+import 'searchPage.dart';
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class homeNavigator extends StatefulWidget {
@@ -40,6 +40,7 @@ class _MyHomePageState extends State<homeNavigator> {
   Widget build(BuildContext context) {
     // if(dbUser == null)getUser();
     return Scaffold(
+          resizeToAvoidBottomInset: false,
           appBar: AppBar(
             title: Text(
               'Project Locals',
@@ -105,10 +106,7 @@ class _MyHomePageState extends State<homeNavigator> {
   }
   List _widgetOptions = [
     homePage(),
-    Text(
-      'Search',
-      style: TextStyle(fontSize: 30,),
-    ),
+    searchPage(),
     boardHome(),
     Text(
       'messages',

@@ -143,7 +143,7 @@ class _searchPageState extends State<searchPage> {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PostView(post: document, boardName: '',),
+            builder: (context) => PostView(postDocID: document.documentID, boardName: '',),
           ),
         ),
         child: Container(

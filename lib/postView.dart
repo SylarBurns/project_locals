@@ -4,8 +4,6 @@ import 'package:intl/intl.dart';
 
 import 'globals.dart' as globals;
 
-final scaffoldKey = GlobalKey<ScaffoldState>();
-
 class PostView extends StatefulWidget {
   final String postDocID;
   final String boardName;
@@ -25,19 +23,13 @@ class _PostViewState extends State<PostView> {
 
   _PostViewState({Key key, this.postDocID, this.boardName,});
 
-  DocumentSnapshot post;
-  QuerySnapshot commentList;
-  final commentController = TextEditingController();
-
-  void loadData() async {
-    post = await Firestore.instance.collection('board').document(postDocID).get();
-    commentList = await Firestore.instance.collection('comments').document(postDocID).collection('commentList').getDocuments();
-  }
+  final _commentController = TextEditingController();
+  final _focusNode = FocusNode();
+  String _commentDocID = 'null';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: scaffoldKey,
       appBar: AppBar(
         iconTheme: IconThemeData(
           color: Colors.black,
@@ -71,11 +63,10 @@ class _PostViewState extends State<PostView> {
                 return Container();
               }
               else {
-                return _buildPost(snapshot.data);
+                return _buildPost(context, snapshot.data);
               }
             },
           ),
-          // Divider(),
           FutureBuilder(
             future: Firestore.instance.collection('comments').document(postDocID).collection('commentList').getDocuments(),
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -88,7 +79,26 @@ class _PostViewState extends State<PostView> {
                     return Column(
                       children: [
                         Divider(),
-                        _buildComment(comment, postDocID),
+                        _buildComment(context, comment, postDocID),
+                        FutureBuilder(
+                          future: comment.reference.collection('nestedComment').getDocuments(),
+                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> nsSnapshot) {
+                            if(!nsSnapshot.hasData) {
+                              return Container();
+                            }
+                            else {
+                              return Column(
+                                children: nsSnapshot.data.documents.map((nestedComment) {
+                                  return Column(
+                                    children: [
+                                      _buildNestedComment(context, nestedComment),
+                                    ],
+                                  );
+                                }).toList(),
+                              );
+                            }
+                          },
+                        ),
                       ],
                     );
                   }).toList(),
@@ -101,7 +111,8 @@ class _PostViewState extends State<PostView> {
       bottomSheet: Padding(
         padding: EdgeInsets.all(8.0),
         child: TextField(
-          controller: commentController,
+          focusNode: _focusNode,
+          controller: _commentController,
           decoration: InputDecoration(
             border: OutlineInputBorder(),
             hintText: 'Write a comment',
@@ -121,7 +132,7 @@ class _PostViewState extends State<PostView> {
     );
   }
 
-  Widget _buildPost(DocumentSnapshot post) {
+  Widget _buildPost(BuildContext context, DocumentSnapshot post) {
     String title = post['title'];
     String content = post['content'];
     String writer = post['writerNick'];
@@ -132,7 +143,7 @@ class _PostViewState extends State<PostView> {
     DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
 
-    return Padding(
+    return Container(
       padding: EdgeInsets.fromLTRB(20.0, 8.0, 20.0, 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,7 +206,7 @@ class _PostViewState extends State<PostView> {
                       docRef.updateData({
                         'postLikeList': FieldValue.arrayUnion([post.documentID]),
                       });
-                      Firestore.instance.collection('board').document(post.documentID).updateData({
+                      post.reference.updateData({
                         'like': FieldValue.increment(1),
                       });
                     }
@@ -244,7 +255,7 @@ class _PostViewState extends State<PostView> {
     );
   }
 
-  Widget _buildComment(DocumentSnapshot comment, String postDocID) {
+  Widget _buildComment(BuildContext context, DocumentSnapshot comment, String postDocID) {
     String content = comment['content'];
     String writer = comment['writerNick'];
     int like = comment['like'];
@@ -253,7 +264,7 @@ class _PostViewState extends State<PostView> {
     DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
 
-    return Padding(
+    return Container(
       padding: EdgeInsets.fromLTRB(20.0, 1.0, 20.0, 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,59 +320,89 @@ class _PostViewState extends State<PostView> {
                 ],
               ),
               Spacer(),
-              Padding(
-                padding: EdgeInsets.all(1.0),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                  border: Border.all(
+                    color: Colors.black26,
+                  ),
+                ),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(20)),
-                          border: Border.all(
-                            color: Colors.black26,
-                          )
+                    IconButton(
+                      icon: Icon(
+                        Icons.comment,
+                        size: 20,
                       ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        icon: Icon(Icons.thumb_up_off_alt),
-                        iconSize: 20,
-                        onPressed: () async {
-                          DocumentReference docRef = Firestore.instance.collection('user').document(globals.dbUser.getUID());
-                          DocumentSnapshot doc = await docRef.get();
-                          setState(() {
-                            List tags = doc.data['commentLikeList'];
+                      onPressed: () async {
+                        bool result = await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0)
+                              ),
 
-                            if(tags.contains(comment.documentID)) {
-                              _showDialog(true);
-                            }
-                            else {
-                              _showDialog(false);
-                              docRef.updateData({
-                                'commentLikeList': FieldValue.arrayUnion([comment.documentID]),
-                              });
-                              Firestore.instance.collection('comments').document(postDocID)
-                                  .collection('commentList').document(comment.documentID).updateData({
-                                'like': FieldValue.increment(1),
-                              });
-                            }
-                          });
-                        },
-                      ),
+                              content: Text('대댓글을 작성하시겠습니까?'),
+                              actions: [
+                                FlatButton(
+                                  child: Text('OK'),
+                                  onPressed: () {
+                                    _commentDocID = comment.documentID;
+                                    Navigator.pop(context, true);
+                                  },
+                                ),
+                                FlatButton(
+                                  child: Text('Cancel'),
+                                  onPressed: () {
+                                    Navigator.pop(context, false);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if(result) {
+                          _focusNode.requestFocus();
+                        }
+                      },
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(20)),
-                          border: Border.all(
-                            color: Colors.black26,
-                          )
+                    IconButton(
+                      icon: Icon(
+                        Icons.thumb_up_off_alt,
+                        size: 20,
                       ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        icon: Icon(Icons.more_vert),
-                        iconSize: 20,
-                        onPressed: () {
-                          print('more');
-                        },
+                      onPressed: () async {
+                        DocumentReference docRef = Firestore.instance.collection('user').document(globals.dbUser.getUID());
+                        DocumentSnapshot doc = await docRef.get();
+                        setState(() {
+                          List tags = doc.data['commentLikeList'];
+
+                          if(tags.contains(comment.documentID)) {
+                            _showDialog(true);
+                          }
+                          else {
+                            _showDialog(false);
+                            docRef.updateData({
+                              'commentLikeList': FieldValue.arrayUnion([comment.documentID]),
+                            });
+                            comment.reference.updateData({
+                              'like': FieldValue.increment(1),
+                            });
+                          }
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.more_vert,
+                        size: 20,
                       ),
+                      onPressed: () {
+                        print('more');
+                      },
                     ),
                   ],
                 ),
@@ -377,19 +418,184 @@ class _PostViewState extends State<PostView> {
     );
   }
 
-  void _saveComment() async {
-    await Firestore.instance.collection('comments').document(postDocID).collection('commentList').add({
-      'content': commentController.text,
-      'date': DateTime.now(),
-      'like': 0,
-      'writer': globals.dbUser.getUID(),
-      'writerNick': globals.dbUser.getNickName(),
-      'report': 0,
-    });
+  Widget _buildNestedComment(BuildContext context, DocumentSnapshot nestedComment) {
+    String content = nestedComment['content'];
+    String writer = nestedComment['writerNick'];
+    int like = nestedComment['like'];
+    Timestamp tt = nestedComment['date'];
 
-    await Firestore.instance.collection('board').document(postDocID).updateData({
-      'comments': FieldValue.increment(1),
-    });
+    DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+    String date = DateFormat.Md().add_Hm().format(dateTime);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(20.0, 5.0, 5.0, 5.0),
+          child: Icon(
+            Icons.subdirectory_arrow_right,
+          ),
+        ),
+        Expanded(
+          child: Container(
+            padding: EdgeInsets.all(10.0),
+            margin: EdgeInsets.fromLTRB(0.0, 4.0, 8.0, 4.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              color: Colors.black12,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.person,
+                    ),
+                    SizedBox(width: 4.0,),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$writer',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0,
+                          ),
+                        ),
+                        SizedBox(height: 2.0,),
+                        Row(
+                          children: [
+                            Text(
+                              '$date',
+                              style: TextStyle(
+                                color: Colors.black45,
+                              ),
+                            ),
+                            SizedBox(width: 5.0,),
+                            like != 0 ?
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.thumb_up_off_alt,
+                                  size: 16.0,
+                                  color: Colors.red,
+                                ),
+                                SizedBox(width: 2.0,),
+                                Text(
+                                  '$like',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ) :
+                            Container(),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Spacer(),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(30)),
+                        border: Border.all(
+                          color: Colors.black26,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.thumb_up_off_alt,
+                              size: 20,
+                            ),
+                            onPressed: () async {
+                              DocumentReference docRef = Firestore.instance.collection('user').document(globals.dbUser.getUID());
+                              DocumentSnapshot doc = await docRef.get();
+                              setState(() {
+                                List tags = doc.data['commentLikeList'];
+
+                                if(tags.contains(nestedComment.documentID)) {
+                                  _showDialog(true);
+                                }
+                                else {
+                                  _showDialog(false);
+                                  docRef.updateData({
+                                    'commentLikeList': FieldValue.arrayUnion([nestedComment.documentID]),
+                                  });
+                                  nestedComment.reference.updateData({
+                                    'like': FieldValue.increment(1),
+                                  });
+                                }
+                              });
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.more_vert,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              print('more');
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.0,),
+                Text(
+                  '$content',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _saveComment() async {
+    CollectionReference colRef =  Firestore.instance.collection('comments').document(postDocID).collection('commentList');
+
+    if(_commentDocID == 'null') {
+      await colRef.add({
+        'content': _commentController.text,
+        'date': DateTime.now(),
+        'like': 0,
+        'writer': globals.dbUser.getUID(),
+        'writerNick': globals.dbUser.getNickName(),
+        'report': 0,
+      });
+
+      await Firestore.instance.collection('board').document(postDocID).updateData({
+        'comments': FieldValue.increment(1),
+      });
+    }
+    else {
+      await colRef.document(_commentDocID).collection('nestedComment').add({
+        'content': _commentController.text,
+        'date': DateTime.now(),
+        'like': 0,
+        'writer': globals.dbUser.getUID(),
+        'writerNick': globals.dbUser.getNickName(),
+        'report': 0,
+      });
+
+      await Firestore.instance.collection('board').document(postDocID).updateData({
+        'comments': FieldValue.increment(1),
+      });
+
+      _commentDocID = 'null';
+    }
+
+    _focusNode.unfocus();
+    _commentController.clear();
   }
 
   void _showDialog(bool check) {

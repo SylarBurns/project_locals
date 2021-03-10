@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 import 'globals.dart' as globals;
-
+import 'chatRoomView.dart';
 class PostView extends StatefulWidget {
   final String postDocID;
   final String boardName;
@@ -78,11 +78,20 @@ class _PostViewState extends State<PostView> {
                   await Firestore.instance.collection('comments').document(postDocID).delete();
                   Navigator.pop(context);
                   break;
-                case 'message':
-                  break;
                 case 'report':
                   break;
-
+                case 'message':
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context)=>
+                            chatRoomView(
+                              chatRoomID: "chatInit/"+writerUID,
+                              chatRoomName: "new message",
+                            ),
+                      )
+                  );
+                  break;
                 default:
 
               }
@@ -455,6 +464,25 @@ class _PostViewState extends State<PostView> {
                           value: 'report',
                         ),
                       ],
+                      onSelected: (selectedMenu) {
+                        switch(selectedMenu){
+                          case 'message':
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context)=>
+                                      chatRoomView(
+                                        chatRoomID: "chatInit/"+writerUID,
+                                        chatRoomName: "new message",
+                                      ),
+                                )
+                            );
+                            break;
+                          default :
+                            break;
+                        }
+                        print(selectedMenu);
+                      },
                     ),
                   ],
                 ),
@@ -605,6 +633,25 @@ class _PostViewState extends State<PostView> {
                                 value: 'report',
                               ),
                             ],
+                            onSelected: (selectedMenu) {
+                              switch(selectedMenu){
+                                case 'message':
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context)=>
+                                            chatRoomView(
+                                              chatRoomID: "chatInit/"+writerUID,
+                                              chatRoomName: "new message",
+                                            ),
+                                      )
+                                  );
+                                  break;
+                                default :
+                                  break;
+                              }
+                              print(selectedMenu);
+                            },
                           ),
                         ],
                       ),

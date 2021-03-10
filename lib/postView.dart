@@ -67,8 +67,25 @@ class _PostViewState extends State<PostView> {
                 value: 'report',
               ),
             ],
-            onSelected: (selectedMenu) {
-              print(selectedMenu);
+            onSelected: (selectedMenu) async {
+              switch(selectedMenu) {
+                case 'edit':
+
+
+                  break;
+                case 'remove':
+                  await Firestore.instance.collection('board').document(postDocID).delete();
+                  await Firestore.instance.collection('comments').document(postDocID).delete();
+                  Navigator.pop(context);
+                  break;
+                case 'message':
+                  break;
+                case 'report':
+                  break;
+
+                default:
+
+              }
             },
           ),
         ],

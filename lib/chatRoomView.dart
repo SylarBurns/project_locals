@@ -29,7 +29,7 @@ class _chatRoomViewState extends State<chatRoomView> {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(0, 0, 0, 75),
-            child: chatRoomID == "chatInit"
+            child: chatRoomID.startsWith("chatInit")
                 ? Text("Send the first message")
                 : StreamBuilder(
                 stream: db.collection('chatroom').document(chatRoomID).collection('messages').orderBy('date').snapshots(),
@@ -93,6 +93,9 @@ class _chatRoomViewState extends State<chatRoomView> {
         'content':_messageController.text,
         'date': _now,
         'sender': globals.dbUser.getUID()
+      });
+      setState(() {
+        chatRoomID = docRef.documentID;
       });
     }else{
       CollectionReference msgsRef = db.collection('chatroom').document(chatRoomID).collection('messages');

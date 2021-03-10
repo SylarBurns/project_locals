@@ -16,6 +16,8 @@ class chatRoomView extends StatefulWidget{
 class _chatRoomViewState extends State<chatRoomView> {
   String chatRoomID;
   String chatRoomName;
+  final _focusNode = FocusNode();
+  final _messageController = TextEditingController();
   _chatRoomViewState({Key key, this.chatRoomID, this.chatRoomName});
   @override
   Widget build(BuildContext context) {
@@ -23,18 +25,89 @@ class _chatRoomViewState extends State<chatRoomView> {
       appBar: AppBar(
         title: Text(chatRoomName),
       ),
-      body: StreamBuilder(
-        stream: db.collection('chatroom').document(chatRoomID).collection('messages').orderBy('date').snapshots(),
-        builder: (context, snapshots){
-          return ListView.builder(
-              itemCount: snapshots.data.documents.length,
-              itemBuilder: (context, index){
-                return chatMessageItem(context, snapshots.data.documents[index]);
-              }
-          );
-        }
-      ),
+      body: Stack(
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 75),
+            child: chatRoomID == "chatInit"
+                ? Text("Send the first message")
+                : StreamBuilder(
+                stream: db.collection('chatroom').document(chatRoomID).collection('messages').orderBy('date').snapshots(),
+                builder: (context, snapshots){
+                  if(!snapshots.hasData){
+                    return LinearProgressIndicator();
+                  }else{
+                    return ListView.builder(
+                        itemCount: snapshots.data.documents.length,
+                        shrinkWrap: true,
+                        itemBuilder: (context, index){
+                          return chatMessageItem(context, snapshots.data.documents[index]);
+                        }
+                    );
+                  }
+                }
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: TextField(
+                focusNode: _focusNode,
+                controller: _messageController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Send a message',
+                  filled: true,
+                  fillColor: Colors.grey,
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.send_rounded,),
+                    onPressed: () {
+                      setState(() {
+                        _saveMessage();
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      )
     );
+  }
+  void _saveMessage() async{
+    DateTime _now = DateTime.now();
+    if(chatRoomID.startsWith("chatInit")){
+      CollectionReference chatroomRef = db.collection('chatroom');
+      String receiverID = chatRoomID.substring("chatInit".length+1);
+      List<String> _particitants = new List<String>();
+      _particitants.add(globals.dbUser.getUID());
+      _particitants.add(receiverID);
+      DocumentReference docRef = await chatroomRef.add({
+        'lastDate': _now,
+        'participants': _particitants,
+      });
+      CollectionReference msgsRef = docRef.collection('messages');
+      await msgsRef.add({
+        'content':_messageController.text,
+        'date': _now,
+        'sender': globals.dbUser.getUID()
+      });
+    }else{
+      CollectionReference msgsRef = db.collection('chatroom').document(chatRoomID).collection('messages');
+      await msgsRef.add({
+        'content':_messageController.text,
+        'date': _now,
+        'sender': globals.dbUser.getUID()
+      });
+      DocumentReference chatroomRef = db.collection('chatroom').document(chatRoomID);
+      await chatroomRef.updateData({
+        'lastDate':_now,
+      });
+    }
+    _focusNode.unfocus();
+    _messageController.clear();
   }
   Widget chatMessageItem(BuildContext context, DocumentSnapshot document){
     return Container(

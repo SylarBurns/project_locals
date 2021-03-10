@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 import 'postView.dart';
 import 'postWrite.dart';
@@ -14,6 +15,20 @@ class _PostTile extends StatelessWidget {
   final DocumentSnapshot post;
   final String boardName;
 
+  String getDate() {
+    Timestamp tt = post['date'];
+
+    DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+    DateTime curTime = DateTime.now();
+
+    if(dateTime.difference(curTime).inDays == 0) {
+      return DateFormat.Hm().format(dateTime);
+    }
+    else {
+      return DateFormat('MM/dd').format(dateTime);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     String title = post['title'];
@@ -22,7 +37,8 @@ class _PostTile extends StatelessWidget {
     int like = post['like'];
     int comments = post['comments'];
     String region = post['region'];
-    Timestamp tt = post['date'];
+    String writerUID = post['writer'];
+    String date = getDate();
 
     return Padding(
       padding: EdgeInsets.all(5.0),
@@ -52,7 +68,8 @@ class _PostTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '10 min ago |',
+                  // '10 min ago |',
+                  '$date | ',
                   style: TextStyle(
                     color: Colors.black45,
                   ),
@@ -89,7 +106,7 @@ class _PostTile extends StatelessWidget {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PostView(postDocID: post.documentID, boardName: boardName,),
+            builder: (context) => PostView(postDocID: post.documentID, boardName: boardName, writerUID: writerUID,),
           ),
         ),
       ),
@@ -127,7 +144,7 @@ class _FreeBoardState extends State<FreeBoard> {
         backgroundColor: Colors.white,
       ),
       body: StreamBuilder(
-        stream: Firestore.instance.collection("board").where("boardType", isEqualTo: boardType).snapshots(),
+        stream: Firestore.instance.collection("board").where("boardType", isEqualTo: boardType).orderBy('date', descending: true).snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) return Text("Error: ${snapshot.error}");
           switch (snapshot.connectionState) {

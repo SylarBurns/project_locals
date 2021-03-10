@@ -7,21 +7,24 @@ import 'globals.dart' as globals;
 class PostView extends StatefulWidget {
   final String postDocID;
   final String boardName;
+  final String writerUID;
 
-  PostView({Key key, @required this.postDocID, @required this.boardName,});
+  PostView({Key key, @required this.postDocID, @required this.boardName, @required this.writerUID});
 
   _PostViewState createState() => _PostViewState(
     key: this.key,
     postDocID: this.postDocID,
     boardName: this.boardName,
+    writerUID: this.writerUID,
   );
 }
 
 class _PostViewState extends State<PostView> {
   String postDocID;
   String boardName;
+  String writerUID;
 
-  _PostViewState({Key key, this.postDocID, this.boardName,});
+  _PostViewState({Key key, this.postDocID, this.boardName, this.writerUID});
 
   final _commentController = TextEditingController();
   final _focusNode = FocusNode();
@@ -41,72 +44,92 @@ class _PostViewState extends State<PostView> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.more_vert,
-              semanticLabel: 'more',
-            ),
-            color: Colors.black,
-            onPressed: () {
-              print('more');
+          PopupMenuButton(
+            itemBuilder: (BuildContext context) =>
+            writerUID == globals.dbUser.getUID()
+            ? [
+                PopupMenuItem(
+                  child: Text('수정하기'),
+                  value: 'edit',
+                ),
+                PopupMenuItem(
+                  child: Text('삭제하기'),
+                  value: 'remove',
+                ),
+              ]
+            : [
+              PopupMenuItem(
+                child: Text('쪽지 보내기'),
+                value: 'message',
+              ),
+              PopupMenuItem(
+                child: Text('신고하기'),
+                value: 'report',
+              ),
+            ],
+            onSelected: (selectedMenu) {
+              print(selectedMenu);
             },
           ),
         ],
         backgroundColor: Colors.white,
       ),
-      body: ListView(
-        children: [
-          FutureBuilder(
-            future: Firestore.instance.collection('board').document(postDocID).get(),
-            builder: (BuildContext context, AsyncSnapshot snapshot) {
-              if (snapshot.hasData == false) {
-                return Container();
-              }
-              else {
-                return _buildPost(context, snapshot.data);
-              }
-            },
-          ),
-          FutureBuilder(
-            future: Firestore.instance.collection('comments').document(postDocID).collection('commentList').getDocuments(),
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (!snapshot.hasData) {
-                return Container();
-              }
-              else {
-                return Column(
-                  children: snapshot.data.documents.map((comment) {
-                    return Column(
-                      children: [
-                        Divider(),
-                        _buildComment(context, comment, postDocID),
-                        FutureBuilder(
-                          future: comment.reference.collection('nestedComment').getDocuments(),
-                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> nsSnapshot) {
-                            if(!nsSnapshot.hasData) {
-                              return Container();
-                            }
-                            else {
-                              return Column(
-                                children: nsSnapshot.data.documents.map((nestedComment) {
-                                  return Column(
-                                    children: [
-                                      _buildNestedComment(context, nestedComment),
-                                    ],
-                                  );
-                                }).toList(),
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                );
-              }
-            },
-          ),
-        ],
+      body: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9),
+        child: ListView(
+          children: [
+            FutureBuilder(
+              future: Firestore.instance.collection('board').document(postDocID).get(),
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                if (snapshot.hasData == false) {
+                  return Container();
+                }
+                else {
+                  return _buildPost(context, snapshot.data);
+                }
+              },
+            ),
+            FutureBuilder(
+              future: Firestore.instance.collection('comments').document(postDocID).collection('commentList').orderBy('date').getDocuments(),
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) {
+                  return Container();
+                }
+                else {
+                  return Column(
+                    children: snapshot.data.documents.map((comment) {
+                      return Column(
+                        children: [
+                          Divider(),
+                          _buildComment(context, comment, postDocID),
+                          FutureBuilder(
+                            future: comment.reference.collection('nestedComment').orderBy('date').getDocuments(),
+                            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> nsSnapshot) {
+                              if(!nsSnapshot.hasData) {
+                                return Container();
+                              }
+                              else {
+                                return Column(
+                                  children: nsSnapshot.data.documents.map((nestedComment) {
+                                    return Column(
+                                      children: [
+                                        _buildNestedComment(context, nestedComment),
+                                      ],
+                                    );
+                                  }).toList(),
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
       bottomSheet: Padding(
         padding: EdgeInsets.all(8.0),
@@ -260,6 +283,7 @@ class _PostViewState extends State<PostView> {
     String writer = comment['writerNick'];
     int like = comment['like'];
     Timestamp tt = comment['date'];
+    String writerUID = comment['writer'];
 
     DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
@@ -395,14 +419,25 @@ class _PostViewState extends State<PostView> {
                         });
                       },
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.more_vert,
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        print('more');
-                      },
+                    PopupMenuButton(
+                      itemBuilder: (BuildContext context) =>
+                      writerUID == globals.dbUser.getUID()
+                      ? [
+                          PopupMenuItem(
+                            child: Text('삭제하기'),
+                            value: 'remove',
+                          )
+                        ]
+                      : [
+                        PopupMenuItem(
+                          child: Text('쪽지 보내기'),
+                          value: 'message',
+                        ),
+                        PopupMenuItem(
+                          child: Text('신고하기'),
+                          value: 'report',
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -423,7 +458,7 @@ class _PostViewState extends State<PostView> {
     String writer = nestedComment['writerNick'];
     int like = nestedComment['like'];
     Timestamp tt = nestedComment['date'];
-
+    String writerUID = nestedComment['writer'];
     DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
 
@@ -534,14 +569,25 @@ class _PostViewState extends State<PostView> {
                               });
                             },
                           ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.more_vert,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              print('more');
-                            },
+                          PopupMenuButton(
+                            itemBuilder: (BuildContext context) =>
+                            writerUID == globals.dbUser.getUID()
+                                ? [
+                              PopupMenuItem(
+                                child: Text('삭제하기'),
+                                value: 'remove',
+                              )
+                            ]
+                                : [
+                              PopupMenuItem(
+                                child: Text('쪽지 보내기'),
+                                value: 'message',
+                              ),
+                              PopupMenuItem(
+                                child: Text('신고하기'),
+                                value: 'report',
+                              ),
+                            ],
                           ),
                         ],
                       ),

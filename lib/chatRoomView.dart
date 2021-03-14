@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -18,11 +19,14 @@ class chatRoomView extends StatefulWidget {
 }
 
 class _chatRoomViewState extends State<chatRoomView> {
+  final scaffoldKey = GlobalKey<ScaffoldState>();
   String chatRoomID;
   String chatRoomName;
   final _focusNode = FocusNode();
   final _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  Stream chatStream;
+  StreamSubscription chatStreamSub;
   _chatRoomViewState({Key key, this.chatRoomID, this.chatRoomName});
   Future _getReceiverNick(String receiverID) async {
     String result = "";
@@ -61,13 +65,52 @@ class _chatRoomViewState extends State<chatRoomView> {
   void ScrollToEnd() async {
     _scrollController.jumpTo(_scrollController.position.maxScrollExtent+50);
   }
+  void setStream(String CRID) async{
+    chatStream = db
+        .collection('chatroom')
+        .document(CRID)
+        .collection('messages')
+        .orderBy('date')
+        .snapshots();
+    chatStreamSub = chatStream.listen(null);
+    chatStreamSub.onData((snapshot) {
+      if(snapshot.documents[snapshot.documents.length-1]["sender"]!=globals.dbUser.getUID()){
+        if(_scrollController.offset < _scrollController.position.maxScrollExtent-50){
+          String latestMessage = snapshot.documents[snapshot.documents.length-1]["content"];
+          scaffoldKey.currentState.showSnackBar(
+            SnackBar(
+              content: Text(latestMessage),
+              action: SnackBarAction(
+                label: "보기",
+                onPressed: ()=>{
+                  setState(() {
+                    _shouldScroll = true;
+                  })
+                },
+              ),
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }else{
+          setState(() {
+            _shouldScroll = true;
+          });
+        }
+      }
+    });
+  }
   @override
   void initState() {
-    if (chatRoomID.startsWith("chatInit")) getInitialChatInfo();
+    if (chatRoomID.startsWith("chatInit")) {
+      getInitialChatInfo();
+    }else{
+      setStream(chatRoomID);
+    }
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        key: scaffoldKey,
         appBar: AppBar(
           title: chatRoomName!=null ? Text(chatRoomName) : Text("Error"),
         ),
@@ -80,12 +123,7 @@ class _chatRoomViewState extends State<chatRoomView> {
                       child: Text("Send the first message"),
                     )
                   : StreamBuilder(
-                      stream: db
-                          .collection('chatroom')
-                          .document(chatRoomID)
-                          .collection('messages')
-                          .orderBy('date')
-                          .snapshots(),
+                      stream: chatStream,
                       builder: (context, snapshots) {
                         if (!snapshots.hasData) {
                           return LinearProgressIndicator();
@@ -156,6 +194,7 @@ class _chatRoomViewState extends State<chatRoomView> {
       });
       setState(() {
         chatRoomID = docRef.documentID;
+        setStream(chatRoomID);
       });
     } else {
       CollectionReference msgsRef =

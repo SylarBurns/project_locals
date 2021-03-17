@@ -18,29 +18,36 @@ class chatRoomView extends StatefulWidget {
       chatRoomID: this.chatRoomID, chatRoomName: this.chatRoomName);
 }
 
-class _chatRoomViewState extends State<chatRoomView> {
+class _chatRoomViewState extends State<chatRoomView>
+    with WidgetsBindingObserver {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   String chatRoomID;
   String chatRoomName;
+  String receiverID;
   final _focusNode = FocusNode();
   final _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   Stream chatStream;
   StreamSubscription chatStreamSub;
   _chatRoomViewState({Key key, this.chatRoomID, this.chatRoomName});
-  Future _getReceiverNick(String receiverID) async {
-    String result = "";
-    DocumentSnapshot ds =
-        await db.collection('user').document(receiverID).get();
-    if (ds.data.isNotEmpty) {
-      result = ds["nickName"];
+
+  bool _shouldScroll = true;
+  void ScrollToEnd() async {
+    _scrollController.jumpTo(_scrollController.position.maxScrollExtent + 50);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (chatRoomID.startsWith("chatInit")) {
+      getInitialChatInfo();
     } else {
-      result = "Requested user is not on our database!";
+      setStream(chatRoomID);
     }
-    return result;
   }
   Future getInitialChatInfo() async {
-    String receiverID = chatRoomID.substring("chatInit".length + 1);
+    //get receiverID
+    receiverID = chatRoomID.substring("chatInit".length + 1);
     String senderID = globals.dbUser.getUID();
     QuerySnapshot docSnapshots = await db
         .collection('chatroom')
@@ -48,24 +55,49 @@ class _chatRoomViewState extends State<chatRoomView> {
         .getDocuments();
     if (docSnapshots.documents.isNotEmpty) {
       for (int docIndex = 0;
-          docIndex < docSnapshots.documents.length;
-          docIndex++) {
+      docIndex < docSnapshots.documents.length;
+      docIndex++) {
         if (docSnapshots.documents[docIndex]['participants'].length == 2 &&
             docSnapshots.documents[docIndex]['participants']
                 .contains(receiverID)) {
           print("already exists");
           chatRoomID = docSnapshots.documents[docIndex].documentID;
+          setState(() {
+            setStream(chatRoomID);
+          });
         }
       }
     }
     chatRoomName = await _getReceiverNick(receiverID);
     setState(() {});
   }
-  bool _shouldScroll = true;
-  void ScrollToEnd() async {
-    _scrollController.jumpTo(_scrollController.position.maxScrollExtent+50);
+  Future _getReceiverNick(String receiverID) async {
+    String result = "";
+    DocumentSnapshot ds =
+    await db.collection('user').document(receiverID).get();
+    if (ds.data.isNotEmpty) {
+      result = ds["nickName"];
+    } else {
+      result = "Requested user is not on our database!";
+    }
+    return result;
   }
-  void setStream(String CRID) async{
+  Future setStream(String CRID) async {
+    //get receiverID
+    if(receiverID == null){
+      await db
+          .collection('chatroom')
+          .document(chatRoomID)
+          .get()
+          .then((result) async {
+        List<dynamic> participants = result.data['participants'];
+        participants.removeWhere((element) => element == globals.dbUser.getUID());
+        receiverID = participants[0];
+      });
+    }
+    //add widget binding observer
+    WidgetsBinding.instance.addObserver(this);
+    //register stream and stream subscriber
     chatStream = db
         .collection('chatroom')
         .document(CRID)
@@ -74,45 +106,109 @@ class _chatRoomViewState extends State<chatRoomView> {
         .snapshots();
     chatStreamSub = chatStream.listen(null);
     chatStreamSub.onData((snapshot) {
-      if(snapshot.documents[snapshot.documents.length-1]["sender"]!=globals.dbUser.getUID()){
-        if(_scrollController.offset < _scrollController.position.maxScrollExtent-50){
-          String latestMessage = snapshot.documents[snapshot.documents.length-1]["content"];
-          scaffoldKey.currentState.showSnackBar(
-            SnackBar(
-              content: Text(latestMessage),
-              action: SnackBarAction(
-                label: "보기",
-                onPressed: ()=>{
-                  setState(() {
-                    _shouldScroll = true;
-                  })
-                },
+      if (snapshot.documents[snapshot.documents.length - 1]["sender"] !=
+          globals.dbUser.getUID()) {
+        if(_scrollController.hasClients){
+          if (_scrollController.offset <
+              _scrollController.position.maxScrollExtent - 50) {
+            String latestMessage =
+            snapshot.documents[snapshot.documents.length - 1]["content"];
+            scaffoldKey.currentState.showSnackBar(
+              SnackBar(
+                content: Text(latestMessage),
+                action: SnackBarAction(
+                  label: "보기",
+                  onPressed: () => {
+                    setState(() {
+                      _shouldScroll = true;
+                    })
+                  },
+                ),
+                duration: Duration(seconds: 1),
               ),
-              duration: Duration(seconds: 1),
-            ),
-          );
-        }else{
-          setState(() {
-            _shouldScroll = true;
-          });
+            );
+          } else {
+            setState(() {
+              _shouldScroll = true;
+            });
+          }
         }
       }
     });
+    //make user online
+    userOnLine(CRID);
+    setState(() {});
   }
-  @override
-  void initState() {
-    if (chatRoomID.startsWith("chatInit")) {
-      getInitialChatInfo();
-    }else{
-      setStream(chatRoomID);
+  Future userOnLine(String CRID) async {
+    //make user online
+    DocumentReference docRef = db.collection('chatroom').document(CRID);
+    db.runTransaction((transaction) async {
+      final freshSnapshot = await transaction.get(docRef);
+      final fresh = freshSnapshot.data;
+      List<dynamic> onlineUsers = fresh["onlineUser"];
+      if (!onlineUsers.contains(globals.dbUser.getUID())) {
+        onlineUsers.add(globals.dbUser.getUID());
+      }
+      await transaction.update(docRef, {
+        'onlineUser': onlineUsers,
+        'unreadCount.${globals.dbUser.getUID()}': 0,
+      });
+    });
+    if(receiverID!=null){
+      await db
+          .collection('chatroom')
+          .document(CRID)
+          .collection('messages')
+          .where('sender', isEqualTo: receiverID)
+          .where('isRead', isEqualTo: false)
+          .getDocuments()
+          .then((value) => value.documents.forEach((element) {
+        element.reference.updateData({'isRead': true});
+      }));
     }
   }
+  Future userOffLine(String CRID) async {
+    DocumentReference docRef = db.collection('chatroom').document(CRID);
+    db.runTransaction((transaction) async {
+      final freshSnapshot = await transaction.get(docRef);
+      final fresh = freshSnapshot.data;
+      List<dynamic> onlineUsers = fresh["onlineUser"];
+      onlineUsers.removeWhere((element) => element == globals.dbUser.getUID());
+      await transaction.update(docRef, {'onlineUser': onlineUsers});
+    });
+  }
+
+  @override
+  void dispose() {
+    if (!chatRoomID.startsWith("chatInit")) {
+      userOffLine(chatRoomID);
+      WidgetsBinding.instance.removeObserver(this);
+    }
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (!chatRoomID.startsWith('chatInit')) {
+      if (state == AppLifecycleState.paused ||
+          state == AppLifecycleState.inactive ||
+          state == AppLifecycleState.detached) {
+        print("app paused");
+        userOffLine(chatRoomID);
+      } else if (state == AppLifecycleState.resumed) {
+        print("app resumed");
+        userOnLine(chatRoomID);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         key: scaffoldKey,
         appBar: AppBar(
-          title: chatRoomName!=null ? Text(chatRoomName) : Text("Error"),
+          title: chatRoomName != null ? Text(chatRoomName) : Text("Error"),
         ),
         body: Stack(
           children: <Widget>[
@@ -128,9 +224,10 @@ class _chatRoomViewState extends State<chatRoomView> {
                         if (!snapshots.hasData) {
                           return LinearProgressIndicator();
                         } else {
-                          if(_shouldScroll){
-                            WidgetsBinding.instance.addPostFrameCallback((_)=>ScrollToEnd());
-                            _shouldScroll=false;
+                          if (_shouldScroll) {
+                            WidgetsBinding.instance
+                                .addPostFrameCallback((_) => ScrollToEnd());
+                            _shouldScroll = false;
                           }
                           return ListView.builder(
                               controller: _scrollController,
@@ -185,29 +282,54 @@ class _chatRoomViewState extends State<chatRoomView> {
       DocumentReference docRef = await chatroomRef.add({
         'lastDate': _now,
         'participants': _particitants,
+        'onlineUser': [globals.dbUser.getUID()],
+        'lastMessage': _messageController.text,
+        'unreadCount':{
+          receiverID : 1,
+          globals.dbUser.getUID() : 0,
+        }
       });
       CollectionReference msgsRef = docRef.collection('messages');
       await msgsRef.add({
         'content': _messageController.text,
         'date': _now,
-        'sender': globals.dbUser.getUID()
+        'sender': globals.dbUser.getUID(),
+        'isRead': false,
       });
       setState(() {
         chatRoomID = docRef.documentID;
         setStream(chatRoomID);
       });
     } else {
-      CollectionReference msgsRef =
-          db.collection('chatroom').document(chatRoomID).collection('messages');
-      await msgsRef.add({
-        'content': _messageController.text,
-        'date': _now,
-        'sender': globals.dbUser.getUID()
-      });
       DocumentReference chatroomRef =
           db.collection('chatroom').document(chatRoomID);
-      await chatroomRef.updateData({
-        'lastDate': _now,
+      DocumentSnapshot docSnapshot = await chatroomRef.get();
+      CollectionReference msgsRef = chatroomRef.collection('messages');
+      bool isRead = docSnapshot['onlineUser'].length > 1;
+      String new_message = _messageController.text;
+      await msgsRef.add({
+        'content': new_message,
+        'date': _now,
+        'sender': globals.dbUser.getUID(),
+        'isRead': isRead
+      });
+      db.runTransaction((transaction) async {
+        print("In Transaction: "+new_message);
+        final freshSnapshot = await transaction.get(chatroomRef);
+        final fresh = freshSnapshot.data;
+        List<dynamic> onlineUsers = fresh["onlineUser"];
+        if (onlineUsers.contains(receiverID)) {
+          await transaction.update(chatroomRef, {
+            'lastDate': _now,
+            'lastMessage': new_message,
+          });
+        }else{
+          await transaction.update(chatroomRef, {
+            'lastDate': _now,
+            'lastMessage': new_message,
+            'unreadCount.$receiverID': fresh['unreadCount'][receiverID]+1,
+          });
+        }
       });
     }
     //_focusNode.unfocus();

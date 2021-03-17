@@ -30,6 +30,7 @@ dependencies:
   firebase_auth: ^0.15.5+3
   google_sign_in: ^4.4.1
   rxdart: ^0.23.0
+  badges: ^1.2.0
 
 dev_dependencies:
   flutter_test:

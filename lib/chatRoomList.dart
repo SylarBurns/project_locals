@@ -130,7 +130,7 @@ class _chatRoomListState extends State<chatRoomList> {
                           document['lastMessage'] ,
                           style: TextStyle(
                             fontSize: 10,
-                            fontWeight: document['unreadCount'][globals.dbUser.getUID()]>1 ? FontWeight.normal : FontWeight.bold,
+                            fontWeight: document['unreadCount'][globals.dbUser.getUID()]>1 ? FontWeight.bold : FontWeight.normal,
                           ),
                         ),
                       ),

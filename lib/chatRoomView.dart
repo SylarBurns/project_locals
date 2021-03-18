@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'globals.dart' as globals;
 
 final db = Firestore.instance;
@@ -27,13 +28,24 @@ class _chatRoomViewState extends State<chatRoomView>
   final _focusNode = FocusNode();
   final _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ItemScrollController itemScrollController = ItemScrollController();
+  final ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
   Stream chatStream;
   StreamSubscription chatStreamSub;
   _chatRoomViewState({Key key, this.chatRoomID, this.chatRoomName});
-
+  int _unreadCount;
+  int _unreadIndex;
+  int _lastIndex;
   bool _shouldScroll = true;
+  bool _shouldScrollToUnread = true;
   void ScrollToEnd() async {
-    _scrollController.jumpTo(_scrollController.position.maxScrollExtent + 50);
+      if(_shouldScrollToUnread){
+        itemScrollController.scrollTo(index: _unreadIndex, duration: Duration(milliseconds: 500));
+        _shouldScrollToUnread = false;
+      }else{
+        itemScrollController.jumpTo(index: _lastIndex+1);
+      }
+      _shouldScroll = false;
   }
 
   @override
@@ -97,47 +109,50 @@ class _chatRoomViewState extends State<chatRoomView>
     }
     //add widget binding observer
     WidgetsBinding.instance.addObserver(this);
-    //register stream and stream subscriber
-    chatStream = db
-        .collection('chatroom')
-        .document(CRID)
-        .collection('messages')
-        .orderBy('date')
-        .snapshots();
-    chatStreamSub = chatStream.listen(null);
-    chatStreamSub.onData((snapshot) {
-      if (snapshot.documents[snapshot.documents.length - 1]["sender"] !=
-          globals.dbUser.getUID()) {
-        if(_scrollController.hasClients){
-          if (_scrollController.offset <
-              _scrollController.position.maxScrollExtent - 50) {
-            String latestMessage =
-            snapshot.documents[snapshot.documents.length - 1]["content"];
-            scaffoldKey.currentState.showSnackBar(
-              SnackBar(
-                content: Text(latestMessage),
-                action: SnackBarAction(
-                  label: "보기",
-                  onPressed: () => {
-                    setState(() {
-                      _shouldScroll = true;
-                    })
-                  },
+    //make user online
+    await userOnLine(CRID);
+    setState(() {
+      //register stream and stream subscriber
+      chatStream = db
+          .collection('chatroom')
+          .document(CRID)
+          .collection('messages')
+          .orderBy('date')
+          .snapshots();
+      chatStreamSub = chatStream.listen(null);
+      chatStreamSub.onData((snapshot) {
+        if (snapshot.documents[snapshot.documents.length - 1]["sender"] !=
+            globals.dbUser.getUID()) {
+          if(itemScrollController.isAttached){
+            if (itemPositionsListener.itemPositions.value.last.index<_lastIndex) {
+              String latestMessage =
+              snapshot.documents[snapshot.documents.length - 1]["content"];
+              scaffoldKey.currentState.showSnackBar(
+                SnackBar(
+                  content: Text(latestMessage),
+                  action: SnackBarAction(
+                    label: "보기",
+                    onPressed: () => {
+                      setState(() {
+                        _shouldScroll = true;
+                      })
+                    },
+                  ),
+                  duration: Duration(seconds: 1),
                 ),
-                duration: Duration(seconds: 1),
-              ),
-            );
-          } else {
-            setState(() {
-              _shouldScroll = true;
-            });
+              );
+            } else {
+              setState(() {
+                _shouldScroll = true;
+              });
+            }
           }
         }
-      }
+      });
     });
-    //make user online
-    userOnLine(CRID);
-    setState(() {});
+    setState(() {
+
+    });
   }
   Future userOnLine(String CRID) async {
     //make user online
@@ -145,6 +160,7 @@ class _chatRoomViewState extends State<chatRoomView>
     db.runTransaction((transaction) async {
       final freshSnapshot = await transaction.get(docRef);
       final fresh = freshSnapshot.data;
+      _unreadCount = fresh['unreadCount'][globals.dbUser.getUID()];
       List<dynamic> onlineUsers = fresh["onlineUser"];
       if (!onlineUsers.contains(globals.dbUser.getUID())) {
         onlineUsers.add(globals.dbUser.getUID());
@@ -222,20 +238,38 @@ class _chatRoomViewState extends State<chatRoomView>
                       stream: chatStream,
                       builder: (context, snapshots) {
                         if (!snapshots.hasData) {
+                          print('data loading');
                           return LinearProgressIndicator();
                         } else {
                           if (_shouldScroll) {
+                            _lastIndex = snapshots.data.documents.length-1;
+                            _unreadIndex = _lastIndex;
                             WidgetsBinding.instance
                                 .addPostFrameCallback((_) => ScrollToEnd());
                             _shouldScroll = false;
                           }
-                          return ListView.builder(
-                              controller: _scrollController,
+                          return ScrollablePositionedList.builder(
+                              itemScrollController: itemScrollController,
+                              itemPositionsListener: itemPositionsListener,
                               itemCount: snapshots.data.documents.length,
-                              shrinkWrap: true,
                               itemBuilder: (context, index) {
-                                return chatMessageItem(
-                                    context, snapshots.data.documents[index]);
+                                if(index == snapshots.data.documents.length-_unreadCount){
+                                  _unreadIndex = index;
+                                  return Column(
+                                    children: [
+                                      Container(
+                                        width: 150,
+                                        alignment: Alignment.center,
+                                        child: Text("여기까지 읽었습니다"),
+                                      ),
+                                      chatMessageItem(
+                                      context, snapshots.data.documents[index])
+                                    ],
+                                  );
+                                }else{
+                                  return chatMessageItem(
+                                      context, snapshots.data.documents[index]);
+                                }
                               });
                         }
                       }),

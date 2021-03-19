@@ -1,10 +1,15 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:path/path.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:full_screen_image/full_screen_image.dart';
 import 'globals.dart' as globals;
 
 final db = Firestore.instance;
@@ -29,7 +34,8 @@ class _chatRoomViewState extends State<chatRoomView>
   final _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ItemScrollController itemScrollController = ItemScrollController();
-  final ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
+  final ItemPositionsListener itemPositionsListener =
+      ItemPositionsListener.create();
   Stream chatStream;
   StreamSubscription chatStreamSub;
   _chatRoomViewState({Key key, this.chatRoomID, this.chatRoomName});
@@ -38,14 +44,16 @@ class _chatRoomViewState extends State<chatRoomView>
   int _lastIndex;
   bool _shouldScroll = true;
   bool _shouldScrollToUnread = true;
+  File imageFile;
   void ScrollToEnd() async {
-      if(_shouldScrollToUnread){
-        itemScrollController.scrollTo(index: _unreadIndex, duration: Duration(milliseconds: 500));
-        _shouldScrollToUnread = false;
-      }else{
-        itemScrollController.jumpTo(index: _lastIndex+1);
-      }
-      _shouldScroll = false;
+    if (_shouldScrollToUnread) {
+      itemScrollController.scrollTo(
+          index: _unreadIndex, duration: Duration(milliseconds: 500));
+      _shouldScrollToUnread = false;
+    } else {
+      itemScrollController.jumpTo(index: _lastIndex + 1);
+    }
+    _shouldScroll = false;
   }
 
   @override
@@ -57,6 +65,7 @@ class _chatRoomViewState extends State<chatRoomView>
       setStream(chatRoomID);
     }
   }
+
   Future getInitialChatInfo() async {
     //get receiverID
     receiverID = chatRoomID.substring("chatInit".length + 1);
@@ -67,8 +76,8 @@ class _chatRoomViewState extends State<chatRoomView>
         .getDocuments();
     if (docSnapshots.documents.isNotEmpty) {
       for (int docIndex = 0;
-      docIndex < docSnapshots.documents.length;
-      docIndex++) {
+          docIndex < docSnapshots.documents.length;
+          docIndex++) {
         if (docSnapshots.documents[docIndex]['participants'].length == 2 &&
             docSnapshots.documents[docIndex]['participants']
                 .contains(receiverID)) {
@@ -83,10 +92,11 @@ class _chatRoomViewState extends State<chatRoomView>
     chatRoomName = await _getReceiverNick(receiverID);
     setState(() {});
   }
+
   Future _getReceiverNick(String receiverID) async {
     String result = "";
     DocumentSnapshot ds =
-    await db.collection('user').document(receiverID).get();
+        await db.collection('user').document(receiverID).get();
     if (ds.data.isNotEmpty) {
       result = ds["nickName"];
     } else {
@@ -94,16 +104,18 @@ class _chatRoomViewState extends State<chatRoomView>
     }
     return result;
   }
+
   Future setStream(String CRID) async {
     //get receiverID
-    if(receiverID == null){
+    if (receiverID == null) {
       await db
           .collection('chatroom')
           .document(chatRoomID)
           .get()
           .then((result) async {
         List<dynamic> participants = result.data['participants'];
-        participants.removeWhere((element) => element == globals.dbUser.getUID());
+        participants
+            .removeWhere((element) => element == globals.dbUser.getUID());
         receiverID = participants[0];
       });
     }
@@ -123,10 +135,11 @@ class _chatRoomViewState extends State<chatRoomView>
       chatStreamSub.onData((snapshot) {
         if (snapshot.documents[snapshot.documents.length - 1]["sender"] !=
             globals.dbUser.getUID()) {
-          if(itemScrollController.isAttached){
-            if (itemPositionsListener.itemPositions.value.last.index<_lastIndex) {
+          if (itemScrollController.isAttached) {
+            if (itemPositionsListener.itemPositions.value.last.index <
+                _lastIndex) {
               String latestMessage =
-              snapshot.documents[snapshot.documents.length - 1]["content"];
+                  snapshot.documents[snapshot.documents.length - 1]["content"];
               scaffoldKey.currentState.showSnackBar(
                 SnackBar(
                   content: Text(latestMessage),
@@ -150,10 +163,9 @@ class _chatRoomViewState extends State<chatRoomView>
         }
       });
     });
-    setState(() {
-
-    });
+    setState(() {});
   }
+
   Future userOnLine(String CRID) async {
     //make user online
     DocumentReference docRef = db.collection('chatroom').document(CRID);
@@ -170,7 +182,7 @@ class _chatRoomViewState extends State<chatRoomView>
         'unreadCount.${globals.dbUser.getUID()}': 0,
       });
     });
-    if(receiverID!=null){
+    if (receiverID != null) {
       await db
           .collection('chatroom')
           .document(CRID)
@@ -179,10 +191,11 @@ class _chatRoomViewState extends State<chatRoomView>
           .where('isRead', isEqualTo: false)
           .getDocuments()
           .then((value) => value.documents.forEach((element) {
-        element.reference.updateData({'isRead': true});
-      }));
+                element.reference.updateData({'isRead': true});
+              }));
     }
   }
+
   Future userOffLine(String CRID) async {
     DocumentReference docRef = db.collection('chatroom').document(CRID);
     db.runTransaction((transaction) async {
@@ -193,7 +206,102 @@ class _chatRoomViewState extends State<chatRoomView>
       await transaction.update(docRef, {'onlineUser': onlineUsers});
     });
   }
-
+  Future _showChoiceDialog(BuildContext context)
+  {
+    return showDialog(context: context,builder: (BuildContext context){
+      return AlertDialog(
+        title: Text("Choose option",style: TextStyle(color: Colors.blue),),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: [
+              Divider(height: 1,color: Colors.blue,),
+              ListTile(
+                onTap: (){
+                  _openGallery(context);
+                },
+                title: Text("Gallery"),
+                leading: Icon(Icons.account_box,color: Colors.blue,),
+              ),
+              Divider(height: 1,color: Colors.blue,),
+              ListTile(
+                onTap: (){
+                  _openCamera(context);
+                },
+                title: Text("Camera"),
+                leading: Icon(Icons.camera,color: Colors.blue,),
+              ),
+            ],
+          )
+        ),);
+    });
+  }
+  Future _showLoadedImage(BuildContext context){
+    return showDialog(context: context, builder: (BuildContext context){
+      return AlertDialog(
+        title: Text("Loaded Image"),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: [
+              Container(
+                child: Image.file(imageFile),
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.send),
+                    onPressed: () async {
+                      await uploadImageToFirebase(context);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  IconButton(icon: Icon(Icons.clear),onPressed: (){Navigator.pop(context);},)
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+  void _openGallery(BuildContext context) async{
+    print("open Gallery");
+    await ImagePicker().getImage(
+      source: ImageSource.gallery ,
+    ).then((value){
+      setState(() async {
+        imageFile = File(value.path);
+        print("*****image path"+imageFile.path);
+        await _showLoadedImage(context);
+        Navigator.pop(context);
+      });
+    });
+  }
+  void _openCamera(BuildContext context)  async{
+    print("open Camera");
+    await ImagePicker().getImage(
+      source: ImageSource.camera ,
+    ).then((value){
+      setState(() async {
+        imageFile = File(value.path);
+        print("*****image path"+imageFile.path);
+        await _showLoadedImage(context);
+        Navigator.pop(context);
+      });
+    });
+  }
+  Future uploadImageToFirebase(BuildContext context) async {
+    String fileName = basename(imageFile.path);
+    StorageReference firebaseStorageRef =
+    FirebaseStorage.instance.ref().child('chatroom/$fileName');
+    StorageUploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
+    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
+    taskSnapshot.ref.getDownloadURL().then(
+          (value){
+          print("Done: $value");
+          _saveMessage(true, value);
+        });
+  }
   @override
   void dispose() {
     if (!chatRoomID.startsWith("chatInit")) {
@@ -221,6 +329,9 @@ class _chatRoomViewState extends State<chatRoomView>
 
   @override
   Widget build(BuildContext context) {
+    _messageController.addListener(() {
+      setState(() {});
+    });
     return Scaffold(
         key: scaffoldKey,
         appBar: AppBar(
@@ -242,7 +353,7 @@ class _chatRoomViewState extends State<chatRoomView>
                           return LinearProgressIndicator();
                         } else {
                           if (_shouldScroll) {
-                            _lastIndex = snapshots.data.documents.length-1;
+                            _lastIndex = snapshots.data.documents.length - 1;
                             _unreadIndex = _lastIndex;
                             WidgetsBinding.instance
                                 .addPostFrameCallback((_) => ScrollToEnd());
@@ -253,7 +364,9 @@ class _chatRoomViewState extends State<chatRoomView>
                               itemPositionsListener: itemPositionsListener,
                               itemCount: snapshots.data.documents.length,
                               itemBuilder: (context, index) {
-                                if(index == snapshots.data.documents.length-_unreadCount){
+                                if (index ==
+                                    snapshots.data.documents.length -
+                                        _unreadCount) {
                                   _unreadIndex = index;
                                   return Column(
                                     children: [
@@ -262,11 +375,11 @@ class _chatRoomViewState extends State<chatRoomView>
                                         alignment: Alignment.center,
                                         child: Text("여기까지 읽었습니다"),
                                       ),
-                                      chatMessageItem(
-                                      context, snapshots.data.documents[index])
+                                      chatMessageItem(context,
+                                          snapshots.data.documents[index])
                                     ],
                                   );
-                                }else{
+                                } else {
                                   return chatMessageItem(
                                       context, snapshots.data.documents[index]);
                                 }
@@ -282,21 +395,28 @@ class _chatRoomViewState extends State<chatRoomView>
                   focusNode: _focusNode,
                   controller: _messageController,
                   decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Send a message',
-                    filled: true,
-                    fillColor: Colors.grey,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        Icons.send_rounded,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _shouldScroll = true;
-                          _saveMessage();
-                        });
-                      },
-                    ),
+                      border: OutlineInputBorder(),
+                      hintText: 'Send a message',
+                      filled: true,
+                      fillColor: Colors.grey,
+                      suffixIcon: _messageController.text.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.send_rounded,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _shouldScroll = true;
+                                  _saveMessage(false, _messageController.text);
+                                });
+                              },
+                            )
+                          : IconButton(
+                              icon: Icon(Icons.camera_alt),
+                              onPressed: (){
+                                _showChoiceDialog(context);
+                              }
+                            )
                   ),
                 ),
               ),
@@ -305,7 +425,7 @@ class _chatRoomViewState extends State<chatRoomView>
         ));
   }
 
-  void _saveMessage() async {
+  void _saveMessage(bool isImage, String content) async {
     DateTime _now = DateTime.now();
     if (chatRoomID.startsWith("chatInit")) {
       CollectionReference chatroomRef = db.collection('chatroom');
@@ -317,19 +437,30 @@ class _chatRoomViewState extends State<chatRoomView>
         'lastDate': _now,
         'participants': _particitants,
         'onlineUser': [globals.dbUser.getUID()],
-        'lastMessage': _messageController.text,
-        'unreadCount':{
-          receiverID : 1,
-          globals.dbUser.getUID() : 0,
+        'lastMessage': isImage ? '<Photo>' : content,
+        'unreadCount': {
+          receiverID: 1,
+          globals.dbUser.getUID(): 0,
         }
       });
       CollectionReference msgsRef = docRef.collection('messages');
-      await msgsRef.add({
-        'content': _messageController.text,
-        'date': _now,
-        'sender': globals.dbUser.getUID(),
-        'isRead': false,
-      });
+      if(isImage){
+        await msgsRef.add({
+          'type' : 'image',
+          'content': content,
+          'date': _now,
+          'sender': globals.dbUser.getUID(),
+          'isRead': false,
+        });
+      }else{
+        await msgsRef.add({
+          'type' : 'text',
+          'content': content,
+          'date': _now,
+          'sender': globals.dbUser.getUID(),
+          'isRead': false,
+        });
+      }
       setState(() {
         chatRoomID = docRef.documentID;
         setStream(chatRoomID);
@@ -340,28 +471,37 @@ class _chatRoomViewState extends State<chatRoomView>
       DocumentSnapshot docSnapshot = await chatroomRef.get();
       CollectionReference msgsRef = chatroomRef.collection('messages');
       bool isRead = docSnapshot['onlineUser'].length > 1;
-      String new_message = _messageController.text;
-      await msgsRef.add({
-        'content': new_message,
-        'date': _now,
-        'sender': globals.dbUser.getUID(),
-        'isRead': isRead
-      });
+      if(isImage){
+        await msgsRef.add({
+          'type' : 'image',
+          'content': content,
+          'date': _now,
+          'sender': globals.dbUser.getUID(),
+          'isRead': isRead,
+        });
+      }else{
+        await msgsRef.add({
+          'type' : 'text',
+          'content': content,
+          'date': _now,
+          'sender': globals.dbUser.getUID(),
+          'isRead': isRead,
+        });
+      }
       db.runTransaction((transaction) async {
-        print("In Transaction: "+new_message);
         final freshSnapshot = await transaction.get(chatroomRef);
         final fresh = freshSnapshot.data;
         List<dynamic> onlineUsers = fresh["onlineUser"];
         if (onlineUsers.contains(receiverID)) {
           await transaction.update(chatroomRef, {
             'lastDate': _now,
-            'lastMessage': new_message,
+            'lastMessage': isImage ? '<Photo>' : content,
           });
-        }else{
+        } else {
           await transaction.update(chatroomRef, {
             'lastDate': _now,
-            'lastMessage': new_message,
-            'unreadCount.$receiverID': fresh['unreadCount'][receiverID]+1,
+            'lastMessage': isImage ? '<Photo>' : content,
+            'unreadCount.$receiverID': fresh['unreadCount'][receiverID] + 1,
           });
         }
       });
@@ -393,14 +533,14 @@ class _chatRoomViewState extends State<chatRoomView>
                       date,
                       style: TextStyle(fontSize: 12, color: Colors.black38),
                     ),
-                    messagebody(document["content"], isSender)
+                    messagebody(document["type"],document["content"], isSender, context)
                   ],
                 )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    messagebody(document["content"], isSender),
+                    messagebody(document['type'],document["content"], isSender, context),
                     Text(
                       date,
                       style: TextStyle(fontSize: 12, color: Colors.black38),
@@ -410,9 +550,23 @@ class _chatRoomViewState extends State<chatRoomView>
     );
   }
 
-  Widget messagebody(String content, bool isSender) {
+  Widget messagebody(String type, String content, bool isSender, BuildContext context) {
     return Flexible(
-      child: Card(
+      child: type == 'image'
+        ? Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            width: MediaQuery.of(context).size.width*0.7,
+            height: MediaQuery.of(context).size.width*0.8,
+            child: FullScreenWidget(
+              child: Hero(
+                tag: content,
+                child: Image.network(content, fit: BoxFit.cover,),
+              )
+            ),
+          )
+        )
+        : Card(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Text(

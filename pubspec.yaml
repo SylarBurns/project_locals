@@ -32,6 +32,9 @@ dependencies:
   rxdart: ^0.23.0
   badges: ^1.2.0
   scrollable_positioned_list: ^0.1.10
+  firebase_storage: ^3.0.8
+  image_picker: ^0.6.7+22
+  full_screen_image: ^1.0.2
 
 dev_dependencies:
   flutter_test:

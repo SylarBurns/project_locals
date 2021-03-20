@@ -40,20 +40,15 @@ class _chatRoomViewState extends State<chatRoomView>
   StreamSubscription chatStreamSub;
   _chatRoomViewState({Key key, this.chatRoomID, this.chatRoomName});
   int _unreadCount;
-  int _unreadIndex;
   int _lastIndex;
-  bool _shouldScroll = true;
-  bool _shouldScrollToUnread = true;
+  bool _shouldScroll;
   File imageFile;
   void ScrollToEnd() async {
-    if (_shouldScrollToUnread) {
-      itemScrollController.scrollTo(
-          index: _unreadIndex, duration: Duration(milliseconds: 500));
-      _shouldScrollToUnread = false;
-    } else {
-      itemScrollController.jumpTo(index: _lastIndex + 1);
+    if(_shouldScroll){
+      print("scroll to end index: "+ _lastIndex.toString());
+      itemScrollController.jumpTo(index: _lastIndex);
+      _shouldScroll = false;
     }
-    _shouldScroll = false;
   }
 
   @override
@@ -64,6 +59,7 @@ class _chatRoomViewState extends State<chatRoomView>
     } else {
       setStream(chatRoomID);
     }
+    _shouldScroll = false;
   }
 
   Future getInitialChatInfo() async {
@@ -265,26 +261,22 @@ class _chatRoomViewState extends State<chatRoomView>
     });
   }
   void _openGallery(BuildContext context) async{
-    print("open Gallery");
     await ImagePicker().getImage(
       source: ImageSource.gallery ,
     ).then((value){
       setState(() async {
         imageFile = File(value.path);
-        print("*****image path"+imageFile.path);
         await _showLoadedImage(context);
         Navigator.pop(context);
       });
     });
   }
   void _openCamera(BuildContext context)  async{
-    print("open Camera");
     await ImagePicker().getImage(
       source: ImageSource.camera ,
     ).then((value){
       setState(() async {
         imageFile = File(value.path);
-        print("*****image path"+imageFile.path);
         await _showLoadedImage(context);
         Navigator.pop(context);
       });
@@ -298,8 +290,12 @@ class _chatRoomViewState extends State<chatRoomView>
     StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
     taskSnapshot.ref.getDownloadURL().then(
           (value){
-          print("Done: $value");
-          _saveMessage(true, value);
+            setState(() {
+              print("should scroll true, unfocus focus node");
+              _shouldScroll = true;
+              _focusNode.unfocus();
+              _saveMessage(true, value);
+            });
         });
   }
   @override
@@ -353,13 +349,12 @@ class _chatRoomViewState extends State<chatRoomView>
                           return LinearProgressIndicator();
                         } else {
                           if (_shouldScroll) {
-                            _lastIndex = snapshots.data.documents.length - 1;
-                            _unreadIndex = _lastIndex;
+                            _lastIndex = snapshots.data.documents.length-1;
                             WidgetsBinding.instance
                                 .addPostFrameCallback((_) => ScrollToEnd());
-                            _shouldScroll = false;
                           }
                           return ScrollablePositionedList.builder(
+                              initialScrollIndex: snapshots.data.documents.length-_unreadCount,
                               itemScrollController: itemScrollController,
                               itemPositionsListener: itemPositionsListener,
                               itemCount: snapshots.data.documents.length,
@@ -367,7 +362,7 @@ class _chatRoomViewState extends State<chatRoomView>
                                 if (index ==
                                     snapshots.data.documents.length -
                                         _unreadCount) {
-                                  _unreadIndex = index;
+                                  // _unreadIndex = index;
                                   return Column(
                                     children: [
                                       Container(
@@ -390,15 +385,14 @@ class _chatRoomViewState extends State<chatRoomView>
             Align(
               alignment: Alignment.bottomLeft,
               child: Padding(
-                padding: EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(4.0),
                 child: TextField(
+                  style: TextStyle(fontSize: 15),
                   focusNode: _focusNode,
                   controller: _messageController,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       hintText: 'Send a message',
-                      filled: true,
-                      fillColor: Colors.grey,
                       suffixIcon: _messageController.text.isNotEmpty
                           ? IconButton(
                               icon: Icon(

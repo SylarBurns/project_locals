@@ -110,7 +110,7 @@ class _chatRoomListState extends State<chatRoomList> {
                         ),
                       ),
                       Container(
-                        child: document['unreadCount'][globals.dbUser.getUID()]>1
+                        child: document['unreadCount'][globals.dbUser.getUID()]>=1
                         ? Badge(
                           badgeContent: Text(
                             document['unreadCount'][globals.dbUser.getUID()].toString(),

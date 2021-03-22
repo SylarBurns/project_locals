@@ -40,19 +40,30 @@ class _PostWriteState extends State<PostWrite> {
               Icons.check,
             ),
             onPressed: () {
-              Firestore.instance.collection('board').add({
+              var data = {
                 'boardType': boardType,
                 'comments': 0,
                 'content': contentController.text,
-                'date': Timestamp.now(),
+                'date': DateTime.now(),
                 'isEdit': false,
                 'like': 0,
                 'region': globals.dbUser.getRegion(),
                 'report': 0,
+                'reportUserList': [],
                 'title': titleController.text,
                 'writer': globals.dbUser.getUID(),
-                'writerNick': globals.dbUser.getNickName(),
-              });
+              };
+
+              if(boardType == 'anonymous') {
+                String uid = globals.dbUser.getUID();
+                data['writerNick'] = 'Anonymous';
+                data['anonymousList'] = {'$uid': 'Anonymous(writer)'};
+              }
+              else {
+                data['writerNick'] = globals.dbUser.getNickName();
+              }
+              Firestore.instance.collection('board').add(data);
+
               Navigator.pop(context);
             },
           ),

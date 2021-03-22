@@ -120,7 +120,7 @@ class _homePageState extends State<homePage> {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PostView(postDocID: document.documentID, boardName: '',),
+            builder: (context) => PostView(postDocID: document.documentID, boardName: boardType, writerUID: document['writer'],),
           ),
         ),
         child: Container(
@@ -274,7 +274,7 @@ class _homePageState extends State<homePage> {
         Container(
           child: Column(
             children: snapshots
-                .map((data) => _buildRecentPostListItem(context, data))
+                .map((data) => _buildRecentPostListItem(context, data, boardType))
                 .toList(),
           ),
         ),
@@ -283,7 +283,7 @@ class _homePageState extends State<homePage> {
   }
 
   Widget _buildRecentPostListItem(
-      BuildContext context, DocumentSnapshot document) {
+      BuildContext context, DocumentSnapshot document, String boardType) {
     String title = document["title"];
     Timestamp tt = document["date"];
     DateTime dateTime =
@@ -299,7 +299,7 @@ class _homePageState extends State<homePage> {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PostView(postDocID: document.documentID, boardName: '',),
+          builder: (context) => PostView(postDocID: document.documentID, boardName: boardType, writerUID: document['writer'],),
         ),
       ),
       child: Container(

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'chatRoomView.dart';
+import 'package:badges/badges.dart';
 import 'globals.dart' as globals;
 final db = Firestore.instance;
 class chatRoomList extends StatefulWidget{
@@ -52,9 +55,8 @@ class _chatRoomListState extends State<chatRoomList> {
   }
   Widget _chatRoomItem(BuildContext context, DocumentSnapshot document){
     List<dynamic> participants = document["participants"];
-    List<dynamic> participantsNick = [];
     participants.removeWhere((element) => element.toString() == globals.dbUser.getUID());
-    Future _getParticipantsNick() async{
+    Future _getInitialData() async{
       String participantsString = "";
       if(participants.length > 0){
         DocumentSnapshot ds = await db.collection('user').document(participants[0]).get();
@@ -77,44 +79,78 @@ class _chatRoomListState extends State<chatRoomList> {
     return Container(
       padding: EdgeInsets.all(8),
       child: FutureBuilder(
-        future: _getParticipantsNick(),
+        future: _getInitialData(),
         builder: (context, result){
-          return InkWell(
-          onTap: () =>{
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context)=>
-                        chatRoomView(
+          if(result.hasData){
+            return InkWell(
+              onTap: () =>{
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context)=>
+                          chatRoomView(
                             chatRoomID: document.documentID,
                             chatRoomName: result.data.toString(),
+                          ),
+                    )
+                ),
+              },
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        alignment: Alignment.topLeft,
+                        child: Text(
+                          result.data.toString(),
+                          style: TextStyle(
+                              fontSize: 13
+                          ),
                         ),
-                )
-            ),
-          },
-          child: Column(
-            children: [
-              Container(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  result.data.toString(),
-                  style: TextStyle(
-                      fontSize: 13
+                      ),
+                      Container(
+                        child: document['unreadCount'][globals.dbUser.getUID()]>1
+                        ? Badge(
+                          badgeContent: Text(
+                            document['unreadCount'][globals.dbUser.getUID()].toString(),
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          badgeColor: Colors.pinkAccent,
+                        )
+                        : SizedBox(width: 1,height: 1,),
+                      )
+                    ],
                   ),
-                ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children:[
+                      Container(
+                        child: Text(
+                          document['lastMessage'] ,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: document['unreadCount'][globals.dbUser.getUID()]>1 ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        alignment: Alignment.bottomRight,
+                        child: Text(
+                          date,
+                          style: TextStyle(
+                              fontSize: 10
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
               ),
-              Container(
-                alignment: Alignment.bottomRight,
-                child: Text(
-                  date,
-                  style: TextStyle(
-                      fontSize: 10
-                  ),
-                ),
-              )
-            ],
-          ),
-        );
+            );
+          }else{
+            return LinearProgressIndicator();
+          }
         }
       ),
     );

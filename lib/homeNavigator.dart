@@ -9,8 +9,10 @@ import 'boardHome.dart';
 import 'globals.dart' as globals;
 import 'searchPage.dart';
 import 'chatRoomList.dart';
+import 'personalInfo.dart';
 import 'notificationPage.dart';
 import 'notificationBody.dart';
+
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class homeNavigator extends StatefulWidget {
@@ -112,7 +114,7 @@ class _MyHomePageState extends State<homeNavigator> {
     searchPage(),
     boardHome(),
     NotificationBody(),
-    Text('Personal Info'),
+    personalInfo(),
   ];
 
 }

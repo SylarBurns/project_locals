@@ -58,16 +58,20 @@ class _chatRoomListState extends State<chatRoomList> {
     participants.removeWhere((element) => element.toString() == globals.dbUser.getUID());
     Future _getInitialData() async{
       String participantsString = "";
-      if(participants.length > 0){
-        DocumentSnapshot ds = await db.collection('user').document(participants[0]).get();
-        participantsString = ds["nickName"];
+      if(document['isAnonymous']){
+        participantsString = "익명";
       }else{
-        participantsString = "unknown";
-      }
-      if(participants.length>1){
-        for(int i=1;i<participants.length;i++){
-          DocumentSnapshot ds = await db.collection('user').document(participants[i]).get();
-          participantsString = participantsString+", "+ds['nickName'];
+        if(participants.length > 0){
+          DocumentSnapshot ds = await db.collection('user').document(participants[0]).get();
+          participantsString = ds["nickName"];
+        }else{
+          participantsString = "unknown";
+        }
+        if(participants.length>1){
+          for(int i=1;i<participants.length;i++){
+            DocumentSnapshot ds = await db.collection('user').document(participants[i]).get();
+            participantsString = participantsString+", "+ds['nickName'];
+          }
         }
       }
       return participantsString;

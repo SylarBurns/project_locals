@@ -56,19 +56,32 @@ class _homePageState extends State<homePage> {
           _recentPost(context),
         ]);
   }
-
+  Future getHotPosts() async {
+    List<DocumentSnapshot> docs = await db.collection('board')
+        .where("region", isEqualTo: globals.dbUser.getRegion())
+        .where('date', isGreaterThan: DateTime.now().subtract(Duration(days: 7)))
+        .orderBy("date").getDocuments().then((value){
+          List<DocumentSnapshot> docs = value.documents;
+          docs.sort((A,B)=>-A['like'].compareTo(B['like']));
+          if(docs.length>3){
+            return docs.sublist(0,3);
+          }else {
+            return docs;
+          }
+    });
+    return docs;
+  }
   Widget _hotPost(BuildContext context) {
-    return StreamBuilder(
-      stream: db
-          .collection("board")
-          .where("region", isEqualTo: globals.dbUser.getRegion())
-          .orderBy("like", descending: true)
-          .limit(3)
-          .snapshots(),
+    return FutureBuilder(
+      future: getHotPosts(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return LinearProgressIndicator();
-
-        return _buildHotPostList(context, snapshot.data.documents);
+        if (snapshot.connectionState == ConnectionState.waiting){
+          return LinearProgressIndicator();
+        }else if(snapshot.hasData){
+          return _buildHotPostList(context, snapshot.data);
+        }else{
+          return LinearProgressIndicator();
+        }
       },
     );
   }
@@ -103,16 +116,16 @@ class _homePageState extends State<homePage> {
     int like = document["like"];
     String content = document["content"];
     String boardT = document["boardType"];
-    String boardType = "";
+    String boardName = "";
     switch (boardT) {
       case "free":
-        boardType = "자유 게시판";
+        boardName = "자유 게시판";
         break;
       case "anonymous":
-        boardType = "익명 게시판";
+        boardName = "익명 게시판";
         break;
       case "lostAndFound":
-        boardType = "Lost&Found";
+        boardName = "Lost&Found";
         break;
     }
     return Container(
@@ -120,7 +133,7 @@ class _homePageState extends State<homePage> {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PostView(postDocID: document.documentID, boardName: boardType, writerUID: document['writer'],),
+            builder: (context) => PostView(postDocID: document.documentID, boardName: boardName, boardType: document["boardType"], writerUID: document['writer'],),
           ),
         ),
         child: Container(
@@ -167,7 +180,7 @@ class _homePageState extends State<homePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text(
-                      '$boardType',
+                      '$boardName',
                       style: TextStyle(
                         color: Colors.black26.withOpacity(.70),
                         fontSize: 12,
@@ -209,16 +222,16 @@ class _homePageState extends State<homePage> {
     ];
     return Column(
       children: List.generate(boardTypes.length, (index) {
-        String boardType = "";
+        String boardName = "";
         switch (boardTypes[index]) {
           case "free":
-            boardType = "자유 게시판";
+            boardName = "자유 게시판";
             break;
           case "anonymous":
-            boardType = "익명 게시판";
+            boardName = "익명 게시판";
             break;
           case "lostAndFound":
-            boardType = "Lost&Found";
+            boardName = "Lost&Found";
             break;
         }
         return StreamBuilder(
@@ -236,7 +249,7 @@ class _homePageState extends State<homePage> {
               child: Column(
                 children: [
                   _buildRecentPostList(
-                      context, snapshot.data.documents, boardType),
+                      context, snapshot.data.documents, boardName),
                   SizedBox(
                     height: 10,
                   )
@@ -250,7 +263,7 @@ class _homePageState extends State<homePage> {
   }
 
   Widget _buildRecentPostList(BuildContext context,
-      List<DocumentSnapshot> snapshots, String boardType) {
+      List<DocumentSnapshot> snapshots, String boardName) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -264,7 +277,7 @@ class _homePageState extends State<homePage> {
           alignment: Alignment.bottomLeft,
           padding: EdgeInsets.all(8),
           child: Text(
-            boardType,
+            boardName,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -274,7 +287,7 @@ class _homePageState extends State<homePage> {
         Container(
           child: Column(
             children: snapshots
-                .map((data) => _buildRecentPostListItem(context, data, boardType))
+                .map((data) => _buildRecentPostListItem(context, data, boardName))
                 .toList(),
           ),
         ),
@@ -283,7 +296,7 @@ class _homePageState extends State<homePage> {
   }
 
   Widget _buildRecentPostListItem(
-      BuildContext context, DocumentSnapshot document, String boardType) {
+      BuildContext context, DocumentSnapshot document, String boardName) {
     String title = document["title"];
     Timestamp tt = document["date"];
     DateTime dateTime =
@@ -299,7 +312,7 @@ class _homePageState extends State<homePage> {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PostView(postDocID: document.documentID, boardName: boardType, writerUID: document['writer'],),
+          builder: (context) => PostView(postDocID: document.documentID, boardName: boardName, boardType: document["boardType"], writerUID: document['writer'],),
         ),
       ),
       child: Container(

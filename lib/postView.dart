@@ -101,11 +101,13 @@ class _PostViewState extends State<PostView> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context)=>
-                            chatRoomView(
-                              chatRoomID: "chatInit/"+widget.writerUID,
-                              chatRoomName: "new message",
-                            ),
+                        builder: (context){
+                         String chatRoomID = "chatInit/${widget.writerUID}/${widget.boardType}";
+                         return chatRoomView(
+                           chatRoomID: chatRoomID,
+                           chatRoomName: "new message",
+                         );
+                        }
                       )
                   );
                   break;
@@ -163,6 +165,7 @@ class _PostViewState extends State<PostView> {
                             postWriter: widget.writerUID,
                             refresh: refresh,
                             showDialog: _showDialog,
+                            boardType: widget.boardType,
                           ),
                           FutureBuilder(
                             future: comment.reference.collection('nestedComment').orderBy('date').getDocuments(),
@@ -180,6 +183,7 @@ class _PostViewState extends State<PostView> {
                                       commentRef: comment.reference,
                                       refresh: refresh,
                                       showDialog: _showDialog,
+                                      boardType: widget.boardType,
                                     );
                                   }).toList(),
                                 );
@@ -439,7 +443,7 @@ class CommentTileTemp extends StatefulWidget {
   final String postWriter;
   final Function refresh;
   final Function showDialog;
-
+  final String boardType;
   CommentTileTemp({
     Key key,
     this.postDocID,
@@ -447,6 +451,7 @@ class CommentTileTemp extends StatefulWidget {
     this.postWriter,
     this.refresh,
     this.showDialog,
+    this.boardType,
   }) : super(key: key);
 
   CommentTileTempState createState() => CommentTileTempState();
@@ -748,7 +753,7 @@ class CommentTileTempState extends State<CommentTileTemp> {
                                       MaterialPageRoute(
                                         builder: (context)=>
                                             chatRoomView(
-                                              chatRoomID: "chatInit/"+writerUID,
+                                              chatRoomID: "chatInit/$writerUID/${widget.boardType}",
                                               chatRoomName: "new message",
                                             ),
                                       )
@@ -799,6 +804,7 @@ class NestedCommentTile extends StatefulWidget {
   final DocumentReference commentRef;
   final Function refresh;
   final Function showDialog;
+  final String boardType;
 
   NestedCommentTile({
     Key key,
@@ -808,6 +814,7 @@ class NestedCommentTile extends StatefulWidget {
     this.commentRef,
     this.refresh,
     this.showDialog,
+    this.boardType,
   }) : super(key: key);
 
   NestedCommentTileState createState() => NestedCommentTileState();
@@ -1059,7 +1066,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                                         MaterialPageRoute(
                                           builder: (context)=>
                                               chatRoomView(
-                                                chatRoomID: "chatInit/"+writerUID,
+                                                chatRoomID: "chatInit/$writerUID/${widget.boardType}",
                                                 chatRoomName: "new message",
                                               ),
                                         )

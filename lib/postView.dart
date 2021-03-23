@@ -233,18 +233,20 @@ class _PostViewState extends State<PostView> {
   Future _saveComment() async {
     CollectionReference colRef = db.collection('comments').document(widget.postDocID).collection('commentList');
     String userUID = globals.dbUser.getUID();
+    String writerNick = globals.dbUser.getNickName();
 
     var data = {
       'content': commentController.text,
       'date': DateTime.now(),
       'like': 0,
       'writer': userUID,
-      'writerNick': globals.dbUser.getNickName(),
+      'writerNick': writerNick,
       'report': 0,
       'reportUserList': [],
     };
 
     if(widget.boardType == 'anonymous') {
+      writerNick = 'Anonymous';
       DocumentReference docRef = db.collection('board').document(widget.postDocID);
       await db.runTransaction((transaction) async {
         final freshSnapshot = await transaction.get(docRef);
@@ -278,6 +280,23 @@ class _PostViewState extends State<PostView> {
     await db.collection('board').document(widget.postDocID).updateData({
       'comments': FieldValue.increment(1),
     });
+
+    if(userUID != widget.writerUID) {
+      DocumentReference ref = db.collection('user').document(widget.writerUID);
+      ref.updateData({
+        'unreadNotification': FieldValue.increment(1),
+      });
+
+      await ref.collection('notification').add({
+        'boardType': widget.boardType,
+        'date': DateTime.now(),
+        'writerNick': writerNick,
+        'content': commentController.text,
+        'type': 'comment',
+        'isRead': false,
+        'postDocID': widget.postDocID,
+      });
+    }
   }
 
   void _showDialog(String message) {
@@ -386,6 +405,26 @@ class _PostViewState extends State<PostView> {
                       post.reference.updateData({
                         'like': FieldValue.increment(1),
                       });
+
+                      if(globals.dbUser.getUID() != widget.writerUID) {
+                        DocumentReference ref = db.collection('user').document(widget.writerUID);
+                        ref.updateData({
+                          'unreadNotification': FieldValue.increment(1),
+                        });
+
+                        String writerNick;
+                        if(widget.boardType == 'anonymous') writerNick = 'Anonymous';
+                        else writerNick = globals.dbUser.getNickName();
+
+                        ref.collection('notification').add({
+                          'type': 'like',
+                          'boardType': widget.boardType,
+                          'writerNick': writerNick,
+                          'date': DateTime.now(),
+                          'isRead': false,
+                          'postDocID': widget.postDocID,
+                        });
+                      }
                     }
                   });
                 },

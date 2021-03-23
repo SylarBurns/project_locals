@@ -41,7 +41,7 @@ class _chatRoomListState extends State<chatRoomList> {
   }
   Widget _chatRoomList(BuildContext context, List<DocumentSnapshot> documents){
     return Container(
-      height: MediaQuery.of(context).size.height,
+      // height: MediaQuery.of(context).size.height,
       alignment: Alignment.topCenter,
       child: ListView.builder(
         padding: EdgeInsets.all(10),

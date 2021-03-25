@@ -195,6 +195,11 @@ class _chatRoomViewState extends State<chatRoomView>
                 element.reference.updateData({'isRead': true});
               }));
     }
+    await globals.dbUser.userOnDB.get().then((userSnapshot){
+      globals.dbUser.userOnDB.updateData({
+        "unreadCount": FieldValue.increment(-_unreadCount)
+      });
+    });
   }
 
   Future userOffLine(String CRID) async {
@@ -506,6 +511,9 @@ class _chatRoomViewState extends State<chatRoomView>
         }
       });
     }
+    db.collection('user').document(receiverID).updateData({
+      "unreadCount":FieldValue.increment(1)
+    });
     //_focusNode.unfocus();
     _messageController.clear();
   }

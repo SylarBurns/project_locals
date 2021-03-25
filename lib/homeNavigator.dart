@@ -31,6 +31,7 @@ class homeNavigator extends StatefulWidget {
 class _MyHomePageState extends State<homeNavigator> {
   // UserInfo dbUser;
   int _selectedIndex = 0;
+  bool _shouldRefresh = false;
   // void getUser() async{
   //   FirebaseUser currentUser = await _auth.currentUser();
   //   setState(() {
@@ -40,7 +41,6 @@ class _MyHomePageState extends State<homeNavigator> {
   //     }
   //   });
   // }
-
   @override
   Widget build(BuildContext context) {
     // if(dbUser == null)getUser();
@@ -62,6 +62,7 @@ class _MyHomePageState extends State<homeNavigator> {
                     globals.dbUser.getRegion(),
                     style: TextStyle(color: Colors.black),
                   ),
+                  onTap: ()=>Navigator.pushNamed(context, '/naverMap').then((value){setState(() {_shouldRefresh=true;});}),
                 ),
               )
             ],
@@ -104,10 +105,13 @@ class _MyHomePageState extends State<homeNavigator> {
               ),
             ],
           ),
-          body: Center(
-            child: _widgetOptions.elementAt(_selectedIndex),
-          )
+          body:appBody()
       );
+  }
+  Widget appBody(){
+    return Center(
+      child: _widgetOptions.elementAt(_selectedIndex),
+    );
   }
   List _widgetOptions = [
     homePage(),

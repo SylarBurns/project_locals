@@ -73,9 +73,14 @@ class _NotificationBodyState extends State<NotificationBody> {
                 onTap: () async {
                   _isChat = false;
                   DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());
-                  await docRef.updateData({
-                    'unreadNotification': 0,
-                  });
+                  DocumentSnapshot snapshot = await docRef.get();
+                  int unread = snapshot['unreadNotification'] * (-1);
+                  if(unread != 0) {
+                    await docRef.updateData({
+                      'unreadNotification': 0,
+                      'unreadCount': FieldValue.increment(unread),
+                    });
+                  }
                   setState(() {});
                 },
               ),

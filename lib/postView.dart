@@ -19,6 +19,7 @@ class PostView extends StatefulWidget {
   final String boardName;
   final String boardType;
   final String writerUID;
+  final String commentDocID;
 
   PostView({
     Key key,
@@ -26,6 +27,7 @@ class PostView extends StatefulWidget {
     @required this.boardName,
     @required this.boardType,
     @required this.writerUID,
+    this.commentDocID,
   }) : super(key: key);
 
   _PostViewState createState() => _PostViewState();
@@ -159,7 +161,7 @@ class _PostViewState extends State<PostView> {
                     children: snapshot.data.documents.map((comment) {
                       return Column(
                         children: [
-                          CommentTileTemp(
+                          CommentTile(
                             postDocID: widget.postDocID,
                             comment: comment,
                             postWriter: widget.writerUID,
@@ -238,7 +240,7 @@ class _PostViewState extends State<PostView> {
     CollectionReference colRef = db.collection('comments').document(widget.postDocID).collection('commentList');
     String userUID = globals.dbUser.getUID();
     String writerNick = globals.dbUser.getNickName();
-
+    DocumentReference docRef = db.collection('board').document(widget.postDocID);
     var data = {
       'content': commentController.text,
       'date': DateTime.now(),
@@ -251,7 +253,6 @@ class _PostViewState extends State<PostView> {
 
     if(widget.boardType == 'anonymous') {
       writerNick = 'Anonymous';
-      DocumentReference docRef = db.collection('board').document(widget.postDocID);
       await db.runTransaction((transaction) async {
         final freshSnapshot = await transaction.get(docRef);
         final anonymousList = freshSnapshot.data['anonymousList'];
@@ -272,6 +273,26 @@ class _PostViewState extends State<PostView> {
       data['isDelete'] = false;
       data['nestedComments'] = 0;
       await colRef.add(data);
+
+      if(userUID != widget.writerUID) {
+        DocumentSnapshot snap = await docRef.get();
+        DocumentReference ref = db.collection('user').document(widget.writerUID);
+        ref.updateData({
+          'unreadNotification': FieldValue.increment(1),
+          'unreadCount': FieldValue.increment(1),
+        });
+
+        await ref.collection('notification').add({
+          'boardType': widget.boardType,
+          'date': DateTime.now(),
+          'writerNick': writerNick,
+          'comment': commentController.text,
+          'content': snap['title'],
+          'type': 'comment',
+          'isRead': false,
+          'postDocID': widget.postDocID,
+        });
+      }
     }
     else {
       await colRef.document(commentDocID).collection('nestedComment').add(data);
@@ -279,28 +300,31 @@ class _PostViewState extends State<PostView> {
         'nestedComments': FieldValue.increment(1),
       });
       commentDocID = 'null';
+
+      if(userUID != widget.writerUID) {
+        DocumentSnapshot snap = await colRef.document(commentDocID).get();
+        DocumentReference ref = db.collection('user').document(widget.writerUID);
+        ref.updateData({
+          'unreadNotification': FieldValue.increment(1),
+          'unreadCount': FieldValue.increment(1),
+        });
+
+        await ref.collection('notification').add({
+          'boardType': widget.boardType,
+          'date': DateTime.now(),
+          'writerNick': writerNick,
+          'comment': commentController.text,
+          'content': snap['content'],
+          'type': 'nestedComment',
+          'isRead': false,
+          'postDocID': widget.postDocID,
+        });
+      }
     }
 
-    await db.collection('board').document(widget.postDocID).updateData({
+    await docRef.updateData({
       'comments': FieldValue.increment(1),
     });
-
-    if(userUID != widget.writerUID) {
-      DocumentReference ref = db.collection('user').document(widget.writerUID);
-      ref.updateData({
-        'unreadNotification': FieldValue.increment(1),
-      });
-
-      await ref.collection('notification').add({
-        'boardType': widget.boardType,
-        'date': DateTime.now(),
-        'writerNick': writerNick,
-        'content': commentController.text,
-        'type': 'comment',
-        'isRead': false,
-        'postDocID': widget.postDocID,
-      });
-    }
   }
 
   void _showDialog(String message) {
@@ -414,6 +438,7 @@ class _PostViewState extends State<PostView> {
                         DocumentReference ref = db.collection('user').document(widget.writerUID);
                         ref.updateData({
                           'unreadNotification': FieldValue.increment(1),
+                          'unreadCount': FieldValue.increment(1),
                         });
 
                         String writerNick;
@@ -427,6 +452,7 @@ class _PostViewState extends State<PostView> {
                           'date': DateTime.now(),
                           'isRead': false,
                           'postDocID': widget.postDocID,
+                          'content': title,
                         });
                       }
                     }
@@ -476,14 +502,14 @@ class _PostViewState extends State<PostView> {
   }
 }
 
-class CommentTileTemp extends StatefulWidget {
+class CommentTile extends StatefulWidget {
   final String postDocID;
   final DocumentSnapshot comment;
   final String postWriter;
   final Function refresh;
   final Function showDialog;
   final String boardType;
-  CommentTileTemp({
+  CommentTile({
     Key key,
     this.postDocID,
     this.comment,
@@ -493,11 +519,10 @@ class CommentTileTemp extends StatefulWidget {
     this.boardType,
   }) : super(key: key);
 
-  CommentTileTempState createState() => CommentTileTempState();
+  CommentTileState createState() => CommentTileState();
 }
 
-class CommentTileTempState extends State<CommentTileTemp> {
-
+class CommentTileState extends State<CommentTile> {
   bool _isBlind = false;
   bool _onClicked = false;
 
@@ -750,8 +775,31 @@ class CommentTileTempState extends State<CommentTileTemp> {
                                 await widget.comment.reference.updateData({
                                   'like': FieldValue.increment(1),
                                 });
+
+                                if(globals.dbUser.getUID() != writerUID) {
+                                  DocumentReference ref = db.collection('user').document(writerUID);
+                                  ref.updateData({
+                                    'unreadNotification': FieldValue.increment(1),
+                                    'unreadCount': FieldValue.increment(1),
+                                  });
+
+                                  String nick;
+                                  if(widget.boardType == 'anonymous') nick = 'Anonymous';
+                                  else nick = globals.dbUser.getNickName();
+
+                                  ref.collection('notification').add({
+                                    'type': 'like',
+                                    'boardType': widget.boardType,
+                                    'writerNick': nick,
+                                    'date': DateTime.now(),
+                                    'isRead': false,
+                                    'postDocID': widget.postDocID,
+                                    'content': '$content',
+                                  });
+                                }
+
+                                widget.refresh();
                               }
-                              widget.refresh();
                             },
                           ),
                           PopupMenuButton(
@@ -1063,6 +1111,29 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                                   await widget.nestedComment.reference.updateData({
                                     'like': FieldValue.increment(1),
                                   });
+
+                                  if(globals.dbUser.getUID() != writerUID) {
+                                    DocumentReference ref = db.collection('user').document(writerUID);
+                                    ref.updateData({
+                                      'unreadNotification': FieldValue.increment(1),
+                                      'unreadCount': FieldValue.increment(1),
+                                    });
+
+                                    String nick;
+                                    if(widget.boardType == 'anonymous') nick = 'Anonymous';
+                                    else nick = globals.dbUser.getNickName();
+
+                                    ref.collection('notification').add({
+                                      'type': 'like',
+                                      'boardType': widget.boardType,
+                                      'writerNick': nick,
+                                      'date': DateTime.now(),
+                                      'isRead': false,
+                                      'postDocID': widget.postDocID,
+                                      'content': '$content',
+                                    });
+                                  }
+
                                   widget.refresh();
                                 }
                               },

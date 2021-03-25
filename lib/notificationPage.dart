@@ -22,7 +22,7 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(Duration(seconds: 2), (timer) {
       setState(() {
           changeColor = true;
       });
@@ -63,7 +63,7 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
                 }
 
                 if(type == 'like') return _buildLikeNotifyTile(context, notification, isRead);
-                else return _buildCommentNotifyTile(context, notification, isRead);
+                else return _buildCommentNotifyTile(context, notification, isRead, type);
               }).toList(),
             ),
           );
@@ -74,6 +74,7 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
 
   Widget _buildLikeNotifyTile(BuildContext context, DocumentSnapshot snapshot, bool isRead) {
     String writerNick = snapshot['writerNick'];
+    String content = snapshot['content'];
 
     return AnimatedContainer(
       duration: Duration(seconds: 2),
@@ -85,6 +86,11 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
         ),
         title: Text(
           '$writerNick님이 좋아요를 눌렀습니다.',
+        ),
+        subtitle: Text(
+          '$content',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         onTap: () {
           Navigator.push(
@@ -101,9 +107,10 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
     );
   }
 
-  Widget _buildCommentNotifyTile(BuildContext context, DocumentSnapshot snapshot, bool isRead) {
+  Widget _buildCommentNotifyTile(BuildContext context, DocumentSnapshot snapshot, bool isRead, String type) {
     String writerNick = snapshot['writerNick'];
     String content = snapshot['content'];
+    String comment = snapshot['comment'];
 
     return AnimatedContainer(
       duration: Duration(seconds: 2),
@@ -113,11 +120,13 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
           Icons.comment_outlined,
         ),
         title: Text(
-          '$writerNick님이 댓글을 작성했습니다.',
+          type == 'comment'?
+          '$writerNick님이 댓글을 작성했습니다.'
+              : '$writerNick님이 대댓글을 작성했습니다.',
         ),
         subtitle: Text(
-          '$content',
-          maxLines: 1,
+          '$content: $comment',
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
         onTap: () {

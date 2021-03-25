@@ -3,24 +3,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
+import 'package:badges/badges.dart';
 
 import 'homePage.dart';
 import 'boardHome.dart';
 import 'globals.dart' as globals;
 import 'searchPage.dart';
-import 'chatRoomList.dart';
 import 'personalInfo.dart';
-import 'notificationPage.dart';
 import 'notificationBody.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class homeNavigator extends StatefulWidget {
-  // void refresh() {
-  //   setState(() {
-  //
-  //   });
-  // }
 
   @override
   _MyHomePageState createState() {
@@ -29,21 +23,11 @@ class homeNavigator extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<homeNavigator> {
-  // UserInfo dbUser;
   int _selectedIndex = 0;
-  // void getUser() async{
-  //   FirebaseUser currentUser = await _auth.currentUser();
-  //   setState(() {
-  //     if(currentUser != null){
-  //       dbUser = new UserInfo(currentUser);
-  //       dbUser.getUserFromDB();
-  //     }
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
-    // if(dbUser == null)getUser();
+
     return Scaffold(
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
@@ -96,7 +80,7 @@ class _MyHomePageState extends State<homeNavigator> {
               ),
               BottomNavigationBarItem(
                   label: "messages",
-                  icon: Icon(CupertinoIcons.paperplane)
+                  icon: _messageIcon(context),
               ),
               BottomNavigationBarItem(
                   label: "personal info",
@@ -117,36 +101,26 @@ class _MyHomePageState extends State<homeNavigator> {
     personalInfo(),
   ];
 
-}
-// class UserInfo{
-//   FirebaseUser _user;
-//   String _nickName = "Loading..";
-//   String _region = "Loading..";
-//   UserInfo(FirebaseUser newUser) {
-//     _user = newUser;
-//   }
-//   void getUserFromDB() async{
-//     print("User ID: "+_user.uid);
-//     DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(_user.uid).get();
-//     print(dbUser.data["region"]);
-//     _nickName = dbUser.data["nickName"];
-//     _region = dbUser.data["region"];
-//   }
-// }
+  Widget _messageIcon(BuildContext context) {
+    return StreamBuilder(
+      stream: Firestore.instance.collection('user').document(globals.dbUser.getUID()).snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if(!snapshot.hasData) return Container();
 
-class Record_post {
-  final String name;
-  final int votes;
-  final DocumentReference reference;
+        int unread = snapshot.data['unreadCount'];
 
-  Record_post.fromMap(Map<String, dynamic> map, {this.reference})
-      : assert(map['name'] != null),
-        assert(map['votes'] != null),
-        name = map['name'],
-        votes = map['votes'];
+        if(unread >= 1) {
+          return Badge(
+            badgeContent: Text('$unread'),
+            child: Icon(CupertinoIcons.paperplane),
+          );
+        }
+        else return Icon(CupertinoIcons.paperplane);
+      },
+    );
+  }
 
-  Record_post.fromSnapshot(DocumentSnapshot snapshot)
-      : this.fromMap(snapshot.data, reference: snapshot.reference);
-  @override
-  String toString() => "Record<$name:$votes>";
+
+
+
 }

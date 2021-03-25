@@ -83,7 +83,7 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
 
     final FirebaseUser currentUser = await _auth.currentUser();
     assert(user.uid == currentUser.uid);
-    setState(() async {
+    setState(() {
       if (user != null) {
         _success = true;
         _userID = user.uid;
@@ -100,17 +100,16 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
     if(!dbUser.exists){
       Navigator.pushNamed(context, '/registration');
     }else{
-      getUser(currentUser);
+      await getUser(currentUser);
       print("User with ID "+dbUser.documentID+" is in the DB\n");
     }
   }
   Future getUser(FirebaseUser currentUser) async {
-    setState(() async {
-      if(currentUser != null){
-        globals.dbUser = new globals.UserInfo(currentUser);
-        await globals.dbUser.getUserFromDB();
-        Navigator.pushReplacementNamed(context, '/homeNavigator');
-      }
-    });
+    if(currentUser != null){
+      globals.dbUser = new globals.UserInfo(currentUser);
+      await globals.dbUser.getUserFromDB();
+      Navigator.pushReplacementNamed(context, '/homeNavigator');
+    }
+    setState((){});
   }
 }

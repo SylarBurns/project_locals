@@ -6,6 +6,7 @@ UserInfo dbUser;
 
 class UserInfo{
   FirebaseUser _user;
+  DocumentReference userOnDB;
   String _nickName = "Loading..";
   String _region = "fake region";
   UserInfo(FirebaseUser newUser) {
@@ -14,6 +15,7 @@ class UserInfo{
   Future getUserFromDB() async {
     print("User ID: "+_user.uid);
     DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(_user.uid).get();
+    userOnDB = Firestore.instance.collection('user').document(_user.uid);
     print(dbUser.data["region"]);
     _nickName = await dbUser.data["nickName"];
     _region = await dbUser.data["region"];

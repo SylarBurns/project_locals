@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'postView.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:project_locals/routes.dart';
+import 'package:project_locals/naver_map.dart';
 import 'globals.dart' as globals;
 final db = Firestore.instance;
 
@@ -28,6 +29,17 @@ class personalInfoState extends State<personalInfo>{
                       "내가 좋아요 누른 게시물"
                       ),
             ),
+            FlatButton(
+                onPressed:()=>Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => naverMap(),
+                    )
+                ),
+                child: Text(
+                  "네이버 지도"
+                )
+            )
           ],
         ),
       ),

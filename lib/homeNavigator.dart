@@ -24,7 +24,6 @@ class homeNavigator extends StatefulWidget {
 
 class _MyHomePageState extends State<homeNavigator> {
   int _selectedIndex = 0;
-
   @override
   Widget build(BuildContext context) {
 
@@ -46,6 +45,7 @@ class _MyHomePageState extends State<homeNavigator> {
                     globals.dbUser.getRegion(),
                     style: TextStyle(color: Colors.black),
                   ),
+                  onTap: ()=>Navigator.pushNamed(context, '/naverMap').then((value){setState(() {_shouldRefresh=true;});}),
                 ),
               )
             ],
@@ -88,10 +88,13 @@ class _MyHomePageState extends State<homeNavigator> {
               ),
             ],
           ),
-          body: Center(
-            child: _widgetOptions.elementAt(_selectedIndex),
-          )
+          body:appBody()
       );
+  }
+  Widget appBody(){
+    return Center(
+      child: _widgetOptions.elementAt(_selectedIndex),
+    );
   }
   List _widgetOptions = [
     homePage(),

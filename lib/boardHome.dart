@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'freeBoard.dart';
 
 class boardHome extends StatefulWidget {
+  const boardHome({Key key}) : super(key: key);
   @override
-  _boardHomeState createState() => _boardHomeState();
+  boardHomeState createState() => boardHomeState();
 }
 
-class _boardHomeState extends State<boardHome> {
+class boardHomeState extends State<boardHome> {
+  Refresh(){setState(() {});}
   @override
   Widget build(BuildContext context) {
     List<String> boardNames = ['자유 게시판', '익명 게시판', 'Lost & Found', '홍보 게시판'];

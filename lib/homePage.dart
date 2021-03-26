@@ -9,11 +9,13 @@ import 'postView.dart';
 final db = Firestore.instance;
 
 class homePage extends StatefulWidget {
+  const homePage({Key key}) : super(key: key);
   @override
-  _homePageState createState() => _homePageState();
+  homePageState createState() => homePageState();
 }
 
-class _homePageState extends State<homePage> {
+class homePageState extends State<homePage> {
+  Refresh(){setState(() {});}
   List<String> boardTypes = [
     "free",
     "anonymous",

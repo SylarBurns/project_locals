@@ -14,11 +14,13 @@ import 'changeRegion.dart';
 final db = Firestore.instance;
 
 class personalInfo extends StatefulWidget{
+  const personalInfo({Key key}) : super(key: key);
   @override
   personalInfoState createState() => personalInfoState();
 
 }
 class personalInfoState extends State<personalInfo>{
+  Refresh(){setState(() {});}
   @override
   Widget build(BuildContext context) {
     return Center(

@@ -8,11 +8,13 @@ import 'package:rxdart/rxdart.dart';
 import 'globals.dart' as globals;
 final db = Firestore.instance;
 class searchPage extends StatefulWidget{
+  const searchPage({Key key}) : super(key: key);
   @override
-  _searchPageState createState() => _searchPageState();
+  searchPageState createState() => searchPageState();
 }
 
-class _searchPageState extends State<searchPage> {
+class searchPageState extends State<searchPage> {
+  Refresh(){setState(() {});}
   static  TextEditingController _searchController;
 
   @override

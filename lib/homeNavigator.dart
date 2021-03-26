@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:badges/badges.dart';
-
 import 'homePage.dart';
 import 'boardHome.dart';
 import 'globals.dart' as globals;
@@ -15,18 +14,39 @@ import 'notificationBody.dart';
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class homeNavigator extends StatefulWidget {
-
   @override
   _MyHomePageState createState() {
     return _MyHomePageState();
   }
 }
-
 class _MyHomePageState extends State<homeNavigator> {
+  final GlobalKey<homePageState> _homePageStateKey= GlobalKey();
+  final GlobalKey<searchPageState> _searchPageStateKey = GlobalKey();
+  final GlobalKey<boardHomeState> _boardHomeStateKey = GlobalKey();
+  final GlobalKey<NotificationBodyState> _NotificationBodyStateKey = GlobalKey();
+  final GlobalKey<personalInfoState> _personalInfoStateKey= GlobalKey();
   int _selectedIndex = 0;
+  List _widgetOptions;
+  List _widgetKeys;
+  @override
+  void initState() {
+    _widgetOptions = [
+      homePage(key:_homePageStateKey),
+      searchPage(key:_searchPageStateKey),
+      boardHome(key:_boardHomeStateKey),
+      NotificationBody(key:_NotificationBodyStateKey),
+      personalInfo(key:_personalInfoStateKey),
+    ];
+    _widgetKeys =[
+      _homePageStateKey,
+      _searchPageStateKey,
+      _boardHomeStateKey,
+      _NotificationBodyStateKey,
+      _personalInfoStateKey,
+    ];
+  }
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
@@ -45,7 +65,11 @@ class _MyHomePageState extends State<homeNavigator> {
                     globals.dbUser.getRegion(),
                     style: TextStyle(color: Colors.black),
                   ),
-                  onTap: ()=>Navigator.pushNamed(context, '/naverMap').then((value){setState(() {_shouldRefresh=true;});}),
+                  onTap: ()=>Navigator.pushNamed(context, '/naverMap')
+                      .then((value){
+                        setState(() {});
+                        _widgetKeys.elementAt(_selectedIndex).currentState.Refresh();
+                      }),
                 ),
               )
             ],
@@ -88,7 +112,7 @@ class _MyHomePageState extends State<homeNavigator> {
               ),
             ],
           ),
-          body:appBody()
+          body: appBody()
       );
   }
   Widget appBody(){
@@ -96,14 +120,6 @@ class _MyHomePageState extends State<homeNavigator> {
       child: _widgetOptions.elementAt(_selectedIndex),
     );
   }
-  List _widgetOptions = [
-    homePage(),
-    searchPage(),
-    boardHome(),
-    NotificationBody(),
-    personalInfo(),
-  ];
-
   Widget _messageIcon(BuildContext context) {
     return StreamBuilder(
       stream: Firestore.instance.collection('user').document(globals.dbUser.getUID()).snapshots(),

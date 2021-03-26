@@ -12,11 +12,12 @@ import 'notificationPage.dart';
 final db = Firestore.instance;
 
 class NotificationBody extends StatefulWidget {
-
-  _NotificationBodyState createState() => _NotificationBodyState();
+  const NotificationBody({Key key}) : super(key: key);
+  NotificationBodyState createState() => NotificationBodyState();
 }
 
-class _NotificationBodyState extends State<NotificationBody> {
+class NotificationBodyState extends State<NotificationBody> {
+  Refresh(){setState(() {});}
   bool _isChat = true;
 
   @override

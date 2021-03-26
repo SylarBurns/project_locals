@@ -126,6 +126,7 @@ class _naverMapState extends State<naverMap> {
                   "region":info.area2
                 }).then((value) async {
                   await globals.dbUser.getUserFromDB();
+                  setState(() {});
                   Navigator.pop(context);
                   Navigator.pop(context);
                 });

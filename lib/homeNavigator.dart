@@ -45,7 +45,7 @@ class _MyHomePageState extends State<homeNavigator> {
                     globals.dbUser.getRegion(),
                     style: TextStyle(color: Colors.black),
                   ),
-                  onTap: ()=>Navigator.pushNamed(context, '/naverMap').then((value){setState(() {_shouldRefresh=true;});}),
+                  onTap: ()=>Navigator.pushNamed(context, '/naverMap').then((value) {setState(() {});}),
                 ),
               )
             ],

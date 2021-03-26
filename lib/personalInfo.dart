@@ -8,6 +8,9 @@ import 'package:rxdart/rxdart.dart';
 import 'package:project_locals/routes.dart';
 import 'package:project_locals/naver_map.dart';
 import 'globals.dart' as globals;
+
+import 'changeRegion.dart';
+
 final db = Firestore.instance;
 
 class personalInfo extends StatefulWidget{
@@ -39,11 +42,21 @@ class personalInfoState extends State<personalInfo>{
                 child: Text(
                   "네이버 지도"
                 )
-            )
+            ),
+            FlatButton(
+              onPressed:() => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChangeRegion(),
+                  )
+              ),
+              child: Text(
+                  "지역 변경"
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-
 }

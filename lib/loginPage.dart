@@ -38,14 +38,28 @@ class _GoogleSignInSection extends StatefulWidget{
   State<StatefulWidget> createState() => _GoogleSignInSectionState();
 }
 class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
+
+  @override
+  void initState(){
+    autoLogin();
+  }
   bool _success;
   String _userID;
+  Future autoLogin() async {
+    FirebaseUser currentUser = await _auth.currentUser();
+    if(currentUser!=null){
+      DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(currentUser.uid).get();
+      if(dbUser.exists){
+        await getUser(currentUser);
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          padding: const EdgeInsets.fromLTRB(0,16.0,0,8.0),
           alignment: Alignment.center,
           child: RaisedButton(
             onPressed: () async {
@@ -59,7 +73,6 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
               });
             },
             child: const Text('Google'),
-
           ),
         ),
       ],
@@ -80,7 +93,6 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
     assert(user.displayName != null);
     assert(!user.isAnonymous);
     assert(await user.getIdToken() != null);
-
     final FirebaseUser currentUser = await _auth.currentUser();
     assert(user.uid == currentUser.uid);
     setState(() {

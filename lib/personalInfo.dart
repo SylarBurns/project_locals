@@ -8,10 +8,12 @@ import 'package:rxdart/rxdart.dart';
 import 'package:project_locals/routes.dart';
 import 'package:project_locals/naver_map.dart';
 import 'globals.dart' as globals;
-
+import 'package:google_sign_in/google_sign_in.dart';
 import 'changeRegion.dart';
 
 final db = Firestore.instance;
+final FirebaseAuth _auth = FirebaseAuth.instance;
+final GoogleSignIn _googleSignIn = GoogleSignIn();
 
 class personalInfo extends StatefulWidget{
   const personalInfo({Key key}) : super(key: key);
@@ -54,6 +56,18 @@ class personalInfoState extends State<personalInfo>{
               ),
               child: Text(
                   "지역 변경"
+              ),
+            ),
+            FlatButton(
+              onPressed:() async {
+                await _auth.signOut().then((value) async {
+                  await _googleSignIn.signOut().then((value){
+                    Navigator.pushReplacementNamed(context, '/');
+                  });
+                });
+              },
+              child: Text(
+                  "로그아웃"
               ),
             ),
           ],

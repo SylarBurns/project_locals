@@ -66,8 +66,13 @@ class _MyHomePageState extends State<homeNavigator> {
                     style: TextStyle(color: Colors.black),
                   ),
                   onTap: ()=>Navigator.pushNamed(context, '/naverMap')
-                      .then((value){
-                        setState(() {});
+                      .then((value)async{
+                        await globals.dbUser.userOnDB.updateData({
+                          "region":value
+                        }).then((value) async {
+                          await globals.dbUser.getUserFromDB();
+                          setState(() {});
+                        });
                         _widgetKeys.elementAt(_selectedIndex).currentState.Refresh();
                       }),
                 ),

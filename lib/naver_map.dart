@@ -122,14 +122,8 @@ class _naverMapState extends State<naverMap> {
             FlatButton(
               child: Text("확인"),
               onPressed: () async {
-                await globals.dbUser.userOnDB.updateData({
-                  "region":info.area2
-                }).then((value) async {
-                  await globals.dbUser.getUserFromDB();
-                  setState(() {});
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                });
+                Navigator.pop(context);
+                Navigator.pop(context, info.area2);
               }
             )
           ],

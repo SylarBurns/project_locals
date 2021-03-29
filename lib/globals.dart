@@ -9,6 +9,7 @@ class UserInfo{
   DocumentReference userOnDB;
   String _nickName = "Loading..";
   String _region = "fake region";
+  String _selectedRegion;
   UserInfo(FirebaseUser newUser) {
     _user = newUser;
   }
@@ -19,6 +20,7 @@ class UserInfo{
     print(dbUser.data["region"]);
     _nickName = await dbUser.data["nickName"];
     _region = await dbUser.data["region"];
+    _selectedRegion = await dbUser.data['region'];
   }
 
   String getNickName() {
@@ -31,5 +33,17 @@ class UserInfo{
 
   String getUID() {
     return _user.uid;
+  }
+
+  String getSelectedRegion() {
+    return _selectedRegion;
+  }
+
+  bool getAuthority() {
+    return _region == _selectedRegion ? true : false;
+  }
+
+  void setSelectedRegion(String region) {
+    _selectedRegion = region;
   }
 }

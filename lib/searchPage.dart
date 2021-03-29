@@ -71,7 +71,7 @@ class searchPageState extends State<searchPage> {
   }
   Future getSearchResult() async{
     List<DocumentSnapshot> titleResults = (await db.collection('board')
-        .where("region", isEqualTo: globals.dbUser.getRegion())
+        .where("region", isEqualTo: globals.dbUser.getSelectedRegion())
         .orderBy("date", descending: true)
         .getDocuments())
         .documents;

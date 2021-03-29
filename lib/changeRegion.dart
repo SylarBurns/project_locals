@@ -14,7 +14,26 @@ class ChangeRegion extends StatefulWidget {
 }
 
 class _ChangeRegionState extends State<ChangeRegion> {
-  int _selectedRegion = -1;
+  String _selectedArea1 = 'null';
+  String _selectedArea2 = 'null';
+  int _selectedIndex;
+  QuerySnapshot qSnap;
+  List<DocumentSnapshot> docList;
+
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  void dispose() {
+    super.dispose();
+  }
+
+  void loadData() async {
+    qSnap = await db.collection('area1').getDocuments();
+    docList = qSnap.documents;
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,49 +53,49 @@ class _ChangeRegionState extends State<ChangeRegion> {
               Icons.check,
             ),
             onPressed: () {
-
+              globals.dbUser.setSelectedRegion(_selectedArea2);
+              Navigator.pop(context);
             },
           ),
         ],
       ),
-      body: FutureBuilder(
-        future: db.collection('area1').getDocuments(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if(snapshot.connectionState == ConnectionState.waiting) return Container();
-
-          List<DocumentSnapshot> documents = snapshot.data.documents;
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Container(
-                width: MediaQuery.of(context).size.width/2 - 3,
-                child: ListView(
-                  children: documents.map((area1) {
-                    return Column(
-                      children: [
-                        ListTile(
-                          title: Text(area1.documentID),
-                          onTap: () {
-                            _selectedRegion = documents.indexOf(area1);
-                            setState(() {});
-                          },
-                        ),
-                        Divider(),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
-              VerticalDivider(width: 4,),
-              Container(
-                width: MediaQuery.of(context).size.width/2 - 2,
-                child: _selectedRegion == -1 ?
-                    Center(child: Text('지역을 선택하세요'),)
-                    : _buildArea2(context, documents[_selectedRegion])
-              ),
-            ],
-          );
-        },
+      body: docList == null ?
+          Center(child: CircularProgressIndicator(),)
+          : Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width/2 - 3,
+            child: ListView(
+              children: docList.map((area1) {
+                return Column(
+                  children: [
+                    Container(
+                      child: ListTile(
+                        title: Text(area1.documentID),
+                        onTap: () {
+                          _selectedArea1 = area1.documentID;
+                          _selectedIndex = docList.indexOf(area1);
+                          _selectedArea2 = 'null';
+                          setState(() {});
+                        },
+                      ),
+                      color: area1.documentID == _selectedArea1 ? Colors.black12 : Colors.white12,
+                    ),
+                    Divider(),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+          VerticalDivider(width: 4,),
+          Container(
+              width: MediaQuery.of(context).size.width/2 - 2,
+              child: _selectedArea1 == 'null' ?
+              Center(child: Text('지역을 선택하세요'),)
+                  : _buildArea2(context, docList[_selectedIndex])
+          ),
+        ],
       ),
     );
   }
@@ -86,10 +105,18 @@ class _ChangeRegionState extends State<ChangeRegion> {
 
     return ListView(
       children: area2.map((region) {
+        // int index = area2.indexOf(region);
         return Column(
           children: [
-            ListTile(
-              title: Text(region),
+            Container(
+              child: ListTile(
+                title: Text(region),
+                onTap: () {
+                  _selectedArea2 = region;
+                  setState(() {});
+                },
+              ),
+              color: region == _selectedArea2 ? Colors.black12 : Colors.white12,
             ),
             Divider(),
           ],

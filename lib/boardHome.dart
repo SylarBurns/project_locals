@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'freeBoard.dart';
+import 'postList.dart';
 
 class boardHome extends StatefulWidget {
   const boardHome({Key key}) : super(key: key);
@@ -27,7 +27,7 @@ class boardHomeState extends State<boardHome> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => FreeBoard(boardName: boardName, boardType: boardT,)),
+                MaterialPageRoute(builder: (context) => PostList(boardName: boardName, boardType: boardT,)),
               );
             }
           );

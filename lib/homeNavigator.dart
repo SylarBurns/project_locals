@@ -28,14 +28,20 @@ class _MyHomePageState extends State<homeNavigator> {
   int _selectedIndex = 0;
   List _widgetOptions;
   List _widgetKeys;
+
+  refresh() {
+    setState(() {});
+  }
+
   @override
   void initState() {
+    super.initState();
     _widgetOptions = [
       homePage(key:_homePageStateKey),
       searchPage(key:_searchPageStateKey),
       boardHome(key:_boardHomeStateKey),
       NotificationBody(key:_NotificationBodyStateKey),
-      personalInfo(key:_personalInfoStateKey),
+      personalInfo(key:_personalInfoStateKey, refresh: this.refresh,),
     ];
     _widgetKeys =[
       _homePageStateKey,
@@ -62,7 +68,7 @@ class _MyHomePageState extends State<homeNavigator> {
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 child: InkWell(
                   child: Text(
-                    globals.dbUser.getRegion(),
+                    globals.dbUser.getSelectedRegion(),
                     style: TextStyle(color: Colors.black),
                   ),
                   onTap: ()=>Navigator.pushNamed(context, '/naverMap')

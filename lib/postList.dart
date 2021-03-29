@@ -7,21 +7,23 @@ import 'package:intl/intl.dart';
 import 'postView.dart';
 import 'postWrite.dart';
 
-class FreeBoard extends StatefulWidget {
+import 'globals.dart' as globals;
+
+class PostList extends StatefulWidget {
   final String boardName;
   final String boardType;
 
-  FreeBoard({Key key, @required this.boardName, @required this.boardType,});
+  PostList({Key key, @required this.boardName, @required this.boardType,});
 
   @override
-  _FreeBoardState createState() => _FreeBoardState(key: this.key, boardName: this.boardName, boardType: this.boardType,);
+  _PostListState createState() => _PostListState(key: this.key, boardName: this.boardName, boardType: this.boardType,);
 }
 
-class _FreeBoardState extends State<FreeBoard> {
+class _PostListState extends State<PostList> {
   String boardName;
   String boardType;
 
-  _FreeBoardState({Key key, this.boardName, this.boardType});
+  _PostListState({Key key, this.boardName, this.boardType});
 
   FutureOr refresh(dynamic value) {
     setState(() {});
@@ -41,7 +43,12 @@ class _FreeBoardState extends State<FreeBoard> {
         backgroundColor: Colors.white,
       ),
       body: FutureBuilder(
-        future: Firestore.instance.collection("board").where("boardType", isEqualTo: boardType).orderBy('date', descending: true).getDocuments(),
+        future: Firestore.instance
+            .collection("board")
+            .where('region', isEqualTo: globals.dbUser.getSelectedRegion())
+            .where("boardType", isEqualTo: boardType)
+            .orderBy('date', descending: true)
+            .getDocuments(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) return Text("Error: ${snapshot.error}");
           switch (snapshot.connectionState) {
@@ -65,7 +72,7 @@ class _FreeBoardState extends State<FreeBoard> {
           } // switch
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: globals.dbUser.getAuthority() ? FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
@@ -73,7 +80,7 @@ class _FreeBoardState extends State<FreeBoard> {
           ).then(refresh);
         },
         child: Icon(Icons.add),
-      ),
+      ) : null,
     );
   }
 

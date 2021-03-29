@@ -14,7 +14,9 @@ import 'changeRegion.dart';
 final db = Firestore.instance;
 
 class personalInfo extends StatefulWidget{
-  const personalInfo({Key key}) : super(key: key);
+  final Function refresh;
+
+  personalInfo({Key key, this.refresh}) : super(key: key);
   @override
   personalInfoState createState() => personalInfoState();
 
@@ -51,7 +53,10 @@ class personalInfoState extends State<personalInfo>{
                   MaterialPageRoute(
                     builder: (context) => ChangeRegion(),
                   )
-              ),
+              ).then((value) {
+                setState(() {});
+                widget.refresh();
+              }),
               child: Text(
                   "지역 변경"
               ),

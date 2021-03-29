@@ -19,7 +19,7 @@ class PostView extends StatefulWidget {
   final String boardName;
   final String boardType;
   final String writerUID;
-  final String commentDocID;
+  final String commentID;
 
   PostView({
     Key key,
@@ -27,7 +27,7 @@ class PostView extends StatefulWidget {
     @required this.boardName,
     @required this.boardType,
     @required this.writerUID,
-    this.commentDocID,
+    this.commentID,
   }) : super(key: key);
 
   _PostViewState createState() => _PostViewState();
@@ -136,7 +136,9 @@ class _PostViewState extends State<PostView> {
         backgroundColor: Colors.white,
       ),
       body: Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9),
+        padding: globals.dbUser.getAuthority()
+            ? EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9)
+            : EdgeInsets.zero,
         child: ListView(
           children: [
             FutureBuilder(
@@ -202,7 +204,7 @@ class _PostViewState extends State<PostView> {
           ],
         ),
       ),
-      bottomSheet: _bottomTextField(context),
+      bottomSheet: globals.dbUser.getAuthority() ? _bottomTextField(context) : null,
     );
   }
 

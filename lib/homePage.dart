@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/date_symbols.dart';
 import 'package:intl/intl.dart';
 import 'globals.dart' as globals;
-import 'freeBoard.dart';
+import 'postList.dart';
 import 'postView.dart';
 final db = Firestore.instance;
 
@@ -60,7 +60,7 @@ class homePageState extends State<homePage> {
   }
   Future getHotPosts() async {
     List<DocumentSnapshot> docs = await db.collection('board')
-        .where("region", isEqualTo: globals.dbUser.getRegion())
+        .where("region", isEqualTo: globals.dbUser.getSelectedRegion())
         .where('date', isGreaterThan: DateTime.now().subtract(Duration(days: 7)))
         .orderBy("date").getDocuments().then((value){
           List<DocumentSnapshot> docs = value.documents;
@@ -239,7 +239,7 @@ class homePageState extends State<homePage> {
         return StreamBuilder(
           stream: db
               .collection("board")
-              .where("region", isEqualTo: globals.dbUser.getRegion())
+              .where("region", isEqualTo: globals.dbUser.getSelectedRegion())
               .where("boardType", isEqualTo: boardTypes[index])
               .orderBy("date", descending: true)
               .limit(3)

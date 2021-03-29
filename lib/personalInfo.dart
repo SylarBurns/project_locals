@@ -16,7 +16,9 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn _googleSignIn = GoogleSignIn();
 
 class personalInfo extends StatefulWidget{
-  const personalInfo({Key key}) : super(key: key);
+  final Function refresh;
+
+  personalInfo({Key key, this.refresh}) : super(key: key);
   @override
   personalInfoState createState() => personalInfoState();
 
@@ -53,7 +55,10 @@ class personalInfoState extends State<personalInfo>{
                   MaterialPageRoute(
                     builder: (context) => ChangeRegion(),
                   )
-              ),
+              ).then((value) {
+                setState(() {});
+                widget.refresh();
+              }),
               child: Text(
                   "지역 변경"
               ),

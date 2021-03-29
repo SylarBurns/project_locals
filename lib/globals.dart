@@ -9,7 +9,7 @@ class UserInfo{
   DocumentReference userOnDB;
   String _nickName = "Loading..";
   String _region = "fake region";
-  String _selectedRegion;
+  String _selectedRegion = "fake region";
   UserInfo(FirebaseUser newUser) {
     _user = newUser;
   }

@@ -73,13 +73,15 @@ class _MyHomePageState extends State<homeNavigator> {
                   ),
                   onTap: ()=>Navigator.pushNamed(context, '/naverMap')
                       .then((value)async{
-                        await globals.dbUser.userOnDB.updateData({
-                          "region":value
-                        }).then((value) async {
-                          await globals.dbUser.getUserFromDB();
-                          setState(() {});
-                        });
-                        _widgetKeys.elementAt(_selectedIndex).currentState.Refresh();
+                        if(value!=null){
+                          await globals.dbUser.userOnDB.updateData({
+                            "region":value
+                          }).then((value) async {
+                            await globals.dbUser.getUserFromDB();
+                            setState(() {});
+                          });
+                          _widgetKeys.elementAt(_selectedIndex).currentState.Refresh();
+                        }
                       }),
                 ),
               )

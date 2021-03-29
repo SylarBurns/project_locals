@@ -119,8 +119,9 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
   Future getUser(FirebaseUser currentUser) async {
     if(currentUser != null){
       globals.dbUser = new globals.UserInfo(currentUser);
-      await globals.dbUser.getUserFromDB();
-      Navigator.pushReplacementNamed(context, '/homeNavigator');
+      await globals.dbUser.getUserFromDB().then((value){
+        Navigator.pushReplacementNamed(context, '/homeNavigator');
+      });
     }
     setState((){});
   }

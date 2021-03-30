@@ -47,14 +47,8 @@ class _PostViewState extends State<PostView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Colors.black,
-        ),
         title: Text(
           '${widget.boardName}',
-          style: TextStyle(
-            color: Colors.black,
-          ),
         ),
         actions: [
           PopupMenuButton(
@@ -133,7 +127,6 @@ class _PostViewState extends State<PostView> {
             },
           ),
         ],
-        backgroundColor: Colors.white,
       ),
       body: Padding(
         padding: globals.dbUser.getAuthority()
@@ -588,13 +581,13 @@ class CommentTileState extends State<CommentTile> {
                     content: Text('댓글 내용을 확인하시겠습니까?'),
                     actions: [
                       FlatButton(
-                        child: Text('OK'),
+                        child: Text('OK', style: Theme.of(context).textTheme.button),
                         onPressed: () {
                           Navigator.pop(context, true);
                         },
                       ),
                       FlatButton(
-                        child: Text('Cancel'),
+                        child: Text('Cancel', style: Theme.of(context).textTheme.button),
                         onPressed: () {
                           Navigator.pop(context, false);
                         },
@@ -735,14 +728,14 @@ class CommentTileState extends State<CommentTile> {
                                     content: Text('대댓글을 작성하시겠습니까?'),
                                     actions: [
                                       FlatButton(
-                                        child: Text('OK'),
+                                        child: Text('OK', style: Theme.of(context).textTheme.button),
                                         onPressed: () {
                                           commentDocID = widget.comment.documentID;
                                           Navigator.pop(context, true);
                                         },
                                       ),
                                       FlatButton(
-                                        child: Text('Cancel'),
+                                        child: Text('Cancel', style: Theme.of(context).textTheme.button),
                                         onPressed: () {
                                           Navigator.pop(context, false);
                                         },
@@ -942,13 +935,13 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                       content: Text('댓글 내용을 확인하시겠습니까?'),
                       actions: [
                         FlatButton(
-                          child: Text('OK'),
+                          child: Text('OK', style: Theme.of(context).textTheme.button),
                           onPressed: () {
                             Navigator.pop(context, true);
                           },
                         ),
                         FlatButton(
-                          child: Text('Cancel'),
+                          child: Text('Cancel', style: Theme.of(context).textTheme.button),
                           onPressed: () {
                             Navigator.pop(context, false);
                           },

@@ -73,6 +73,7 @@ class _chatRoomViewState extends State<chatRoomView>
       QuerySnapshot docSnapshots = await db
           .collection('chatroom')
           .where('participants', arrayContains: senderID)
+          .where('isAnonymous', isEqualTo: false)
           .getDocuments();
       if (docSnapshots.documents.isNotEmpty) {
         for (int docIndex = 0;
@@ -582,7 +583,7 @@ class _chatRoomViewState extends State<chatRoomView>
             style: TextStyle(fontSize: 20),
           ),
         ),
-        color: isSender ? Colors.lightBlue : Colors.white,
+        color: isSender ? Theme.of(context).cardColor: Theme.of(context).backgroundColor,
       ),
     );
   }

@@ -195,13 +195,13 @@ class homePageState extends State<homePage> {
                           Icon(
                             Icons.thumb_up_alt_outlined,
                             size: 10,
-                            color: Colors.red[800],
+                            color: Theme.of(context).primaryColor,
                           ),
                           Padding(padding: EdgeInsets.only(right: 2.0)),
                           Text(
                             '$like',
                             style:
-                                TextStyle(color: Colors.red[800], fontSize: 12),
+                                TextStyle(fontSize: 12, color: Theme.of(context).primaryColor),
                           ),
                         ],
                       ),
@@ -339,12 +339,12 @@ class homePageState extends State<homePage> {
                       Icon(
                         Icons.thumb_up_alt_outlined,
                         size: 10,
-                        color: Colors.red[800],
+                        color: Theme.of(context).primaryColor,
                       ),
                       Padding(padding: EdgeInsets.only(right: 2.0)),
                       Text(
                         like.toString(),
-                        style: TextStyle(color: Colors.red[800], fontSize: 12),
+                        style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 12),
                       ),
                     ],
                   ),

@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_admob/firebase_admob.dart';
+
 import 'routes.dart';
 import 'globals.dart' as globals;
 import 'homeNavigator.dart' as home;
+import 'ad_manager.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -42,7 +45,9 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
   @override
   void initState(){
     autoLogin();
+    _initAdMob();
   }
+
   bool _success;
   String _userID;
   Future autoLogin() async {
@@ -54,6 +59,11 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
       }
     }
   }
+
+  Future<void> _initAdMob() {
+    return FirebaseAdMob.instance.initialize(appId: AdManager.appId);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(

@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_admob/firebase_admob.dart';
 
 import 'postView.dart';
 import 'postWrite.dart';
+import 'ad_manager.dart';
 
 import 'globals.dart' as globals;
 
@@ -29,6 +31,35 @@ class _PostListState extends State<PostList> {
     setState(() {});
   }
 
+  BannerAd _bannerAd;
+
+  void _loadBannerAd() {
+    _bannerAd
+        ..load()
+        ..show(anchorType: AnchorType.bottom);
+  }
+
+  void initializeAd() {
+    _bannerAd = BannerAd(
+      adUnitId: AdManager.bannerAdUnitId,
+      size: AdSize.banner,
+    );
+    _loadBannerAd();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initializeAd();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,44 +73,50 @@ class _PostListState extends State<PostList> {
         ),
         backgroundColor: Colors.white,
       ),
-      body: FutureBuilder(
-        future: Firestore.instance
-            .collection("board")
-            .where('region', isEqualTo: globals.dbUser.getSelectedRegion())
-            .where("boardType", isEqualTo: boardType)
-            .orderBy('date', descending: true)
-            .getDocuments(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.hasError) return Text("Error: ${snapshot.error}");
-          switch (snapshot.connectionState) {
-            case ConnectionState.waiting: return Center(child: CircularProgressIndicator());
-            default:
-              return ListView.separated(
-                itemCount: snapshot.data.documents.length,
-                separatorBuilder: (context, index) => Divider(),
-                itemBuilder: (context, index) {
-                  DocumentSnapshot post = snapshot.data.documents[index];
-                  int report = post['report'];
+      body: Padding(
+        padding: EdgeInsets.only(bottom: 60),
+        child: FutureBuilder(
+          future: Firestore.instance
+              .collection("board")
+              .where('region', isEqualTo: globals.dbUser.getSelectedRegion())
+              .where("boardType", isEqualTo: boardType)
+              .orderBy('date', descending: true)
+              .getDocuments(),
+          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) return Text("Error: ${snapshot.error}");
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting: return Center(child: CircularProgressIndicator());
+              default:
+                return ListView.separated(
+                    itemCount: snapshot.data.documents.length,
+                    separatorBuilder: (context, index) => Divider(),
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot post = snapshot.data.documents[index];
+                      int report = post['report'];
 
-                  if(report >= 10) {
-                    return _buildBlindPost(context, post);
-                  }
-                  else {
-                    return _buildPostTile(context, post);
-                  }
-                }
-            );
-          } // switch
-        },
+                      if(report >= 10) {
+                        return _buildBlindPost(context, post);
+                      }
+                      else {
+                        return _buildPostTile(context, post);
+                      }
+                    }
+                );
+            } // switch
+          },
+        ),
       ),
-      floatingActionButton: globals.dbUser.getAuthority() ? FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => PostWrite(boardType: boardType,)),
-          ).then(refresh);
-        },
-        child: Icon(Icons.add),
+      floatingActionButton: globals.dbUser.getAuthority() ? Padding(
+        padding: EdgeInsets.only(bottom:50),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PostWrite(boardType: boardType,)),
+            ).then(refresh);
+          },
+          child: Icon(Icons.add),
+        ),
       ) : null,
     );
   }
@@ -172,17 +209,23 @@ class _PostListState extends State<PostList> {
             ),
           ],
         ),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PostView(
-              postDocID: post.documentID,
-              boardName: boardName,
-              boardType: boardType,
-              writerUID: writerUID,
+        onTap: () {
+          _bannerAd.dispose();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PostView(
+                postDocID: post.documentID,
+                boardName: boardName,
+                boardType: boardType,
+                writerUID: writerUID,
+              ),
             ),
-          ),
-        ).then(refresh),
+          ).then((value) {
+            refresh(value);
+            initializeAd();
+          });
+        },
       ),
     );
   }

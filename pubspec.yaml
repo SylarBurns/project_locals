@@ -36,6 +36,7 @@ dependencies:
   full_screen_image: ^1.0.2
   naver_map_plugin: ^0.9.6
   http: ^0.12.0+2
+  firebase_admob: ^0.9.3+2
 dev_dependencies:
   flutter_test:
     sdk: flutter

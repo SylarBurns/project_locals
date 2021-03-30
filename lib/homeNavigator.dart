@@ -10,7 +10,7 @@ import 'globals.dart' as globals;
 import 'searchPage.dart';
 import 'personalInfo.dart';
 import 'notificationBody.dart';
-
+import 'package:project_locals/colors.dart';
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class homeNavigator extends StatefulWidget {
@@ -58,18 +58,14 @@ class _MyHomePageState extends State<homeNavigator> {
           appBar: AppBar(
             title: Text(
               'Project Locals',
-              style: TextStyle(
-                color: Colors.black,
-              ),
             ),
-            backgroundColor: Colors.white,
             actions: [
               Container(
-                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                padding: EdgeInsets.symmetric(vertical: 18, horizontal: 10),
                 child: InkWell(
                   child: Text(
                     globals.dbUser.getSelectedRegion(),
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: Theme.of(context).accentColor),
                   ),
                   onTap: ()=>Navigator.pushNamed(context, '/naverMap')
                       .then((value)async{
@@ -89,9 +85,6 @@ class _MyHomePageState extends State<homeNavigator> {
           ),
           bottomNavigationBar:BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.white,
-            selectedItemColor: Colors.black,
-            unselectedItemColor: Colors.grey.withOpacity(.60),
             selectedFontSize: 15,
             unselectedFontSize: 14,
             currentIndex: _selectedIndex,

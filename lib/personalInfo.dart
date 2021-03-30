@@ -39,17 +39,6 @@ class personalInfoState extends State<personalInfo>{
                       ),
             ),
             FlatButton(
-                onPressed:()=>Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => naverMap(),
-                    )
-                ),
-                child: Text(
-                  "네이버 지도"
-                )
-            ),
-            FlatButton(
               onPressed:() => Navigator.push(
                   context,
                   MaterialPageRoute(

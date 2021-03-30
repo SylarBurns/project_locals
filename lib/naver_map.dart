@@ -36,7 +36,7 @@ class _naverMapState extends State<naverMap> {
             tiltGestureEnable: false,
             zoomGestureEnable: false,
           ),
-          _regionAuthenticator(),
+          _regionAuthenticator(context),
         ],
       ),
     );
@@ -70,7 +70,7 @@ class _naverMapState extends State<naverMap> {
       ));
     });
   }
-  _regionAuthenticator() {
+  _regionAuthenticator(BuildContext context) {
     return Align(
       alignment: Alignment.bottomRight,
       child: Padding(
@@ -79,9 +79,9 @@ class _naverMapState extends State<naverMap> {
           onPressed: (){
             _onPressedTakeRegionInfo();
             },
-          backgroundColor: Colors.white60,
-          label: const Text('지역인증', style: TextStyle(color: Colors.black54),),
-          icon: const Icon(Icons.my_location_sharp, color: Colors.black54,),
+          backgroundColor: Theme.of(context).buttonTheme.colorScheme.secondary,
+          label: Text('지역인증', style: TextStyle(color:Theme.of(context).accentColor),),
+          icon: Icon(Icons.my_location_sharp, color:Theme.of(context).accentColor,),
         ),
       )
     );
@@ -110,17 +110,17 @@ class _naverMapState extends State<naverMap> {
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0)
           ),
-          title: Text("현재 지역을 확인하시고 확인을 눌러 지역인증을 완료해주세요"),
-          content: SingleChildScrollView(child:Text("${info.area1} ${info.area2}")),
+          title: Text("확인을 눌러 지역인증을 완료해주세요", style: TextStyle(fontSize: 18),),
+          content: Container(height: 20, alignment:Alignment.center,child:Text("${info.area1} ${info.area2}")),
           actions: <Widget>[
             FlatButton(
-              child: Text("취소"),
+              child: Text("취소", style: Theme.of(context).textTheme.button,),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
             FlatButton(
-              child: Text("확인"),
+              child: Text("확인", style: Theme.of(context).textTheme.button),
               onPressed: () async {
                 Navigator.pop(context);
                 Navigator.pop(context, info.area2);

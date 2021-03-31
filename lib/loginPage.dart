@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_admob/firebase_admob.dart';
-
+import 'package:loading_animations/loading_animations.dart';
 import 'routes.dart';
 import 'globals.dart' as globals;
 import 'homeNavigator.dart' as home;
@@ -12,7 +12,6 @@ import 'ad_manager.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn _googleSignIn = GoogleSignIn();
-
 class loginPage extends StatefulWidget {
   @override
   _loginPageState createState() => _loginPageState();
@@ -20,15 +19,19 @@ class loginPage extends StatefulWidget {
 
 class _loginPageState extends State<loginPage> {
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: ListView(
-          scrollDirection: Axis.vertical,
-          padding: EdgeInsets.symmetric(horizontal: 24.0),
-          children: <Widget>[
-            SizedBox(height: 80.0),
-            _GoogleSignInSection(),
+        child: Stack(
+          children: [
+            ListView(
+              scrollDirection: Axis.vertical,
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              children: <Widget>[
+                SizedBox(height: 80.0),
+                _GoogleSignInSection(),
+              ],
+            ),
           ],
         ),
       ),
@@ -36,27 +39,39 @@ class _loginPageState extends State<loginPage> {
   }
 }
 
-class _GoogleSignInSection extends StatefulWidget{
+class _GoogleSignInSection extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _GoogleSignInSectionState();
 }
-class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
 
+class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
+  bool loginStarted;
+  bool _success;
+  String _userID;
   @override
-  void initState(){
+  void initState() {
+    super.initState();
+    loginStarted = false;
     autoLogin();
     _initAdMob();
   }
-
-  bool _success;
-  String _userID;
   Future autoLogin() async {
+    setState(() {
+      loginStarted = true;
+    });
     FirebaseUser currentUser = await _auth.currentUser();
-    if(currentUser!=null){
-      DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(currentUser.uid).get();
-      if(dbUser.exists){
+    if (currentUser != null) {
+      DocumentSnapshot dbUser = await Firestore.instance
+          .collection('user')
+          .document(currentUser.uid)
+          .get();
+      if (dbUser.exists) {
         await getUser(currentUser);
       }
+    } else {
+      setState(() {
+        loginStarted = false;
+      });
     }
   }
 
@@ -68,31 +83,40 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Container(
-          padding: const EdgeInsets.fromLTRB(0,16.0,0,8.0),
-          alignment: Alignment.center,
-          child: RaisedButton(
-            onPressed: () async {
-              _signInWithGoogle();
-              setState(() {
-                if(_success!=null){
-                  if(_success){
-                    print("login success");
-                  }
-                }
-              });
-            },
-            child: const Text('Google'),
-          ),
-        ),
+        loginStarted
+            ? Center(
+                child: LoadingBouncingGrid.square(
+                inverted: true,
+                backgroundColor: Theme.of(context).primaryColor,
+              ))
+            : Container(
+                padding: const EdgeInsets.fromLTRB(0, 16.0, 0, 8.0),
+                alignment: Alignment.center,
+                child: RaisedButton(
+                  onPressed: () async {
+                    setState(() {
+                      loginStarted = true;
+                    });
+                    await _signInWithGoogle();
+                    setState(() {
+                      if (_success != null) {
+                        if (_success) {
+                          print("login success");
+                        }
+                      }
+                    });
+                  },
+                  child: const Text('Google'),
+                ),
+              ),
       ],
     );
   }
 
-  void _signInWithGoogle() async {
+  Future _signInWithGoogle() async {
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleAuth =
-    await googleUser.authentication;
+        await googleUser.authentication;
     final AuthCredential credential = GoogleAuthProvider.getCredential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
@@ -109,7 +133,7 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
       if (user != null) {
         _success = true;
         _userID = user.uid;
-        if(_success){
+        if (_success) {
           handleGoogleSignIn(currentUser);
         }
       } else {
@@ -117,22 +141,25 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection>{
       }
     });
   }
+
   Future handleGoogleSignIn(FirebaseUser currentUser) async {
-    DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(_userID).get();
-    if(!dbUser.exists){
+    DocumentSnapshot dbUser =
+        await Firestore.instance.collection('user').document(_userID).get();
+    if (!dbUser.exists) {
       Navigator.pushNamed(context, '/registration');
-    }else{
+    } else {
       await getUser(currentUser);
-      print("User with ID "+dbUser.documentID+" is in the DB\n");
+      print("User with ID " + dbUser.documentID + " is in the DB\n");
     }
   }
+
   Future getUser(FirebaseUser currentUser) async {
-    if(currentUser != null){
+    if (currentUser != null) {
       globals.dbUser = new globals.UserInfo(currentUser);
-      await globals.dbUser.getUserFromDB().then((value){
+      await globals.dbUser.getUserFromDB().then((value) {
         Navigator.pushReplacementNamed(context, '/homeNavigator');
       });
     }
-    setState((){});
+    setState(() {});
   }
 }

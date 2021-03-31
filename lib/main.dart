@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: _themeData_1,
+      theme: _themeData_3,
       title: 'ProjectLocals',
       routes: routes,
     );

@@ -5,7 +5,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:naver_map_plugin/naver_map_plugin.dart';
 import 'package:project_locals/confidential.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:project_locals/globals.dart' as globals;
+final db = Firestore.instance;
 class naverMap extends StatefulWidget {
   @override
   _naverMapState createState() => _naverMapState();
@@ -24,7 +26,7 @@ class _naverMapState extends State<naverMap> {
         children: <Widget>[
           NaverMap(
             initialCameraPosition: CameraPosition(
-              target: LatLng(36.08191576364081, 129.3974868521867),
+              target: LatLng(35.87797320358528, 128.6278855048859),
               zoom: 17,
             ),
             onMapCreated: onMapCreated,
@@ -122,6 +124,31 @@ class _naverMapState extends State<naverMap> {
             FlatButton(
               child: Text("확인", style: Theme.of(context).textTheme.button),
               onPressed: () async {
+                await db.collection("area1").document(info.area1).get().then((document) async {
+                  if(document.exists){
+                    if(document["area2"].contains(info.area2)){
+                      print("area2 already on the database");
+                    }else{
+                      await db.runTransaction((transaction) async {
+                        final freshSnapshot = await transaction.get(document.reference);
+                        final fresh = freshSnapshot.data;
+                        List<dynamic> area2List = fresh["area2"];
+                        if (!area2List.contains(info.area2)) {
+                          area2List.add(info.area2);
+                        }
+                        await transaction.update(document.reference, {
+                          'area2': area2List,
+                        });
+                      });
+                    }
+                  }else{
+                    await db.collection('area1').document(info.area1).setData(
+                      {
+                        "area2":[info.area2]
+                      }
+                    );
+                  }
+                });
                 Navigator.pop(context);
                 Navigator.pop(context, info.area2);
               }

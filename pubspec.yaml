@@ -41,6 +41,9 @@ dependencies:
   loading_animations: ^2.1.0
   firebase_core: ^0.4.0+9
   firebase_analytics: ^5.0.6
+  shared_preferences: ^0.5.3+2
+  flutter_phoenix: ^0.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

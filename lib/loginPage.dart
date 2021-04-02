@@ -121,31 +121,38 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
 
   Future _signInWithGoogle() async {
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-    final FirebaseUser user =
-        (await _auth.signInWithCredential(credential)).user;
-    assert(user.email != null);
-    assert(user.displayName != null);
-    assert(!user.isAnonymous);
-    assert(await user.getIdToken() != null);
-    final FirebaseUser currentUser = await _auth.currentUser();
-    assert(user.uid == currentUser.uid);
-    setState(() {
-      if (user != null) {
-        _success = true;
-        _userID = user.uid;
-        if (_success) {
-          handleGoogleSignIn(currentUser);
+    if(googleUser!=null){
+      final GoogleSignInAuthentication googleAuth =
+      await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.getCredential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      final FirebaseUser user =
+          (await _auth.signInWithCredential(credential)).user;
+      assert(user.email != null);
+      assert(user.displayName != null);
+      assert(!user.isAnonymous);
+      assert(await user.getIdToken() != null);
+      final FirebaseUser currentUser = await _auth.currentUser();
+      assert(user.uid == currentUser.uid);
+      setState(() {
+        if (user != null) {
+          _success = true;
+          _userID = user.uid;
+          if (_success) {
+            handleGoogleSignIn(currentUser);
+          }
+        } else {
+          _success = false;
         }
-      } else {
-        _success = false;
-      }
-    });
+      });
+    }else{
+      setState(() {
+        loginStarted = false;
+      });
+    }
+
   }
 
   Future handleGoogleSignIn(FirebaseUser currentUser) async {

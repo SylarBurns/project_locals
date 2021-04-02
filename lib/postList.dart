@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_admob/firebase_admob.dart';
-
 import 'postView.dart';
-import 'postViewTemp.dart';
 import 'postWrite.dart';
 import 'ad_manager.dart';
 

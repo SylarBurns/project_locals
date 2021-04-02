@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,19 +19,30 @@ class homePage extends StatefulWidget {
 }
 
 class homePageState extends State<homePage> {
-  Refresh(){setState(() {});}
+  Refresh() {
+    setState(() {});
+  }
+
   List<String> boardTypes = [
     "free",
     "anonymous",
     "lostAndFound",
+    "promo",
   ];
-  bool _isAdLoaded = false;
+  List<DocumentSnapshot> hotPostList = List<DocumentSnapshot>();
+  HashMap<String, List<DocumentSnapshot>> recentPostLists = HashMap<String, List<DocumentSnapshot>>();
+  bool hotLoaded;
+  bool recentLoaded;
+  bool _isAdLoaded;
   BannerAd _ad;
-
   @override
   void initState() {
+    hotLoaded = false;
+    recentLoaded = false;
+    _isAdLoaded = false;
     super.initState();
-
+    getHotPosts();
+    getRecentPosts();
     _ad = BannerAd(
       adUnitId: AdManager.bannerAdUnitId,
       size: AdSize.banner,
@@ -51,90 +64,103 @@ class homePageState extends State<homePage> {
 
     _ad.load();
   }
-
   void dispose() {
     _ad?.dispose();
     _ad = null;
-
     super.dispose();
   }
-
+  void getHotPosts() async {
+    await db
+        .collection('board')
+        .where("region", isEqualTo: globals.dbUser.getSelectedRegion())
+        .where('date',
+        isGreaterThan: DateTime.now().subtract(Duration(days: 7)))
+        .orderBy("date")
+        .getDocuments()
+        .then((value) {
+      hotPostList = value.documents;
+      hotPostList.sort((A, B) => -A['like'].compareTo(B['like']));
+      if (hotPostList.length > 3) {
+        hotPostList = hotPostList.sublist(0, 3);
+      }
+      setState(() {
+        hotLoaded = true;
+      });
+    });
+  }
+  void getRecentPosts() async {
+    await boardTypes.forEach((element) async {
+      await db
+          .collection("board")
+          .where("region", isEqualTo: globals.dbUser.getSelectedRegion())
+          .where("boardType", isEqualTo: element)
+          .orderBy("date", descending: true)
+          .limit(3)
+          .getDocuments()
+          .then((value){
+        recentPostLists.addAll({
+          element : value.documents,
+        });
+      });
+      if(boardTypes.last == element){
+        setState(() {
+          recentLoaded = true;
+        });
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    return ListView(
-        padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
-        children: <Widget>[
-          SizedBox(
-            height: 10,
-          ),
-          Container(
-            alignment: Alignment.bottomLeft,
-            padding: EdgeInsets.all(8),
-            child: Text(
-              "실시간 인기 글 ",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+    if(hotLoaded && recentLoaded && _isAdLoaded){
+      print("loaded hot posts: "+hotPostList.length.toString());
+      print("loaded recent posts: "+recentPostLists.length.toString());
+      return ListView(
+          padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
+          children: <Widget>[
+            SizedBox(
+              height: 10,
+            ),
+            Container(
+              alignment: Alignment.bottomLeft,
+              padding: EdgeInsets.all(8),
+              child: Text(
+                "실시간 인기 글 ",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-          _hotPost(context),
-          SizedBox(
-            height: 10,
-          ),
-          Container(
-            height: 60,
-            width: _ad.size.width.toDouble(),
-            child: _isAdLoaded ? AdWidget(ad: _ad,) : Container(),
-            alignment: Alignment.center,
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Container(
-            alignment: Alignment.bottomLeft,
-            padding: EdgeInsets.all(8),
-            child: Text(
-              "게시판 별 최신 글",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            _buildHotPostList(context, hotPostList),
+            SizedBox(
+              height: 10,
+            ),
+            Container(
+              height: 60,
+              width: _ad.size.width.toDouble(),
+              child: AdWidget(ad: _ad,),
+              alignment: Alignment.center,
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Container(
+              alignment: Alignment.bottomLeft,
+              padding: EdgeInsets.all(8),
+              child: Text(
+                "게시판 별 최신 글",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-          _recentPost(context),
-        ]);
+            _recentPost(context),
+          ]);
+    }else{
+      return globals.getLoadingAnimation(context);
+    }
   }
-  Future getHotPosts() async {
-    List<DocumentSnapshot> docs = await db.collection('board')
-        .where("region", isEqualTo: globals.dbUser.getSelectedRegion())
-        .where('date', isGreaterThan: DateTime.now().subtract(Duration(days: 7)))
-        .orderBy("date").getDocuments().then((value){
-          List<DocumentSnapshot> docs = value.documents;
-          docs.sort((A,B)=>-A['like'].compareTo(B['like']));
-          if(docs.length>3){
-            return docs.sublist(0,3);
-          }else {
-            return docs;
-          }
-    });
-    return docs;
-  }
-  Widget _hotPost(BuildContext context) {
-    return FutureBuilder(
-      future: getHotPosts(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting){
-          return LinearProgressIndicator();
-        }else if(snapshot.hasData){
-          return _buildHotPostList(context, snapshot.data);
-        }else{
-          return LinearProgressIndicator();
-        }
-      },
-    );
-  }
-
   Widget _buildHotPostList(
       BuildContext context, List<DocumentSnapshot> snapshots) {
     return Container(
@@ -153,14 +179,13 @@ class homePageState extends State<homePage> {
       ),
     );
   }
-
   Widget _buildHotPostListItem(
       BuildContext context, DocumentSnapshot document) {
     String title = document["title"];
     String writer = document["writerNick"];
     Timestamp tt = document["date"];
     DateTime dateTime =
-        DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+    DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
     int like = document["like"];
     String content = document["content"];
@@ -175,6 +200,9 @@ class homePageState extends State<homePage> {
         break;
       case "lostAndFound":
         boardName = "Lost&Found";
+        break;
+      case "promo":
+        boardName = "홍보 게시판";
         break;
     }
     return Container(
@@ -248,7 +276,7 @@ class homePageState extends State<homePage> {
                           Text(
                             '$like',
                             style:
-                                TextStyle(fontSize: 12, color: Theme.of(context).primaryColor),
+                            TextStyle(fontSize: 12, color: Theme.of(context).primaryColor),
                           ),
                         ],
                       ),
@@ -262,15 +290,9 @@ class homePageState extends State<homePage> {
       ),
     );
   }
-
   Widget _recentPost(BuildContext context) {
-    List<String> boardTypes = [
-      "free",
-      "anonymous",
-      "lostAndFound",
-    ];
     return Column(
-      children: List.generate(boardTypes.length, (index) {
+      children: List.generate(recentPostLists.length, (index) {
         String boardName = "";
         switch (boardTypes[index]) {
           case "free":
@@ -282,35 +304,24 @@ class homePageState extends State<homePage> {
           case "lostAndFound":
             boardName = "Lost&Found";
             break;
+          case "promo":
+            boardName = "홍보 게시판";
+            break;
         }
-        return StreamBuilder(
-          stream: db
-              .collection("board")
-              .where("region", isEqualTo: globals.dbUser.getSelectedRegion())
-              .where("boardType", isEqualTo: boardTypes[index])
-              .orderBy("date", descending: true)
-              .limit(3)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) return LinearProgressIndicator();
-
-            return Container(
-              child: Column(
-                children: [
-                  _buildRecentPostList(
-                      context, snapshot.data.documents, boardName),
-                  SizedBox(
-                    height: 10,
-                  )
-                ],
-              ),
-            );
-          },
+        return Container(
+          child: Column(
+            children: [
+              _buildRecentPostList(
+                  context, recentPostLists[boardTypes[index]], boardName),
+              SizedBox(
+                height: 10,
+              )
+            ],
+          ),
         );
       }),
     );
   }
-
   Widget _buildRecentPostList(BuildContext context,
       List<DocumentSnapshot> snapshots, String boardName) {
     return Container(
@@ -343,13 +354,12 @@ class homePageState extends State<homePage> {
       ]),
     );
   }
-
   Widget _buildRecentPostListItem(
       BuildContext context, DocumentSnapshot document, String boardName) {
     String title = document["title"];
     Timestamp tt = document["date"];
     DateTime dateTime =
-        DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+    DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = "";
     if (DateTime.now().difference(dateTime) <= new Duration(hours: 24)) {
       date = DateFormat.Hm().format(dateTime);

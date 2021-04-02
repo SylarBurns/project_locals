@@ -63,13 +63,13 @@ class homePageState extends State<homePage> {
         .where("region", isEqualTo: globals.dbUser.getSelectedRegion())
         .where('date', isGreaterThan: DateTime.now().subtract(Duration(days: 7)))
         .orderBy("date").getDocuments().then((value){
-          List<DocumentSnapshot> docs = value.documents;
-          docs.sort((A,B)=>-A['like'].compareTo(B['like']));
-          if(docs.length>3){
-            return docs.sublist(0,3);
-          }else {
-            return docs;
-          }
+      List<DocumentSnapshot> docs = value.documents;
+      docs.sort((A,B)=>-A['like'].compareTo(B['like']));
+      if(docs.length>3){
+        return docs.sublist(0,3);
+      }else {
+        return docs;
+      }
     });
     return docs;
   }
@@ -113,7 +113,7 @@ class homePageState extends State<homePage> {
     String writer = document["writerNick"];
     Timestamp tt = document["date"];
     DateTime dateTime =
-        DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+    DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
     int like = document["like"];
     String content = document["content"];
@@ -201,7 +201,7 @@ class homePageState extends State<homePage> {
                           Text(
                             '$like',
                             style:
-                                TextStyle(fontSize: 12, color: Theme.of(context).primaryColor),
+                            TextStyle(fontSize: 12, color: Theme.of(context).primaryColor),
                           ),
                         ],
                       ),
@@ -302,7 +302,7 @@ class homePageState extends State<homePage> {
     String title = document["title"];
     Timestamp tt = document["date"];
     DateTime dateTime =
-        DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+    DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = "";
     if (DateTime.now().difference(dateTime) <= new Duration(hours: 24)) {
       date = DateFormat.Hm().format(dateTime);

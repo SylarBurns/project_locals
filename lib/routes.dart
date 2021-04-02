@@ -5,6 +5,7 @@ import 'boardHome.dart';
 import 'package:project_locals/registration.dart';
 import 'package:project_locals/likedList.dart';
 import 'package:project_locals/naver_map.dart';
+import 'package:project_locals/selectThemeColor.dart';
 final routes = {
   '/': (BuildContext context) => loginPage(),
   '/homeNavigator': (BuildContext context) => homeNavigator(),
@@ -12,4 +13,5 @@ final routes = {
   '/registration': (BuildContext context)=> registration(),
   '/likedList':(BuildContext context)=> likeList(),
   '/naverMap' :(BuildContext context)=> naverMap(),
+  '/selectThemeColor':(BuildContext context)=>selectThemeColor(),
 };

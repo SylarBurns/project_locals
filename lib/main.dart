@@ -4,31 +4,38 @@ import 'package:project_locals/routes.dart';
 import 'package:project_locals/loginPage.dart';
 import 'package:project_locals/homeNavigator.dart';
 import 'package:project_locals/colors.dart';
-void main() => runApp(MyApp());
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
+void main() => runApp(Phoenix(child:MyApp()));
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  ThemeData appTheme;
+  @override
+  void initState() {
+    super.initState();
+    _loadTheme();
+  }
+  _loadTheme() async {
+    await SharedPreferences.getInstance().then((preference){
+      setState(() {
+        appTheme = _buildTheme(themeDataList.elementAt(preference.getInt('ThemeIndex') ?? 0));
+      });
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: _themeData_3,
+      theme: appTheme,
       title: 'ProjectLocals',
       routes: routes,
     );
   }
-  Route<dynamic> _getRoute(RouteSettings settings){
-    if(settings.name != '/login'){
-      return null;
-    }
-    return MaterialPageRoute<void>(
-      settings: settings,
-      builder: (BuildContext context) => loginPage(),
-      fullscreenDialog: true,
-    );
-  }
 }
-final ThemeData _themeData_1 = _buildTheme(theme_1);
-final ThemeData _themeData_2 = _buildTheme(theme_2);
-final ThemeData _themeData_3 = _buildTheme(theme_3);
 ThemeData _buildTheme(appThemeData data){
   final ThemeData base = ThemeData.light();
   return base.copyWith(
@@ -36,10 +43,19 @@ ThemeData _buildTheme(appThemeData data){
     primaryColor: data.primary,
     backgroundColor: data.background,
     textTheme: base.textTheme.copyWith(
+      headline1: TextStyle(color: data.accent),
+      headline2: TextStyle(color: data.accent),
+      headline3: TextStyle(color: data.accent),
+      headline4: TextStyle(color: data.accent),
+      headline5: TextStyle(color: data.accent),
       headline6: TextStyle(color: data.accent),
-      button: TextStyle(color:data.accent),
       bodyText1: TextStyle(color: data.accent),
       bodyText2: TextStyle(color: data.accent),
+      subtitle1: TextStyle(color: data.accent),
+      subtitle2: TextStyle(color: data.accent),
+      caption: TextStyle(color: data.accent),
+      button: TextStyle(color: data.accent),
+      overline: TextStyle(color: data.accent),
     ),
     buttonTheme: base.buttonTheme.copyWith(
       buttonColor: data.backgroundSecondary,
@@ -57,16 +73,16 @@ ThemeData _buildTheme(appThemeData data){
       unselectedItemColor: data.primary.withOpacity(.60),
     ),
     appBarTheme: base.appBarTheme.copyWith(
-      color: data.backgroundSecondary,
-      textTheme: TextTheme(
-        headline6: TextStyle(
-            color: data.accent,
-            fontSize: 20
+        color: data.backgroundSecondary,
+        textTheme: TextTheme(
+          headline6: TextStyle(
+              color: data.accent,
+              fontSize: 20
+          ),
         ),
-      ),
-      iconTheme: IconThemeData(color: data.accent),
-      actionsIconTheme: IconThemeData(color: data.accent),
-      elevation: 5
+        iconTheme: IconThemeData(color: data.accent),
+        actionsIconTheme: IconThemeData(color: data.accent),
+        elevation: 5
     ),
     floatingActionButtonTheme: base.floatingActionButtonTheme.copyWith(
       backgroundColor: data.primary,

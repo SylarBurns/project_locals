@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_admob/firebase_admob.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:loading_animations/loading_animations.dart';
 import 'routes.dart';
 import 'globals.dart' as globals;
@@ -54,6 +55,7 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
     loginStarted = false;
     autoLogin();
     _initAdMob();
+    _initGoogleMobileAds();
   }
   Future autoLogin() async {
     setState(() {
@@ -77,6 +79,10 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
 
   Future<void> _initAdMob() {
     return FirebaseAdMob.instance.initialize(appId: AdManager.appId);
+  }
+
+  Future<InitializationStatus> _initGoogleMobileAds() {
+    return MobileAds.instance.initialize();
   }
 
   @override

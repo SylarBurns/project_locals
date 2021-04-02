@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:firebase_admob/firebase_admob.dart';
 
 import 'postView.dart';
+import 'postViewTemp.dart';
 import 'postWrite.dart';
 import 'ad_manager.dart';
 
@@ -35,8 +36,8 @@ class _PostListState extends State<PostList> {
 
   void _loadBannerAd() {
     _bannerAd
-        ..load()
-        ..show(anchorType: AnchorType.bottom);
+      ..load()
+      ..show(anchorType: AnchorType.bottom);
   }
 
   void initializeAd() {
@@ -45,7 +46,7 @@ class _PostListState extends State<PostList> {
       size: AdSize.banner,
     );
     _loadBannerAd();
-  }
+  }   
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class _PostListState extends State<PostList> {
   @override
   void dispose() {
     _bannerAd?.dispose();
+    _bannerAd = null;
 
     super.dispose();
   }
@@ -210,7 +212,6 @@ class _PostListState extends State<PostList> {
           ],
         ),
         onTap: () {
-          _bannerAd.dispose();
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -223,7 +224,6 @@ class _PostListState extends State<PostList> {
             ),
           ).then((value) {
             refresh(value);
-            initializeAd();
           });
         },
       ),

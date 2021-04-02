@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -34,6 +35,19 @@ class PostView extends StatefulWidget {
 }
 
 class _PostViewState extends State<PostView> {
+  bool _isDataLoaded = false;
+
+  DocumentReference postDocRef;
+  DocumentSnapshot docSnapshot;
+  DocumentReference commentDocRef;
+
+  CollectionReference commentListRef;
+  QuerySnapshot commentListQuery;
+  List<DocumentSnapshot> commentSnapList;
+
+  List<CollectionReference> nestedCommentRef;
+  List<QuerySnapshot> nestedCommentQuery;
+  List<List<DocumentSnapshot>> nestedCommentSnapList;
 
   FutureOr _refresh(dynamic value) {
     setState(() {});
@@ -41,6 +55,40 @@ class _PostViewState extends State<PostView> {
 
   refresh() {
     setState(() {});
+  }
+
+  Future loadData() async {
+    postDocRef = db.collection('board').document(widget.postDocID);
+    docSnapshot = await postDocRef.get();
+
+    commentDocRef = db.collection('comments').document(widget.postDocID);
+    commentListRef = commentDocRef.collection('commentList');
+    commentListQuery = await commentListRef.getDocuments();
+    commentSnapList = commentListQuery.documents;
+
+    int index = 0;
+    commentSnapList.map((snapshot) async {
+      var ref = snapshot.reference.collection('nestedComment');
+      var query = await ref.getDocuments();
+      var snapList = query.documents;
+
+      nestedCommentRef.add(ref);
+      nestedCommentQuery.add(query);
+      nestedCommentSnapList.add(snapList);
+    });
+
+    _isDataLoaded = true;
+    refresh();
+  }
+  @override
+  void initState() {
+    super.initState();
+
+
+  }
+
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -130,7 +178,7 @@ class _PostViewState extends State<PostView> {
       ),
       body: Padding(
         padding: globals.dbUser.getAuthority()
-            ? EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9)
+            ? EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9 - 55)
             : EdgeInsets.zero,
         child: ListView(
           children: [
@@ -203,7 +251,7 @@ class _PostViewState extends State<PostView> {
 
   Widget _bottomTextField(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(8.0),
+      padding: EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 55.0),
       child: TextField(
         controller: commentController,
         focusNode: focusNode,
@@ -357,6 +405,12 @@ class _PostViewState extends State<PostView> {
     int comments = post['comments'];
     Timestamp tt = post['date'];
     String boardType = post['boardType'];
+    String image = post['image'];
+    StorageReference ref;
+    if(image != null) {
+       ref = FirebaseStorage.instance.ref().child('post/$image');
+    }
+
 
     DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
@@ -465,6 +519,32 @@ class _PostViewState extends State<PostView> {
             ),
           ),
           SizedBox(height: 5.0,),
+          if(image != null)...[
+            FutureBuilder(
+              future: ref.getDownloadURL(),
+              builder: (context, snapshot) {
+                if(snapshot.hasData) {
+                  var url = snapshot.data;
+                  return Container(
+                    padding: EdgeInsets.fromLTRB(5, 3, 5, 3),
+                    alignment: Alignment.center,
+                    // decoration: BoxDecoration(
+                    //   borderRadius: BorderRadius.circular(20),
+                    //   border: Border.all(color: Colors.black12),
+                    // ),
+                    child: Image.network(
+                      url,
+                      height: MediaQuery.of(context).size.height/4,
+                    ),
+                  );
+                }
+                else{
+                  return Container();
+                }
+              },
+            ),
+            SizedBox(height: 5.0,)
+          ],
           Text(
             '$content',
           ),

@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
+import 'package:project_locals/colors.dart';
+import 'package:loading_animations/loading_animations.dart';
 UserInfo dbUser;
 
 class UserInfo{
@@ -47,3 +48,12 @@ class UserInfo{
     _selectedRegion = region;
   }
 }
+
+Widget getLoadingAnimation(BuildContext context){
+  return Center(
+      child: LoadingBouncingGrid.square(
+        inverted: true,
+        backgroundColor: Theme.of(context).primaryColor,
+      ));
+}
+

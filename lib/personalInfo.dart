@@ -35,7 +35,7 @@ class personalInfoState extends State<personalInfo>{
             FlatButton(
                 onPressed:()=>Navigator.pushNamed(context, '/likedList'),
                 child: Text(
-                      "내가 좋아요 누른 게시물"
+                      "좋아요 누른 게시물"
                       ),
             ),
             FlatButton(
@@ -62,6 +62,14 @@ class personalInfoState extends State<personalInfo>{
               },
               child: Text(
                   "로그아웃"
+              ),
+            ),
+            FlatButton(
+              onPressed:(){
+                Navigator.pushNamed(context, '/selectThemeColor');
+              },
+              child: Text(
+                  "테마 색 설정"
               ),
             ),
           ],

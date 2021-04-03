@@ -108,13 +108,19 @@ class homePageState extends State<homePage> {
       }
     });
   }
+  Future refreshHomePage() async {
+    await getHotPosts();
+    await getRecentPosts();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     if(hotLoaded && recentLoaded && _isAdLoaded){
       print("loaded hot posts: "+hotPostList.length.toString());
       print("loaded recent posts: "+recentPostLists.length.toString());
       return RefreshIndicator(
-        onRefresh: ,
+        onRefresh: refreshHomePage,
         child: ListView(
             padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
             children: <Widget>[

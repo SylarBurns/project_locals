@@ -61,7 +61,6 @@ class homePageState extends State<homePage> {
         },
       ),
     );
-
     _ad.load();
   }
   void dispose() {
@@ -114,49 +113,52 @@ class homePageState extends State<homePage> {
     if(hotLoaded && recentLoaded && _isAdLoaded){
       print("loaded hot posts: "+hotPostList.length.toString());
       print("loaded recent posts: "+recentPostLists.length.toString());
-      return ListView(
-          padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
-          children: <Widget>[
-            SizedBox(
-              height: 10,
-            ),
-            Container(
-              alignment: Alignment.bottomLeft,
-              padding: EdgeInsets.all(8),
-              child: Text(
-                "실시간 인기 글 ",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+      return RefreshIndicator(
+        onRefresh: ,
+        child: ListView(
+            padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
+            children: <Widget>[
+              SizedBox(
+                height: 10,
+              ),
+              Container(
+                alignment: Alignment.bottomLeft,
+                padding: EdgeInsets.all(8),
+                child: Text(
+                  "실시간 인기 글 ",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            _buildHotPostList(context, hotPostList),
-            SizedBox(
-              height: 10,
-            ),
-            Container(
-              height: 60,
-              width: _ad.size.width.toDouble(),
-              child: AdWidget(ad: _ad,),
-              alignment: Alignment.center,
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Container(
-              alignment: Alignment.bottomLeft,
-              padding: EdgeInsets.all(8),
-              child: Text(
-                "게시판 별 최신 글",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              _buildHotPostList(context, hotPostList),
+              SizedBox(
+                height: 10,
+              ),
+              Container(
+                height: 60,
+                width: _ad.size.width.toDouble(),
+                child: AdWidget(ad: _ad,),
+                alignment: Alignment.center,
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Container(
+                alignment: Alignment.bottomLeft,
+                padding: EdgeInsets.all(8),
+                child: Text(
+                  "게시판 별 최신 글",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            _recentPost(context),
-          ]);
+              _recentPost(context),
+            ]),
+      );
     }else{
       return globals.getLoadingAnimation(context);
     }

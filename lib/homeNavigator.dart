@@ -26,7 +26,7 @@ class _MyHomePageState extends State<homeNavigator> {
   final GlobalKey<NotificationBodyState> _NotificationBodyStateKey = GlobalKey();
   final GlobalKey<personalInfoState> _personalInfoStateKey= GlobalKey();
   int _selectedIndex = 0;
-  List _widgetOptions;
+  List<Widget> _widgetOptions;
   List _widgetKeys;
 
   refresh() {
@@ -122,8 +122,9 @@ class _MyHomePageState extends State<homeNavigator> {
       );
   }
   Widget appBody(){
-    return Center(
-      child: _widgetOptions.elementAt(_selectedIndex),
+    return IndexedStack(
+      index: _selectedIndex,
+      children: _widgetOptions,
     );
   }
   Widget _messageIcon(BuildContext context) {

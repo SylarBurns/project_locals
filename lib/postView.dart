@@ -38,16 +38,16 @@ class _PostViewState extends State<PostView> {
   bool _isDataLoaded = false;
 
   DocumentReference postDocRef;
-  DocumentSnapshot docSnapshot;
-  DocumentReference commentDocRef;
+  DocumentSnapshot postDocSnapshot;
+  StorageReference storageRef;
+  var imageURL;
 
+  DocumentReference commentDocRef;
   CollectionReference commentListRef;
   QuerySnapshot commentListQuery;
-  List<DocumentSnapshot> commentSnapList;
 
-  List<CollectionReference> nestedCommentRef;
-  List<QuerySnapshot> nestedCommentQuery;
-  List<List<DocumentSnapshot>> nestedCommentSnapList;
+  Map<String, CollectionReference> nestedCommentRef = Map<String, CollectionReference>();
+  Map<String, QuerySnapshot> nestedCommentQuery = Map<String, QuerySnapshot>();
 
   FutureOr _refresh(dynamic value) {
     setState(() {});
@@ -57,34 +57,45 @@ class _PostViewState extends State<PostView> {
     setState(() {});
   }
 
-  Future loadData() async {
+  void loadData() async {
     postDocRef = db.collection('board').document(widget.postDocID);
-    docSnapshot = await postDocRef.get();
+    postDocSnapshot = await postDocRef.get();
+    String temp = postDocSnapshot['image'];
+    if(temp != null) {
+      storageRef = FirebaseStorage.instance.ref().child('post/$temp');
+      imageURL = await storageRef.getDownloadURL();
+    }
 
     commentDocRef = db.collection('comments').document(widget.postDocID);
     commentListRef = commentDocRef.collection('commentList');
-    commentListQuery = await commentListRef.getDocuments();
-    commentSnapList = commentListQuery.documents;
-
-    int index = 0;
-    commentSnapList.map((snapshot) async {
-      var ref = snapshot.reference.collection('nestedComment');
-      var query = await ref.getDocuments();
-      var snapList = query.documents;
-
-      nestedCommentRef.add(ref);
-      nestedCommentQuery.add(query);
-      nestedCommentSnapList.add(snapList);
+    await commentListRef.orderBy('date').getDocuments().then((value) async {
+       commentListQuery = value;
     });
+
+    int len = commentListQuery.documents.length;
+    for(int i=0; i<len; ++i) {
+      DocumentSnapshot comment = commentListQuery.documents[i];
+      if(comment['nestedComments'] != 0) {
+        String docID = comment.documentID;
+        CollectionReference ref = comment.reference.collection('nestedComment');
+        await ref.orderBy('date').getDocuments().then((value) {
+          QuerySnapshot query = value;
+
+          nestedCommentRef[docID] = ref;
+          nestedCommentQuery[docID] = query;
+        });
+      }
+    }
 
     _isDataLoaded = true;
     refresh();
   }
+
   @override
   void initState() {
     super.initState();
 
-
+    loadData();
   }
 
   void dispose() {
@@ -123,21 +134,18 @@ class _PostViewState extends State<PostView> {
               ),
             ],
             onSelected: (selectedMenu) async {
-              DocumentReference docRef = db.collection('board').document(widget.postDocID);
-              DocumentSnapshot post = await docRef.get();
-
               switch(selectedMenu) {
                 case 'edit':
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PostEdit(post: post,),
+                      builder: (context) => PostEdit(post: postDocSnapshot,),
                     ),
                   ).then(_refresh);
                   break;
                 case 'remove':
-                  await docRef.delete();
-                  await db.collection('comments').document(widget.postDocID).delete();
+                  await postDocRef.delete();
+                  commentDocRef.delete();
 
                   Navigator.pop(context);
                   break;
@@ -145,24 +153,24 @@ class _PostViewState extends State<PostView> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context){
-                         String chatRoomID = "chatInit/${widget.writerUID}/${widget.boardType}";
-                         return chatRoomView(
-                           chatRoomID: chatRoomID,
-                           chatRoomName: "new message",
-                         );
-                        }
+                          builder: (context){
+                            String chatRoomID = "chatInit/${widget.writerUID}/${widget.boardType}";
+                            return chatRoomView(
+                              chatRoomID: chatRoomID,
+                              chatRoomName: "new message",
+                            );
+                          }
                       )
                   );
                   break;
                 case 'report':
-                  List reportUserList = post['reportUserList'];
+                  List reportUserList = postDocSnapshot['reportUserList'];
 
                   if(reportUserList.contains(globals.dbUser.getUID())) {
                     _showDialog('이미 신고한 게시글입니다.');
                   }
                   else {
-                    await docRef.updateData({
+                    await postDocRef.updateData({
                       'report': FieldValue.increment(1),
                       'reportUserList': FieldValue.arrayUnion([globals.dbUser.getUID()]),
                     });
@@ -178,80 +186,56 @@ class _PostViewState extends State<PostView> {
       ),
       body: Padding(
         padding: globals.dbUser.getAuthority()
-            ? EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9 - 55)
+            ? EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9)
             : EdgeInsets.zero,
-        child: ListView(
+        child: _isDataLoaded ? ListView(
           children: [
-            FutureBuilder(
-              future: db.collection('board').document(widget.postDocID).get(),
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                if (snapshot.hasData == false) {
-                  return Container();
-                }
-                else {
-                  return _buildPost(context, snapshot.data);
-                }
-              },
-            ),
-            FutureBuilder(
-              future: db.collection('comments').document(widget.postDocID).collection('commentList').orderBy('date').getDocuments(),
-              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (!snapshot.hasData) {
-                  return Container();
-                }
-                else {
-                  return Column(
-                    children: snapshot.data.documents.map((comment) {
-                      return Column(
-                        children: [
-                          CommentTile(
+            _buildPost(context, postDocSnapshot),
+            Column(
+              children: commentListQuery.documents.map((comment) {
+                return Column(
+                  children: [
+                    CommentTile(
+                      postDocID: widget.postDocID,
+                      comment: comment,
+                      postWriter: widget.writerUID,
+                      refresh: refresh,
+                      showDialog: _showDialog,
+                      loadData: loadData,
+                      boardType: widget.boardType,
+                    ),
+                    if(comment['nestedComments'] != 0)...[
+                      Column(
+                        children: nestedCommentQuery[comment.documentID].documents.map((nestedComment) {
+                          return  NestedCommentTile(
                             postDocID: widget.postDocID,
-                            comment: comment,
+                            nestedComment: nestedComment,
                             postWriter: widget.writerUID,
+                            commentRef: comment.reference,
                             refresh: refresh,
                             showDialog: _showDialog,
+                            loadData: loadData,
                             boardType: widget.boardType,
-                          ),
-                          FutureBuilder(
-                            future: comment.reference.collection('nestedComment').orderBy('date').getDocuments(),
-                            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> nsSnapshot) {
-                              if(!nsSnapshot.hasData) {
-                                return Container();
-                              }
-                              else {
-                                return Column(
-                                  children: nsSnapshot.data.documents.map((nestedComment) {
-                                    return  NestedCommentTile(
-                                      postDocID: widget.postDocID,
-                                      nestedComment: nestedComment,
-                                      postWriter: widget.writerUID,
-                                      commentRef: comment.reference,
-                                      refresh: refresh,
-                                      showDialog: _showDialog,
-                                      boardType: widget.boardType,
-                                    );
-                                  }).toList(),
-                                );
-                              }
-                            },
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  );
-                }
-              },
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ],
+                );
+              }).toList(),
             ),
           ],
+        ) : Center(
+          child: globals.getLoadingAnimation(context),
         ),
       ),
-      bottomSheet: globals.dbUser.getAuthority() ? _bottomTextField(context) : null,
+      bottomSheet: _bottomTextField(context),
     );
   }
 
   Widget _bottomTextField(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 55.0),
+      padding: EdgeInsets.all(8.0),
       child: TextField(
         controller: commentController,
         focusNode: focusNode,
@@ -271,7 +255,7 @@ class _PostViewState extends State<PostView> {
               else {
                 _showDialog('텍스트를 입력하세요.');
               }
-              setState(() {});
+              loadData();
             },
           ),
         ),
@@ -406,11 +390,6 @@ class _PostViewState extends State<PostView> {
     Timestamp tt = post['date'];
     String boardType = post['boardType'];
     String image = post['image'];
-    StorageReference ref;
-    if(image != null) {
-       ref = FirebaseStorage.instance.ref().child('post/$image');
-    }
-
 
     DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
@@ -505,6 +484,7 @@ class _PostViewState extends State<PostView> {
                         });
                       }
                     }
+                    loadData();
                   });
                 },
               ),
@@ -520,28 +500,17 @@ class _PostViewState extends State<PostView> {
           ),
           SizedBox(height: 5.0,),
           if(image != null)...[
-            FutureBuilder(
-              future: ref.getDownloadURL(),
-              builder: (context, snapshot) {
-                if(snapshot.hasData) {
-                  var url = snapshot.data;
-                  return Container(
-                    padding: EdgeInsets.fromLTRB(5, 3, 5, 3),
-                    alignment: Alignment.center,
-                    // decoration: BoxDecoration(
-                    //   borderRadius: BorderRadius.circular(20),
-                    //   border: Border.all(color: Colors.black12),
-                    // ),
-                    child: Image.network(
-                      url,
-                      height: MediaQuery.of(context).size.height/4,
-                    ),
-                  );
-                }
-                else{
-                  return Container();
-                }
-              },
+            Container(
+              padding: EdgeInsets.fromLTRB(5, 3, 5, 3),
+              alignment: Alignment.center,
+              // decoration: BoxDecoration(
+              //   borderRadius: BorderRadius.circular(20),
+              //   border: Border.all(color: Colors.black12),
+              // ),
+              child: Image.network(
+                imageURL,
+                height: MediaQuery.of(context).size.height/4,
+              ),
             ),
             SizedBox(height: 5.0,)
           ],
@@ -587,6 +556,7 @@ class CommentTile extends StatefulWidget {
   final String postWriter;
   final Function refresh;
   final Function showDialog;
+  final Function loadData;
   final String boardType;
   CommentTile({
     Key key,
@@ -595,6 +565,7 @@ class CommentTile extends StatefulWidget {
     this.postWriter,
     this.refresh,
     this.showDialog,
+    this.loadData,
     this.boardType,
   }) : super(key: key);
 
@@ -849,6 +820,7 @@ class CommentTileState extends State<CommentTile> {
                                 widget.showDialog('이미 좋아요를 눌렀습니다.');
                               }
                               else {
+                                // _isDataLoaded = false;
                                 widget.showDialog('성공적으로 좋아요를 눌렀습니다.');
                                 await docRef.updateData({
                                   'commentLikeList': FieldValue.arrayUnion([widget.comment.documentID]),
@@ -878,8 +850,8 @@ class CommentTileState extends State<CommentTile> {
                                     'content': '$content',
                                   });
                                 }
-
-                                widget.refresh();
+                                widget.loadData();
+                                // widget.refresh();
                               }
                             },
                           ),
@@ -975,6 +947,7 @@ class NestedCommentTile extends StatefulWidget {
   final DocumentReference commentRef;
   final Function refresh;
   final Function showDialog;
+  final Function loadData;
   final String boardType;
 
   NestedCommentTile({
@@ -985,6 +958,7 @@ class NestedCommentTile extends StatefulWidget {
     this.commentRef,
     this.refresh,
     this.showDialog,
+    this.loadData,
     this.boardType,
   }) : super(key: key);
 
@@ -1218,8 +1192,8 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                                       'content': '$content',
                                     });
                                   }
-
-                                  widget.refresh();
+                                  widget.loadData();
+                                  // widget.refresh();
                                 }
                               },
                             ),

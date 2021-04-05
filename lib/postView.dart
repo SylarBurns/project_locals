@@ -186,7 +186,7 @@ class _PostViewState extends State<PostView> {
       ),
       body: Padding(
         padding: globals.dbUser.getAuthority()
-            ? EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9 - 55)
+            ? EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9)
             : EdgeInsets.zero,
         child: _isDataLoaded ? ListView(
           children: [
@@ -226,7 +226,7 @@ class _PostViewState extends State<PostView> {
             ),
           ],
         ) : Center(
-          child: CircularProgressIndicator(),
+          child: globals.getLoadingAnimation(context),
         ),
       ),
       bottomSheet: _bottomTextField(context),
@@ -235,7 +235,7 @@ class _PostViewState extends State<PostView> {
 
   Widget _bottomTextField(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 55.0),
+      padding: EdgeInsets.all(8.0),
       child: TextField(
         controller: commentController,
         focusNode: focusNode,

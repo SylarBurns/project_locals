@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:firebase_admob/firebase_admob.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'postView.dart';
 import 'postWrite.dart';
 import 'ad_manager.dart';
@@ -17,14 +17,16 @@ class PostList extends StatefulWidget {
   PostList({Key key, @required this.boardName, @required this.boardType,});
 
   @override
-  _PostListState createState() => _PostListState(key: this.key, boardName: this.boardName, boardType: this.boardType,);
+  _PostListState createState() => _PostListState(key: this.key,);
 }
 
 class _PostListState extends State<PostList> {
-  String boardName;
-  String boardType;
+  bool _isAdLoaded = false;
+  bool _isDataLoaded = false;
 
-  _PostListState({Key key, this.boardName, this.boardType});
+  QuerySnapshot postQuery;
+
+  _PostListState({Key key,});
 
   FutureOr refresh(dynamic value) {
     setState(() {});
@@ -32,24 +34,45 @@ class _PostListState extends State<PostList> {
 
   BannerAd _bannerAd;
 
-  void _loadBannerAd() {
-    _bannerAd
-      ..load()
-      ..show(anchorType: AnchorType.bottom);
+  void loadData() async {
+    var ref = Firestore.instance.collection('board');
+    await ref
+        .where('region', isEqualTo: globals.dbUser.getSelectedRegion())
+        .where("boardType", isEqualTo: widget.boardType)
+        .orderBy('date', descending: true)
+        .getDocuments().then((value) {
+      postQuery = value;
+    });
+
+    _isDataLoaded = true;
+    setState(() {});
   }
 
-  void initializeAd() {
+  void loadAd() async {
     _bannerAd = BannerAd(
       adUnitId: AdManager.bannerAdUnitId,
       size: AdSize.banner,
+      request: AdRequest(),
+      listener: AdListener(
+        onAdLoaded: (_) {
+          _isAdLoaded = true;
+          setState(() {});
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          print('Ad load failed (code=${error.code} message=${error.message})');
+        },
+      ),
     );
-    _loadBannerAd();
-  }   
+
+    _bannerAd.load();
+  }
 
   @override
   void initState() {
     super.initState();
-    initializeAd();
+    loadData();
+    loadAd();
   }
 
   @override
@@ -62,57 +85,58 @@ class _PostListState extends State<PostList> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Colors.black,
-        ),
-        title: Text(
-          '$boardName',
-          style: TextStyle(color: Colors.black),
-        ),
-        backgroundColor: Colors.white,
+    final appBar = AppBar(
+      iconTheme: IconThemeData(
+        color: Colors.black,
       ),
-      body: Padding(
-        padding: EdgeInsets.only(bottom: 60),
-        child: FutureBuilder(
-          future: Firestore.instance
-              .collection("board")
-              .where('region', isEqualTo: globals.dbUser.getSelectedRegion())
-              .where("boardType", isEqualTo: boardType)
-              .orderBy('date', descending: true)
-              .getDocuments(),
-          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (snapshot.hasError) return Text("Error: ${snapshot.error}");
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting: return Center(child: CircularProgressIndicator());
-              default:
-                return ListView.separated(
-                    itemCount: snapshot.data.documents.length,
-                    separatorBuilder: (context, index) => Divider(),
-                    itemBuilder: (context, index) {
-                      DocumentSnapshot post = snapshot.data.documents[index];
-                      int report = post['report'];
+      title: Text(
+        '${widget.boardName}',
+        style: TextStyle(color: Colors.black),
+      ),
+      backgroundColor: Colors.white,
+    );
 
-                      if(report >= 10) {
-                        return _buildBlindPost(context, post);
-                      }
-                      else {
-                        return _buildPostTile(context, post);
-                      }
+    final screenHeight = MediaQuery.of(context).size.height;
+    final appBarHeight = appBar.preferredSize.height;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final adHeight = AdSize.banner.height;
+
+    return Scaffold(
+      appBar: appBar,
+      body: (_isDataLoaded) ? Column(
+        children: [
+          Container(
+              height: (screenHeight - appBarHeight - statusBarHeight - adHeight - 10),
+              child: ListView.separated(
+                  itemCount: postQuery.documents.length,
+                  separatorBuilder: (context, index) => Divider(),
+                  itemBuilder: (context, index) {
+                    DocumentSnapshot post = postQuery.documents[index];
+                    int report = post['report'];
+
+                    if(report >= 10) {
+                      return _buildBlindPost(context, post);
                     }
-                );
-            } // switch
-          },
-        ),
-      ),
+                    else {
+                      return _buildPostTile(context, post);
+                    }
+                  }
+              )
+          ),
+          Container(
+            height: adHeight.toDouble()+10,
+            child: AdWidget(ad: _bannerAd,),
+            alignment: Alignment.center,
+          ),
+        ],
+      ) : globals.getLoadingAnimation(context),
       floatingActionButton: globals.dbUser.getAuthority() ? Padding(
         padding: EdgeInsets.only(bottom:50),
         child: FloatingActionButton(
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => PostWrite(boardType: boardType,)),
+              MaterialPageRoute(builder: (context) => PostWrite(boardType: widget.boardType,)),
             ).then(refresh);
           },
           child: Icon(Icons.add),
@@ -141,11 +165,9 @@ class _PostListState extends State<PostList> {
     String writer = post['writerNick'];
     int like = post['like'];
     int comments = post['comments'];
-    String region = post['region'];
     String writerUID = post['writer'];
     String date = _getDate(post);
     bool isEdit = post['isEdit'];
-    String boardType = post['boardType'];
 
     return Padding(
       padding: EdgeInsets.all(5.0),
@@ -215,8 +237,8 @@ class _PostListState extends State<PostList> {
             MaterialPageRoute(
               builder: (context) => PostView(
                 postDocID: post.documentID,
-                boardName: boardName,
-                boardType: boardType,
+                boardName: widget.boardName,
+                boardType: widget.boardType,
                 writerUID: writerUID,
               ),
             ),
@@ -330,8 +352,8 @@ class _PostListState extends State<PostList> {
               MaterialPageRoute(
                 builder: (context) => PostView(
                   postDocID: post.documentID,
-                  boardName: boardName,
-                  boardType: boardType,
+                  boardName: widget.boardName,
+                  boardType: widget.boardType,
                   writerUID: writerUID,
                 ),
               ),

@@ -64,14 +64,9 @@ class _PostListState extends State<PostList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Colors.black,
-        ),
         title: Text(
           '$boardName',
-          style: TextStyle(color: Colors.black),
         ),
-        backgroundColor: Colors.white,
       ),
       body: Padding(
         padding: EdgeInsets.only(bottom: 60),
@@ -166,9 +161,6 @@ class _PostListState extends State<PostList> {
               '$content',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.black54,
-              ),
             ),
             SizedBox(height: 2.0,),
             Row(
@@ -177,14 +169,14 @@ class _PostListState extends State<PostList> {
                 Text(
                   '$date | ',
                   style: TextStyle(
-                    color: Colors.black45,
+                    color: Theme.of(context).accentColor.withOpacity(0.45)
                   ),
                 ),
                 Padding(padding: EdgeInsets.only(right: 2.0)),
                 Text(
                   isEdit ? '$writer | (edited)' : '$writer',
                   style: TextStyle(
-                    color: Colors.black45,
+                    color: Theme.of(context).accentColor.withOpacity(0.45)
                   ),
                 ),
                 Spacer(),

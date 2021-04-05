@@ -194,7 +194,7 @@ class searchPageState extends State<searchPage> {
                     Text(
                       '$boardName',
                       style: TextStyle(
-                        color: Colors.black26.withOpacity(.70),
+                        color: Theme.of(context).accentColor.withOpacity(.70),
                         fontSize: 12,
                       ),
                     ),
@@ -205,13 +205,13 @@ class searchPageState extends State<searchPage> {
                           Icon(
                             Icons.thumb_up_alt_outlined,
                             size: 10,
-                            color: Colors.red[800],
+                            color: Theme.of(context).primaryColor,
                           ),
                           Padding(padding: EdgeInsets.only(right: 2.0)),
                           Text(
                             '$like',
                             style:
-                            TextStyle(color: Colors.red[800], fontSize: 12),
+                            TextStyle(color: Theme.of(context).primaryColor, fontSize: 12),
                           ),
                         ],
                       ),

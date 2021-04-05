@@ -540,7 +540,7 @@ class _chatRoomViewState extends State<chatRoomView>
                   children: [
                     Text(
                       date,
-                      style: TextStyle(fontSize: 12, color: Colors.black38),
+                      style: TextStyle(fontSize: 12, color: Theme.of(context).primaryColor),
                     ),
                     messagebody(document["type"],document["content"], isSender, context)
                   ],
@@ -552,7 +552,7 @@ class _chatRoomViewState extends State<chatRoomView>
                     messagebody(document['type'],document["content"], isSender, context),
                     Text(
                       date,
-                      style: TextStyle(fontSize: 12, color: Colors.black38),
+                      style: TextStyle(fontSize: 12, color:Theme.of(context).primaryColor),
                     ),
                   ],
                 )),
@@ -583,7 +583,7 @@ class _chatRoomViewState extends State<chatRoomView>
             style: TextStyle(fontSize: 20),
           ),
         ),
-        color: isSender ? Theme.of(context).cardColor: Theme.of(context).backgroundColor,
+        color: isSender ? Theme.of(context).cardColor : Theme.of(context).textSelectionColor,
       ),
     );
   }

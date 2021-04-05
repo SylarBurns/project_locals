@@ -267,7 +267,6 @@ class homePageState extends State<homePage> {
                     Text(
                       '$boardName',
                       style: TextStyle(
-                        color: Colors.black26.withOpacity(.70),
                         fontSize: 12,
                       ),
                     ),

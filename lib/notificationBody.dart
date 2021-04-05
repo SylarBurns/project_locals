@@ -34,7 +34,6 @@ class NotificationBodyState extends State<NotificationBody> {
                 Text(
                   'Message',
                   style: TextStyle(
-                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                     fontSize: 25,
                     decoration: TextDecoration.underline,
@@ -43,7 +42,6 @@ class NotificationBodyState extends State<NotificationBody> {
                     : Text(
                   'Message',
                   style: TextStyle(
-                    color: Colors.black38,
                     fontSize: 23,
                   ),
                 ),
@@ -58,7 +56,6 @@ class NotificationBodyState extends State<NotificationBody> {
                 Text(
                   'Notification',
                   style: TextStyle(
-                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                     fontSize: 25,
                     decoration: TextDecoration.underline,
@@ -67,7 +64,6 @@ class NotificationBodyState extends State<NotificationBody> {
                     : Text(
                   'Notification',
                   style: TextStyle(
-                    color: Colors.black38,
                     fontSize: 23,
                   ),
                 ),

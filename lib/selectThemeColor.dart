@@ -37,29 +37,29 @@ class _selectThemeColorState extends State<selectThemeColor> {
           onTap: () async {
             _showDialog(index);
           },
-          child: colorRow(context, index),
+          child: colorRow(context, index, 8.0),
         ));
   }
 
-  Widget colorRow(BuildContext context, int index) {
+  Widget colorRow(BuildContext context, int index, double paddingInbetween) {
     double boxheight = 200;
     return Card(
       color: themeDataList[index].background,
       elevation: 5,
       child: Row(
         children: [
-          colorBlock(themeDataList[index].accent, boxheight),
-          colorBlock(themeDataList[index].primary, boxheight),
-          colorBlock(themeDataList[index].secondary, boxheight),
-          colorBlock(themeDataList[index].backgroundSecondary, boxheight),
+          colorBlock(themeDataList[index].accent, boxheight, paddingInbetween),
+          colorBlock(themeDataList[index].primary, boxheight, paddingInbetween),
+          colorBlock(themeDataList[index].secondary, boxheight, paddingInbetween),
+          colorBlock(themeDataList[index].backgroundSecondary, boxheight, paddingInbetween),
         ],
       ),
     );
   }
-  Widget colorBlock(Color blockColor, double boxheight){
+  Widget colorBlock(Color blockColor, double boxheight, double paddingInbetween){
     return Expanded(
         child: Container(
-          padding: EdgeInsets.all(10),
+          padding: EdgeInsets.all(paddingInbetween),
           child: Card(
             elevation: 5,
             child: ClipRRect(
@@ -89,7 +89,7 @@ class _selectThemeColorState extends State<selectThemeColor> {
             style: TextStyle(fontSize: 15),
             textAlign: TextAlign.center,
           ),
-          content: colorRow(context, index),
+          content: SizedBox(height: MediaQuery.of(context).size.height*0.2, child: colorRow(context, index, 4.0)),
           actions: <Widget>[
             FlatButton(
               child: Text(

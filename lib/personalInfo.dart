@@ -15,16 +15,19 @@ final db = Firestore.instance;
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-class personalInfo extends StatefulWidget{
+class personalInfo extends StatefulWidget {
   final Function refresh;
 
   personalInfo({Key key, this.refresh}) : super(key: key);
   @override
   personalInfoState createState() => personalInfoState();
-
 }
-class personalInfoState extends State<personalInfo>{
-  Refresh(){setState(() {});}
+
+class personalInfoState extends State<personalInfo> {
+  Refresh() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -33,43 +36,46 @@ class personalInfoState extends State<personalInfo>{
         child: ListView(
           children: [
             FlatButton(
-                onPressed:()=>Navigator.pushNamed(context, '/likedList'),
-                child: Text(
-                      "좋아요 누른 게시물"
-                      ),
+              onPressed: () => Navigator.pushNamed(context, '/likedList'),
+              child: Text(
+                "좋아요 누른 게시물",
+                style: TextStyle(color: Theme.of(context).accentColor),
+              ),
             ),
             FlatButton(
-              onPressed:() => Navigator.push(
+              onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ChangeRegion(),
-                  )
-              ).then((value) {
+                  )).then((value) {
                 setState(() {});
                 widget.refresh();
               }),
               child: Text(
-                  "지역 변경"
+                "지역 변경",
+                style: TextStyle(color: Theme.of(context).accentColor),
               ),
             ),
             FlatButton(
-              onPressed:() async {
+              onPressed: () async {
                 await _auth.signOut().then((value) async {
-                  await _googleSignIn.signOut().then((value){
+                  await _googleSignIn.signOut().then((value) {
                     Navigator.pushReplacementNamed(context, '/');
                   });
                 });
               },
               child: Text(
-                  "로그아웃"
+                "로그아웃",
+                style: TextStyle(color: Theme.of(context).accentColor),
               ),
             ),
             FlatButton(
-              onPressed:(){
+              onPressed: () {
                 Navigator.pushNamed(context, '/selectThemeColor');
               },
               child: Text(
-                  "테마 색 설정"
+                "테마 색 설정",
+                style: TextStyle(color: Theme.of(context).accentColor),
               ),
             ),
           ],

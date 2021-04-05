@@ -37,11 +37,17 @@ class _MyAppState extends State<MyApp> {
   }
 }
 ThemeData _buildTheme(appThemeData data){
-  final ThemeData base = ThemeData.light();
+  ThemeData base;
+  if(data.islight){
+    base = ThemeData.light();
+  }else{
+    base = ThemeData.dark();
+  }
   return base.copyWith(
     accentColor: data.accent,
     primaryColor: data.primary,
     backgroundColor: data.background,
+    primaryColorDark: data.backgroundSecondary,
     textTheme: base.textTheme.copyWith(
       headline1: TextStyle(color: data.accent),
       headline2: TextStyle(color: data.accent),
@@ -89,7 +95,7 @@ ThemeData _buildTheme(appThemeData data){
     ),
     scaffoldBackgroundColor: data.background,
     cardColor: data.backgroundSecondary,
-    textSelectionColor:data.secondary,
+    textSelectionColor:data.tertiary,
     errorColor:data.error,
   );
 }

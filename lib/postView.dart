@@ -243,7 +243,7 @@ class _PostViewState extends State<PostView> {
           border: OutlineInputBorder(),
           hintText: 'Write a comment',
           filled: true,
-          fillColor: Colors.black12,
+          fillColor: Theme.of(context).backgroundColor,
           suffixIcon: IconButton(
             icon: Icon(Icons.send_rounded,),
             onPressed: () async {
@@ -421,7 +421,7 @@ class _PostViewState extends State<PostView> {
                   Text(
                     '$date',
                     style: TextStyle(
-                      color: Colors.black45,
+                      color: Theme.of(context).accentColor.withOpacity(0.45),
                     ),
                   ),
                 ],
@@ -433,13 +433,13 @@ class _PostViewState extends State<PostView> {
                   children: [
                     Icon(
                       Icons.thumb_up_alt_outlined,
-                      color: Colors.black54,
+                      color: Theme.of(context).primaryColor,
                     ),
                     SizedBox(width: 3.0,),
                     Text(
                       'Like',
                       style: TextStyle(
-                        color: Colors.black54,
+                        color: Theme.of(context).primaryColor,
                       ),
                     ),
                   ],
@@ -524,19 +524,23 @@ class _PostViewState extends State<PostView> {
               Icon(
                 Icons.thumb_up_alt_outlined,
                 size: 15.0,
+                color: Theme.of(context).accentColor.withOpacity(0.45),
               ),
               Padding(padding: EdgeInsets.only(right: 2.0)),
               Text(
                 '$like',
+                style: TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45),),
               ),
               Padding(padding: EdgeInsets.only(right: 10.0)),
               Icon(
                 Icons.comment_bank_outlined,
                 size: 15.0,
+                color: Theme.of(context).accentColor.withOpacity(0.45),
               ),
               Padding(padding: EdgeInsets.only(right: 2.0)),
               Text(
-                  '$comments'
+                  '$comments',
+                  style: TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45),),
               ),
             ],
           ),
@@ -601,7 +605,7 @@ class CommentTileState extends State<CommentTile> {
                     Text(
                       '(삭제됨)',
                       style: TextStyle(
-                        color: Colors.black38,
+                        color: Theme.of(context).accentColor.withOpacity(0.38),
                       ),
                     ),
                   ],
@@ -668,7 +672,7 @@ class CommentTileState extends State<CommentTile> {
                       Text(
                         '(Blind)',
                         style: TextStyle(
-                          color: Colors.black38,
+                          color: Theme.of(context).accentColor.withOpacity(0.38),
                         ),
                       ),
                     ],
@@ -716,7 +720,7 @@ class CommentTileState extends State<CommentTile> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16.0,
-                            color: writerUID == widget.postWriter ? Colors.lightBlue : Colors.black,
+                            color: writerUID == widget.postWriter ? Colors.lightBlue : Theme.of(context).primaryColor,
                           ),
                         ),
                         SizedBox(height: 2.0,),
@@ -725,7 +729,7 @@ class CommentTileState extends State<CommentTile> {
                             Text(
                               '$date',
                               style: TextStyle(
-                                color: Colors.black45,
+                                color: Theme.of(context).accentColor.withOpacity(0.45),
                               ),
                             ),
                             SizedBox(width: 5.0,),
@@ -735,14 +739,14 @@ class CommentTileState extends State<CommentTile> {
                                   Icon(
                                     Icons.thumb_up_off_alt,
                                     size: 16.0,
-                                    color: Colors.red,
+                                    color: Theme.of(context).accentColor.withOpacity(0.45),
                                   ),
                                   SizedBox(width: 2.0,),
                                   Text(
                                     '$like',
                                     style: TextStyle(
                                       fontSize: 16.0,
-                                      color: Colors.red,
+                                      color: Theme.of(context).accentColor.withOpacity(0.45),
                                     ),
                                   ),
                                 ],
@@ -756,7 +760,7 @@ class CommentTileState extends State<CommentTile> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(30)),
                         border: Border.all(
-                          color: Colors.black26,
+                          color: Theme.of(context).accentColor.withOpacity(0.26),
                         ),
                       ),
                       child: Row(
@@ -766,6 +770,7 @@ class CommentTileState extends State<CommentTile> {
                             icon: Icon(
                               Icons.comment,
                               size: 20,
+                              color: Theme.of(context).primaryColor,
                             ),
                             onPressed: () async {
                               bool result = await showDialog(
@@ -804,6 +809,7 @@ class CommentTileState extends State<CommentTile> {
                             icon: Icon(
                               Icons.thumb_up_off_alt,
                               size: 20,
+                              color: Theme.of(context).primaryColor,
                             ),
                             onPressed: () async {
                               DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());
@@ -849,71 +855,72 @@ class CommentTileState extends State<CommentTile> {
                               }
                             },
                           ),
-                          PopupMenuButton(
-                            itemBuilder: (BuildContext context) =>
-                            writerUID == globals.dbUser.getUID()
-                                ? [
-                              PopupMenuItem(
-                                child: Text('삭제하기'),
-                                value: 'remove',
-                              )
-                            ]
-                                : [
-                              PopupMenuItem(
-                                child: Text('쪽지 보내기'),
-                                value: 'message',
-                              ),
-                              PopupMenuItem(
-                                child: Text('신고하기'),
-                                value: 'report',
-                              ),
-                            ],
-                            onSelected: (selectedMenu) async {
-                              switch(selectedMenu) {
-                                case 'remove':
-                                  await db.collection('board').document(widget.postDocID).updateData({
-                                    'comments': FieldValue.increment(-1),
-                                  });
-                                  await widget.comment.reference.updateData({
-                                    'isDelete': true,
-                                  });
-
-                                  widget.showDialog('성공적으로 삭제되었습니다.');
-                                  widget.loadData();
-                                  // widget.refresh();
-                                  break;
-                                case 'message':
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context)=>
-                                            chatRoomView(
-                                              chatRoomID: "chatInit/$writerUID/${widget.boardType}",
-                                              chatRoomName: "new message",
-                                            ),
-                                      )
-                                  );
-                                  break;
-                                case 'report':
-                                  List reportUserList = widget.comment['reportUserList'];
-
-                                  if(reportUserList.contains(globals.dbUser.getUID())) {
-                                    widget.showDialog('이미 신고한 게시글입니다.');
-                                  }
-                                  else {
-                                    await widget.comment.reference.updateData({
-                                      'report': FieldValue.increment(1),
-                                      'reportUserList': FieldValue.arrayUnion([globals.dbUser.getUID()]),
+                          IconTheme(
+                            data: IconThemeData(color: Theme.of(context).primaryColor),
+                            child: PopupMenuButton(
+                              itemBuilder: (BuildContext context) =>
+                              writerUID == globals.dbUser.getUID()
+                                  ? [
+                                PopupMenuItem(
+                                  child: Text('삭제하기'),
+                                  value: 'remove',
+                                )
+                              ]
+                                  : [
+                                PopupMenuItem(
+                                  child: Text('쪽지 보내기'),
+                                  value: 'message',
+                                ),
+                                PopupMenuItem(
+                                  child: Text('신고하기'),
+                                  value: 'report',
+                                ),
+                              ],
+                              onSelected: (selectedMenu) async {
+                                switch(selectedMenu) {
+                                  case 'remove':
+                                    await db.collection('board').document(widget.postDocID).updateData({
+                                      'comments': FieldValue.increment(-1),
                                     });
-                                    widget.showDialog('신고가 접수 되었습니다.');
-                                  }
-                                  widget.loadData();
-                                  // widget.refresh();
-                                  break;
-                                default :
-                                  break;
-                              }
-                            },
+                                    await widget.comment.reference.updateData({
+                                      'isDelete': true,
+                                    });
+                                    // setState(() {});
+                                    widget.showDialog('성공적으로 삭제되었습니다.');
+                                    widget.refresh();
+                                    break;
+                                  case 'message':
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context)=>
+                                              chatRoomView(
+                                                chatRoomID: "chatInit/$writerUID/${widget.boardType}",
+                                                chatRoomName: "new message",
+                                              ),
+                                        )
+                                    );
+                                    break;
+                                  case 'report':
+                                    List reportUserList = widget.comment['reportUserList'];
+
+                                    if(reportUserList.contains(globals.dbUser.getUID())) {
+                                      widget.showDialog('이미 신고한 게시글입니다.');
+                                    }
+                                    else {
+                                      await widget.comment.reference.updateData({
+                                        'report': FieldValue.increment(1),
+                                        'reportUserList': FieldValue.arrayUnion([globals.dbUser.getUID()]),
+                                      });
+                                      widget.showDialog('신고가 접수 되었습니다.');
+                                    }
+                                    setState(() {});
+                                    break;
+                                  default :
+                                    break;
+                                }
+                              },
+                            ),
                           ),
                         ],
                       ),
@@ -1017,7 +1024,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                 margin: EdgeInsets.fromLTRB(0.0, 4.0, 8.0, 4.0),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color: Colors.black12,
+                  color: Theme.of(context).accentColor.withOpacity(0.12),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1032,7 +1039,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                         Text(
                           '(Blind)',
                           style: TextStyle(
-                            color: Colors.black38,
+                            color: Theme.of(context).accentColor.withOpacity(0.38),
                           ),
                         ),
                       ],
@@ -1073,7 +1080,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
               margin: EdgeInsets.fromLTRB(0.0, 4.0, 8.0, 4.0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(10)),
-                color: Colors.black12,
+                color: Theme.of(context).accentColor.withOpacity(0.12),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1093,7 +1100,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16.0,
-                              color: writerUID == widget.postWriter ? Colors.lightBlue : Colors.black,
+                              color: writerUID == widget.postWriter ? Colors.lightBlue : Theme.of(context).primaryColor,
                             ),
                           ),
                           SizedBox(height: 2.0,),
@@ -1102,7 +1109,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                               Text(
                                 '$date',
                                 style: TextStyle(
-                                  color: Colors.black45,
+                                  color: Theme.of(context).accentColor.withOpacity(0.45),
                                 ),
                               ),
                               SizedBox(width: 5.0,),
@@ -1112,14 +1119,14 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                                   Icon(
                                     Icons.thumb_up_off_alt,
                                     size: 16.0,
-                                    color: Colors.red,
+                                    color: Theme.of(context).accentColor.withOpacity(0.45),
                                   ),
                                   SizedBox(width: 2.0,),
                                   Text(
                                     '$like',
                                     style: TextStyle(
                                       fontSize: 16.0,
-                                      color: Colors.red,
+                                      color: Theme.of(context).accentColor.withOpacity(0.45),
                                     ),
                                   ),
                                 ],
@@ -1134,7 +1141,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.all(Radius.circular(30)),
                           border: Border.all(
-                            color: Colors.black26,
+                            color: Theme.of(context).accentColor.withOpacity(0.26),
                           ),
                         ),
                         child: Row(
@@ -1144,6 +1151,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                               icon: Icon(
                                 Icons.thumb_up_off_alt,
                                 size: 20,
+                                color: Theme.of(context).primaryColor
                               ),
                               onPressed: () async {
                                 DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());
@@ -1189,70 +1197,73 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                                 }
                               },
                             ),
-                            PopupMenuButton(
-                              itemBuilder: (BuildContext context) =>
-                              writerUID == globals.dbUser.getUID()
-                                  ? [
-                                PopupMenuItem(
-                                  child: Text('삭제하기'),
-                                  value: 'remove',
-                                )
-                              ]
-                                  : [
-                                PopupMenuItem(
-                                  child: Text('쪽지 보내기'),
-                                  value: 'message',
-                                ),
-                                PopupMenuItem(
-                                  child: Text('신고하기'),
-                                  value: 'report',
-                                ),
-                              ],
-                              onSelected: (selectedMenu) async {
-                                switch(selectedMenu) {
-                                  case 'remove':
-                                    widget.nestedComment.reference.delete();
-                                    widget.commentRef.updateData({
-                                      'nestedComments': FieldValue.increment(-1),
-                                    });
-                                    db.collection('board').document(widget.postDocID).updateData({
-                                      'comments': FieldValue.increment(-1),
-                                    });
-                                    widget.showDialog('성공적으로 삭제되었습니다.');
-                                    widget.refresh();
-                                    break;
-                                  case 'message':
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context)=>
-                                              chatRoomView(
-                                                chatRoomID: "chatInit/$writerUID/${widget.boardType}",
-                                                chatRoomName: "new message",
-                                              ),
-                                        )
-                                    );
-                                    break;
-                                  case 'report':
-                                    List reportUserList = widget.nestedComment['reportUserList'];
-
-                                    if(reportUserList.contains(globals.dbUser.getUID())) {
-                                      widget.showDialog('이미 신고한 게시글입니다.');
-                                    }
-                                    else {
-                                      await widget.nestedComment.reference.updateData({
-                                        'report': FieldValue.increment(1),
-                                        'reportUserList': FieldValue.arrayUnion([globals.dbUser.getUID()]),
+                            IconTheme(
+                              data: IconThemeData(color: Theme.of(context).primaryColor),
+                              child: PopupMenuButton(
+                                itemBuilder: (BuildContext context) =>
+                                writerUID == globals.dbUser.getUID()
+                                    ? [
+                                  PopupMenuItem(
+                                    child: Text('삭제하기'),
+                                    value: 'remove',
+                                  )
+                                ]
+                                    : [
+                                  PopupMenuItem(
+                                    child: Text('쪽지 보내기'),
+                                    value: 'message',
+                                  ),
+                                  PopupMenuItem(
+                                    child: Text('신고하기'),
+                                    value: 'report',
+                                  ),
+                                ],
+                                onSelected: (selectedMenu) async {
+                                  switch(selectedMenu) {
+                                    case 'remove':
+                                      widget.nestedComment.reference.delete();
+                                      widget.commentRef.updateData({
+                                        'nestedComments': FieldValue.increment(-1),
                                       });
-                                      widget.showDialog('신고가 접수 되었습니다.');
-                                    }
-                                    setState(() {});
-                                    break;
+                                      db.collection('board').document(widget.postDocID).updateData({
+                                        'comments': FieldValue.increment(-1),
+                                      });
+                                      widget.showDialog('성공적으로 삭제되었습니다.');
+                                      widget.refresh();
+                                      break;
+                                    case 'message':
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context)=>
+                                                chatRoomView(
+                                                  chatRoomID: "chatInit/$writerUID/${widget.boardType}",
+                                                  chatRoomName: "new message",
+                                                ),
+                                          )
+                                      );
+                                      break;
+                                    case 'report':
+                                      List reportUserList = widget.nestedComment['reportUserList'];
 
-                                  default :
-                                    break;
-                                }
-                              },
+                                      if(reportUserList.contains(globals.dbUser.getUID())) {
+                                        widget.showDialog('이미 신고한 게시글입니다.');
+                                      }
+                                      else {
+                                        await widget.nestedComment.reference.updateData({
+                                          'report': FieldValue.increment(1),
+                                          'reportUserList': FieldValue.arrayUnion([globals.dbUser.getUID()]),
+                                        });
+                                        widget.showDialog('신고가 접수 되었습니다.');
+                                      }
+                                      setState(() {});
+                                      break;
+
+                                    default :
+                                      break;
+                                  }
+                                },
+                              ),
                             ),
                           ],
                         ),

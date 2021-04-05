@@ -126,6 +126,7 @@ class searchPageState extends State<searchPage> {
     DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
     int like = document["like"];
+    int comments = document["comments"];
     String content = document["content"];
     String boardT = document["boardType"];
     String boardName = "";
@@ -161,11 +162,11 @@ class searchPageState extends State<searchPage> {
                         Icon(Icons.person),
                         Text('$writer',
                             style: TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.bold)),
+                                fontSize: 16, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
-                  Text('$date')
+                  Text('$date',)
                 ],
               ),
               Padding(padding: EdgeInsets.only(top: 3.0)),
@@ -194,8 +195,8 @@ class searchPageState extends State<searchPage> {
                     Text(
                       '$boardName',
                       style: TextStyle(
-                        color: Colors.black26.withOpacity(.70),
-                        fontSize: 12,
+                          fontSize: 12,
+                          color: Theme.of(context).accentColor.withOpacity(0.45)
                       ),
                     ),
                     Container(
@@ -204,14 +205,25 @@ class searchPageState extends State<searchPage> {
                         children: [
                           Icon(
                             Icons.thumb_up_alt_outlined,
-                            size: 10,
-                            color: Colors.red[800],
+                            size: 15,
+                            color: Theme.of(context).accentColor.withOpacity(0.45),
                           ),
                           Padding(padding: EdgeInsets.only(right: 2.0)),
                           Text(
                             '$like',
                             style:
-                            TextStyle(color: Colors.red[800], fontSize: 12),
+                            TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
+                          ),
+                          Padding(padding: EdgeInsets.only(right: 10.0)),
+                          Icon(
+                              Icons.comment_bank_outlined,
+                              size: 15.0,
+                              color: Theme.of(context).accentColor.withOpacity(0.45)
+                          ),
+                          Padding(padding: EdgeInsets.only(right: 2.0)),
+                          Text(
+                            '$comments',
+                            style: TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
                           ),
                         ],
                       ),

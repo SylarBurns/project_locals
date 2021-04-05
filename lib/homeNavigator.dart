@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:badges/badges.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'homePage.dart';
 import 'boardHome.dart';
 import 'globals.dart' as globals;
@@ -76,7 +77,7 @@ class _MyHomePageState extends State<homeNavigator> {
                             await globals.dbUser.getUserFromDB();
                             setState(() {});
                           });
-                          _widgetKeys.elementAt(_selectedIndex).currentState.Refresh();
+                          Phoenix.rebirth(context);
                         }
                       }),
                 ),

@@ -1177,7 +1177,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                               icon: Icon(
                                 Icons.thumb_up_off_alt,
                                 size: 20,
-                                color: Theme.of(context).accentColor.withOpacity(0.26),
+                                color: Theme.of(context).primaryColor
                               ),
                               onPressed: () async {
                                 DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());

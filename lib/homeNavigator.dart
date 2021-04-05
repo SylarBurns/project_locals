@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:badges/badges.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'homePage.dart';
 import 'boardHome.dart';
 import 'globals.dart' as globals;
@@ -26,7 +27,7 @@ class _MyHomePageState extends State<homeNavigator> {
   final GlobalKey<NotificationBodyState> _NotificationBodyStateKey = GlobalKey();
   final GlobalKey<personalInfoState> _personalInfoStateKey= GlobalKey();
   int _selectedIndex = 0;
-  List _widgetOptions;
+  List<Widget> _widgetOptions;
   List _widgetKeys;
 
   refresh() {
@@ -76,7 +77,7 @@ class _MyHomePageState extends State<homeNavigator> {
                             await globals.dbUser.getUserFromDB();
                             setState(() {});
                           });
-                          _widgetKeys.elementAt(_selectedIndex).currentState.Refresh();
+                          Phoenix.rebirth(context);
                         }
                       }),
                 ),
@@ -122,8 +123,9 @@ class _MyHomePageState extends State<homeNavigator> {
       );
   }
   Widget appBody(){
-    return Center(
-      child: _widgetOptions.elementAt(_selectedIndex),
+    return IndexedStack(
+      index: _selectedIndex,
+      children: _widgetOptions,
     );
   }
   Widget _messageIcon(BuildContext context) {

@@ -86,7 +86,7 @@ class _MyHomePageState extends State<homeNavigator> {
           ),
           bottomNavigationBar:BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
-            selectedFontSize: 15,
+            selectedFontSize: 16,
             unselectedFontSize: 14,
             currentIndex: _selectedIndex,
             showSelectedLabels: false,

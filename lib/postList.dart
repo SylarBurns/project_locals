@@ -89,7 +89,6 @@ class _PostListState extends State<PostList> {
       title: Text(
         '${widget.boardName}',
       ),
-      backgroundColor: Colors.white,
     );
 
     final screenHeight = MediaQuery.of(context).size.height;

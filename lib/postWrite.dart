@@ -35,16 +35,9 @@ class _PostWriteState extends State<PostWrite> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Colors.black,
-        ),
         title: Text(
           '글 쓰기',
-          style: TextStyle(
-            color: Colors.black,
-          ),
         ),
-        backgroundColor: Colors.white,
         actions: [
           IconButton(
             icon: Icon(

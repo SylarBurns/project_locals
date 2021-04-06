@@ -43,7 +43,11 @@ ThemeData _buildTheme(appThemeData data){
   }else{
     base = ThemeData.dark();
   }
+  base.textTheme.apply(fontFamily: 'NotoSansKR');
+  base.primaryTextTheme.apply(fontFamily: 'NotoSansKR');
+  base.accentTextTheme.apply(fontFamily: 'NotoSansKR');
   return base.copyWith(
+
     accentColor: data.accent,
     primaryColor: data.primary,
     backgroundColor: data.background,

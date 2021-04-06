@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 
+import 'package:flutter/services.dart';
+
 import 'dart:io';
 
 import 'globals.dart' as globals;
@@ -32,6 +34,21 @@ class _PostWriteState extends State<PostWrite> {
   }
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  void dispose() {
+    hideKeyboard();
+
+    super.dispose();
+  }
+
+  void hideKeyboard() async {
+    await SystemChannels.textInput.invokeMethod('TextInput.hide');
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -44,6 +61,8 @@ class _PostWriteState extends State<PostWrite> {
               Icons.check,
             ),
             onPressed: () async {
+              hideKeyboard();
+
               var data = {
                 'boardType': widget.boardType,
                 'comments': 0,
@@ -70,7 +89,7 @@ class _PostWriteState extends State<PostWrite> {
                 data['writerNick'] = globals.dbUser.getNickName();
               }
               await Firestore.instance.collection('board').add(data);
-              await uploadImageToFirebase(context);
+              if(_imageFile != null) await uploadImageToFirebase(context);
               Navigator.pop(context);
             },
           ),
@@ -96,6 +115,7 @@ class _PostWriteState extends State<PostWrite> {
                     border: OutlineInputBorder(),
                     labelText: 'Content',
                   ),
+                  maxLines: null,
                 ),
                 SizedBox(height: 30.0,),
                 _showImage(context),

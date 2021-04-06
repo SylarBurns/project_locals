@@ -29,7 +29,7 @@ class _PostListState extends State<PostList> {
   _PostListState({Key key,});
 
   FutureOr refresh(dynamic value) {
-    setState(() {});
+    loadData();
   }
 
   BannerAd _bannerAd;
@@ -101,7 +101,7 @@ class _PostListState extends State<PostList> {
       body: (_isDataLoaded) ? Column(
         children: [
           Container(
-              height: (screenHeight - appBarHeight - statusBarHeight - adHeight - 10),
+              height: (screenHeight - appBarHeight - statusBarHeight - adHeight - 12),
               child: ListView.separated(
                   itemCount: postQuery.documents.length,
                   separatorBuilder: (context, index) => Divider(),
@@ -126,7 +126,7 @@ class _PostListState extends State<PostList> {
         ],
       ) : globals.getLoadingAnimation(context),
       floatingActionButton: globals.dbUser.getAuthority() ? Padding(
-        padding: EdgeInsets.only(bottom:50),
+        padding: EdgeInsets.only(bottom:55),
         child: FloatingActionButton(
           onPressed: () {
             Navigator.push(
@@ -238,9 +238,7 @@ class _PostListState extends State<PostList> {
                 writerUID: writerUID,
               ),
             ),
-          ).then((value) {
-            refresh(value);
-          });
+          ).then(refresh);
         },
       ),
     );

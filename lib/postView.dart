@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 
 import 'globals.dart' as globals;
 
@@ -11,9 +12,9 @@ import 'chatRoomView.dart';
 import 'postEdit.dart';
 
 final db = Firestore.instance;
-final focusNode = FocusNode();
-final commentController = TextEditingController();
-String commentDocID = 'null';
+FocusNode focusNode;
+TextEditingController commentController;
+String commentDocID;
 
 class PostView extends StatefulWidget {
   final String postDocID;
@@ -57,6 +58,10 @@ class _PostViewState extends State<PostView> {
     setState(() {});
   }
 
+  void hideKeyboard() async {
+    await SystemChannels.textInput.invokeMethod('TextInput.hide');
+  }
+
   void loadData() async {
     postDocRef = db.collection('board').document(widget.postDocID);
     postDocSnapshot = await postDocRef.get();
@@ -94,11 +99,18 @@ class _PostViewState extends State<PostView> {
   @override
   void initState() {
     super.initState();
+    focusNode = FocusNode();
+    commentController = TextEditingController();
+    commentDocID = 'null';
 
     loadData();
   }
 
   void dispose() {
+    hideKeyboard();
+    focusNode.dispose();
+    commentController.dispose();
+
     super.dispose();
   }
 
@@ -264,10 +276,8 @@ class _PostViewState extends State<PostView> {
   }
 
   Future _saveComment() async {
-    CollectionReference colRef = db.collection('comments').document(widget.postDocID).collection('commentList');
     String userUID = globals.dbUser.getUID();
     String writerNick = globals.dbUser.getNickName();
-    DocumentReference docRef = db.collection('board').document(widget.postDocID);
     var data = {
       'content': commentController.text,
       'date': DateTime.now(),
@@ -281,7 +291,7 @@ class _PostViewState extends State<PostView> {
     if(widget.boardType == 'anonymous') {
       writerNick = 'Anonymous';
       await db.runTransaction((transaction) async {
-        final freshSnapshot = await transaction.get(docRef);
+        final freshSnapshot = await transaction.get(postDocRef);
         final anonymousList = freshSnapshot.data['anonymousList'];
         if (anonymousList.containsKey(userUID)) {
           data['writerNick'] = anonymousList[userUID];
@@ -289,7 +299,7 @@ class _PostViewState extends State<PostView> {
         else {
           int num = anonymousList.length;
           data['writerNick'] = 'Anonymous' + num.toString();
-          await transaction.update(docRef, {
+          await transaction.update(postDocRef, {
             'anonymousList.$userUID': 'Anonymous' + num.toString(),
           });
         }
@@ -299,10 +309,10 @@ class _PostViewState extends State<PostView> {
     if(commentDocID == 'null') {
       data['isDelete'] = false;
       data['nestedComments'] = 0;
-      await colRef.add(data);
+      await commentListRef.add(data);
 
       if(userUID != widget.writerUID) {
-        DocumentSnapshot snap = await docRef.get();
+        DocumentSnapshot snap = await postDocRef.get();
         DocumentReference ref = db.collection('user').document(widget.writerUID);
         ref.updateData({
           'unreadNotification': FieldValue.increment(1),
@@ -322,14 +332,14 @@ class _PostViewState extends State<PostView> {
       }
     }
     else {
-      await colRef.document(commentDocID).collection('nestedComment').add(data);
-      await colRef.document(commentDocID).updateData({
+      await commentListRef.document(commentDocID).collection('nestedComment').add(data);
+      await commentListRef.document(commentDocID).updateData({
         'nestedComments': FieldValue.increment(1),
       });
       commentDocID = 'null';
 
       if(userUID != widget.writerUID) {
-        DocumentSnapshot snap = await colRef.document(commentDocID).get();
+        DocumentSnapshot snap = await commentListRef.document(commentDocID).get();
         DocumentReference ref = db.collection('user').document(widget.writerUID);
         ref.updateData({
           'unreadNotification': FieldValue.increment(1),
@@ -349,7 +359,7 @@ class _PostViewState extends State<PostView> {
       }
     }
 
-    await docRef.updateData({
+    await postDocRef.updateData({
       'comments': FieldValue.increment(1),
     });
   }
@@ -447,45 +457,43 @@ class _PostViewState extends State<PostView> {
                 onPressed: () async {
                   DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());
                   DocumentSnapshot doc = await docRef.get();
-                  setState(() {
-                    List tags = doc.data['postLikeList'];
+                  List tags = doc.data['postLikeList'];
 
-                    if(tags.contains(post.documentID)) {
-                      _showDialog('이미 좋아요를 눌렀습니다.');
-                    }
-                    else {
-                      _showDialog('성공적으로 좋아요를 눌렀습니다.');
-                      docRef.updateData({
-                        'postLikeList': FieldValue.arrayUnion([post.documentID]),
+                  if(tags.contains(post.documentID)) {
+                    _showDialog('이미 좋아요를 눌렀습니다.');
+                  }
+                  else {
+                    _showDialog('성공적으로 좋아요를 눌렀습니다.');
+                    docRef.updateData({
+                      'postLikeList': FieldValue.arrayUnion([post.documentID]),
+                    });
+                    post.reference.updateData({
+                      'like': FieldValue.increment(1),
+                    });
+
+                    if(globals.dbUser.getUID() != widget.writerUID) {
+                      DocumentReference ref = db.collection('user').document(widget.writerUID);
+                      ref.updateData({
+                        'unreadNotification': FieldValue.increment(1),
+                        'unreadCount': FieldValue.increment(1),
                       });
-                      post.reference.updateData({
-                        'like': FieldValue.increment(1),
+
+                      String writerNick;
+                      if(widget.boardType == 'anonymous') writerNick = 'Anonymous';
+                      else writerNick = globals.dbUser.getNickName();
+
+                      ref.collection('notification').add({
+                        'type': 'like',
+                        'boardType': widget.boardType,
+                        'writerNick': writerNick,
+                        'date': DateTime.now(),
+                        'isRead': false,
+                        'postDocID': widget.postDocID,
+                        'content': title,
                       });
-
-                      if(globals.dbUser.getUID() != widget.writerUID) {
-                        DocumentReference ref = db.collection('user').document(widget.writerUID);
-                        ref.updateData({
-                          'unreadNotification': FieldValue.increment(1),
-                          'unreadCount': FieldValue.increment(1),
-                        });
-
-                        String writerNick;
-                        if(widget.boardType == 'anonymous') writerNick = 'Anonymous';
-                        else writerNick = globals.dbUser.getNickName();
-
-                        ref.collection('notification').add({
-                          'type': 'like',
-                          'boardType': widget.boardType,
-                          'writerNick': writerNick,
-                          'date': DateTime.now(),
-                          'isRead': false,
-                          'postDocID': widget.postDocID,
-                          'content': title,
-                        });
-                      }
                     }
-                    loadData();
-                  });
+                  }
+                  loadData();
                 },
               ),
             ],
@@ -851,7 +859,6 @@ class CommentTileState extends State<CommentTile> {
                                   });
                                 }
                                 widget.loadData();
-                                // widget.refresh();
                               }
                             },
                           ),
@@ -887,7 +894,7 @@ class CommentTileState extends State<CommentTile> {
                                     });
                                     // setState(() {});
                                     widget.showDialog('성공적으로 삭제되었습니다.');
-                                    widget.refresh();
+                                    widget.loadData();
                                     break;
                                   case 'message':
                                     Navigator.push(
@@ -1193,7 +1200,6 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                                     });
                                   }
                                   widget.loadData();
-                                  // widget.refresh();
                                 }
                               },
                             ),
@@ -1229,7 +1235,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                                         'comments': FieldValue.increment(-1),
                                       });
                                       widget.showDialog('성공적으로 삭제되었습니다.');
-                                      widget.refresh();
+                                      widget.loadData();
                                       break;
                                     case 'message':
                                       Navigator.push(

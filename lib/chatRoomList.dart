@@ -81,7 +81,7 @@ class _chatRoomListState extends State<chatRoomList> {
     DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
     return Container(
-      padding: EdgeInsets.all(8),
+      padding: EdgeInsets.fromLTRB(8, 10, 8, 10),
       child: FutureBuilder(
         future: _getInitialData(),
         builder: (context, result){
@@ -103,21 +103,26 @@ class _chatRoomListState extends State<chatRoomList> {
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
+                        width: MediaQuery.of(context).size.width*0.7,
                         alignment: Alignment.topLeft,
                         child: Text(
                           result.data.toString(),
                           style: TextStyle(
-                              fontSize: 13
+                              fontSize: 15
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Container(
                         child: document['unreadCount'][globals.dbUser.getUID()]>=1
                         ? Badge(
                           badgeContent: Text(
-                            document['unreadCount'][globals.dbUser.getUID()].toString(),
+                            document['unreadCount'][globals.dbUser.getUID()]>99
+                                ?"99+"
+                                :document['unreadCount'][globals.dbUser.getUID()].toString(),
                             style: TextStyle(color: Colors.white),
                           ),
                           badgeColor: Colors.pinkAccent,
@@ -126,16 +131,21 @@ class _chatRoomListState extends State<chatRoomList> {
                       )
                     ],
                   ),
+                  Padding(padding: EdgeInsets.only(bottom: 5.0)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children:[
                       Container(
+                        width: MediaQuery.of(context).size.width*0.7,
                         child: Text(
                           document['lastMessage'] ,
                           style: TextStyle(
+                            color: Theme.of(context).accentColor.withOpacity(0.65),
                             fontSize: 10,
                             fontWeight: document['unreadCount'][globals.dbUser.getUID()]>1 ? FontWeight.bold : FontWeight.normal,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
                         ),
                       ),
                       Container(
@@ -143,7 +153,8 @@ class _chatRoomListState extends State<chatRoomList> {
                         child: Text(
                           date,
                           style: TextStyle(
-                              fontSize: 10
+                              color: Theme.of(context).accentColor.withOpacity(0.65),
+                              fontSize: 10,
                           ),
                         ),
                       ),

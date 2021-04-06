@@ -402,7 +402,11 @@ class _chatRoomViewState extends State<chatRoomView>
                   style: TextStyle(fontSize: 15),
                   focusNode: _focusNode,
                   controller: _messageController,
+                  minLines: 1,
+                  maxLines: 3,
                   decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Theme.of(context).backgroundColor,
                       border: OutlineInputBorder(),
                       hintText: 'Send a message',
                       suffixIcon: _messageController.text.isNotEmpty
@@ -578,9 +582,14 @@ class _chatRoomViewState extends State<chatRoomView>
         : Card(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text(
-            content,
-            style: TextStyle(fontSize: 20),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width*0.7
+            ),
+            child: Text(
+              content,
+              style: TextStyle(fontSize: 20),
+            ),
           ),
         ),
         color: isSender ? Theme.of(context).cardColor : Theme.of(context).textSelectionColor,

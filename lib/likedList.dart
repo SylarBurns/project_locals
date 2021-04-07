@@ -18,7 +18,7 @@ class _likeListState extends State<likeList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("내가 좋아요 누른 글",),
+        title: Text("좋아요 누른 글",),
       ),
       body: _likedPost(context)
     );
@@ -103,7 +103,7 @@ class _likeListState extends State<likeList> {
           ),
         ),
         child: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
           child: Column(
             children: <Widget>[
               Row(
@@ -119,7 +119,7 @@ class _likeListState extends State<likeList> {
                       ],
                     ),
                   ),
-                  Text('$date', style: TextStyle(color: Theme.of(context).primaryColor))
+                  Text('$date', style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)))
                 ],
               ),
               Padding(padding: EdgeInsets.only(top: 3.0)),
@@ -151,7 +151,7 @@ class _likeListState extends State<likeList> {
                       '$boardName',
                       style: TextStyle(
                           fontSize: 12,
-                          color: Theme.of(context).accentColor.withOpacity(0.45)
+                          color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)
                       ),
                     ),
                     Container(
@@ -167,7 +167,8 @@ class _likeListState extends State<likeList> {
                           Text(
                             '$like',
                             style:
-                            TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
+                            TextStyle(
+                                color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
                           ),
                           Padding(padding: EdgeInsets.only(right: 10.0)),
                           Icon(
@@ -178,7 +179,7 @@ class _likeListState extends State<likeList> {
                           Padding(padding: EdgeInsets.only(right: 2.0)),
                           Text(
                             '$comments',
-                            style: TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
+                            style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
                           ),
                         ],
                       ),

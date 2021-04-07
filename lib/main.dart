@@ -52,6 +52,10 @@ ThemeData _buildTheme(appThemeData data){
     primaryColor: data.primary,
     backgroundColor: data.background,
     primaryColorDark: data.backgroundSecondary,
+    accentTextTheme: base.textTheme.copyWith(
+      bodyText1: TextStyle(color: data.accent),
+      bodyText2: TextStyle(color: data.primary),
+    ),
     textTheme: base.textTheme.copyWith(
       headline1: TextStyle(color: data.accent),
       headline2: TextStyle(color: data.accent),

@@ -22,17 +22,14 @@ class _loginPageState extends State<loginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFFAF6ED),
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            ListView(
-              scrollDirection: Axis.vertical,
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
-              children: <Widget>[
-                SizedBox(height: 80.0),
-                _GoogleSignInSection(),
-              ],
-            ),
+            Spacer(flex: 1,),
+            Center(child: Image.asset('assets/image/logo2.png')),
+            Center(child: _GoogleSignInSection(),),
+            Spacer(flex: 2,),
           ],
         ),
       ),
@@ -99,6 +96,7 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
                 padding: const EdgeInsets.fromLTRB(0, 16.0, 0, 8.0),
                 alignment: Alignment.center,
                 child: RaisedButton(
+                  color: Color(0xFFF6BF4F),
                   onPressed: () async {
                     setState(() {
                       loginStarted = true;
@@ -112,7 +110,7 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
                       }
                     });
                   },
-                  child: const Text('Google'),
+                  child: const Text('Google', style: TextStyle(color: Color(0xFFFAF6ED)),),
                 ),
               ),
       ],

@@ -18,11 +18,8 @@ class _likeListState extends State<likeList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Colors.black,
-          ),
-        title: Text("내가 좋아요 누른 글", style: TextStyle(color: Colors.black),),
-        backgroundColor: Colors.white,),
+        title: Text("내가 좋아요 누른 글",),
+      ),
       body: _likedPost(context)
     );
   }
@@ -79,18 +76,22 @@ class _likeListState extends State<likeList> {
     DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
     int like = document["like"];
+    int comments = document['comments'];
     String content = document["content"];
     String boardT = document["boardType"];
-    String boardType = "";
+    String boardName = "";
     switch (boardT) {
       case "free":
-        boardType = "자유 게시판";
+        boardName = "자유 게시판";
         break;
       case "anonymous":
-        boardType = "익명 게시판";
+        boardName = "익명 게시판";
         break;
       case "lostAndFound":
-        boardType = "Lost&Found";
+        boardName = "Lost&Found";
+        break;
+      case "promo":
+        boardName = "홍보 게시판";
         break;
     }
     return Container(
@@ -98,7 +99,7 @@ class _likeListState extends State<likeList> {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PostView(postDocID: document.documentID, boardType:document["boardType"],boardName: boardType, writerUID: document['writer'],),
+            builder: (context) => PostView(postDocID: document.documentID, boardName: boardName, boardType: document["boardType"], writerUID: document['writer'],),
           ),
         ),
         child: Container(
@@ -118,7 +119,7 @@ class _likeListState extends State<likeList> {
                       ],
                     ),
                   ),
-                  Text('$date')
+                  Text('$date', style: TextStyle(color: Theme.of(context).primaryColor))
                 ],
               ),
               Padding(padding: EdgeInsets.only(top: 3.0)),
@@ -140,15 +141,17 @@ class _likeListState extends State<likeList> {
                   maxLines: 2,
                 ),
               ),
+              Padding(padding: EdgeInsets.only(bottom: 4),),
               Container(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
                     Text(
-                      '$boardType',
+                      '$boardName',
                       style: TextStyle(
-                        color: Colors.black26.withOpacity(.70),
-                        fontSize: 12,
+                          fontSize: 12,
+                          color: Theme.of(context).accentColor.withOpacity(0.45)
                       ),
                     ),
                     Container(
@@ -157,14 +160,25 @@ class _likeListState extends State<likeList> {
                         children: [
                           Icon(
                             Icons.thumb_up_alt_outlined,
-                            size: 10,
-                            color: Colors.red[800],
+                            size: 15,
+                            color: Theme.of(context).accentColor.withOpacity(0.45),
                           ),
                           Padding(padding: EdgeInsets.only(right: 2.0)),
                           Text(
                             '$like',
                             style:
-                            TextStyle(color: Colors.red[800], fontSize: 12),
+                            TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
+                          ),
+                          Padding(padding: EdgeInsets.only(right: 10.0)),
+                          Icon(
+                              Icons.comment_bank_outlined,
+                              size: 15.0,
+                              color: Theme.of(context).accentColor.withOpacity(0.45)
+                          ),
+                          Padding(padding: EdgeInsets.only(right: 2.0)),
+                          Text(
+                            '$comments',
+                            style: TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
                           ),
                         ],
                       ),

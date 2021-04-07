@@ -3,13 +3,12 @@ import 'dart:collection';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/date_symbols.dart';
 import 'package:intl/intl.dart';
 import 'globals.dart' as globals;
-import 'ad_manager.dart';
 import 'postList.dart';
 import 'postView.dart';
+
 final db = Firestore.instance;
 
 class homePage extends StatefulWidget {
@@ -33,41 +32,20 @@ class homePageState extends State<homePage> {
   HashMap<String, List<DocumentSnapshot>> recentPostLists = HashMap<String, List<DocumentSnapshot>>();
   bool hotLoaded;
   bool recentLoaded;
-  bool _isAdLoaded;
-  BannerAd _ad;
+
   @override
   void initState() {
     hotLoaded = false;
     recentLoaded = false;
-    _isAdLoaded = false;
     super.initState();
     getHotPosts();
     getRecentPosts();
-    _ad = BannerAd(
-      adUnitId: AdManager.bannerAdUnitId,
-      size: AdSize.banner,
-      request: AdRequest(),
-      listener: AdListener(
-        onAdLoaded: (_) {
-          setState(() {
-            _isAdLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          // Releases an ad resource when it fails to load
-          ad.dispose();
 
-          print('Ad load failed (code=${error.code} message=${error.message})');
-        },
-      ),
-    );
-    _ad.load();
   }
   void dispose() {
-    _ad?.dispose();
-    _ad = null;
     super.dispose();
   }
+
   void getHotPosts() async {
     await db
         .collection('board')
@@ -116,9 +94,9 @@ class homePageState extends State<homePage> {
 
   @override
   Widget build(BuildContext context) {
-    if(hotLoaded && recentLoaded && _isAdLoaded){
-      print("loaded hot posts: "+hotPostList.length.toString());
-      print("loaded recent posts: "+recentPostLists.length.toString());
+    if(hotLoaded && recentLoaded){
+      // print("loaded hot posts: "+hotPostList.length.toString());
+      // print("loaded recent posts: "+recentPostLists.length.toString());
       return RefreshIndicator(
         onRefresh: refreshHomePage,
         child: ListView(
@@ -139,15 +117,6 @@ class homePageState extends State<homePage> {
                 ),
               ),
               _buildHotPostList(context, hotPostList),
-              SizedBox(
-                height: 10,
-              ),
-              Container(
-                height: 60,
-                width: _ad.size.width.toDouble(),
-                child: AdWidget(ad: _ad,),
-                alignment: Alignment.center,
-              ),
               SizedBox(
                 height: 10,
               ),
@@ -188,7 +157,7 @@ class homePageState extends State<homePage> {
     );
   }
   Widget _buildHotPostListItem(
-      BuildContext context, DocumentSnapshot document) {
+    BuildContext context, DocumentSnapshot document) {
     String title = document["title"];
     String writer = document["writerNick"];
     Timestamp tt = document["date"];

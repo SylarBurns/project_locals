@@ -3,13 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_admob/firebase_admob.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:loading_animations/loading_animations.dart';
 import 'routes.dart';
 import 'globals.dart' as globals;
 import 'homeNavigator.dart' as home;
-import 'ad_manager.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -51,8 +48,6 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
     super.initState();
     loginStarted = false;
     autoLogin();
-    _initAdMob();
-    _initGoogleMobileAds();
   }
   Future autoLogin() async {
     setState(() {
@@ -74,14 +69,6 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
     }
   }
 
-  Future<void> _initAdMob() {
-    return FirebaseAdMob.instance.initialize(appId: AdManager.appId);
-  }
-
-  Future<InitializationStatus> _initGoogleMobileAds() {
-    return MobileAds.instance.initialize();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -93,6 +80,8 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
                 backgroundColor: Theme.of(context).primaryColor,
               ))
             : Container(
+                height: 70,
+                width: MediaQuery.of(context).size.width / 1.8,
                 padding: const EdgeInsets.fromLTRB(0, 16.0, 0, 8.0),
                 alignment: Alignment.center,
                 child: RaisedButton(
@@ -110,7 +99,13 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
                       }
                     });
                   },
-                  child: const Text('Google', style: TextStyle(color: Color(0xFFFAF6ED)),),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Image.asset('assets/image/google-logo.png'),
+                      Text('Sign in with Google', style: TextStyle(color: Color(0xFFFAF6ED)),),
+                    ],
+                  ),
                 ),
               ),
       ],

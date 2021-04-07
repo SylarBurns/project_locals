@@ -16,10 +16,6 @@
         <meta-data
             android:name="com.naver.maps.map.CLIENT_ID"
             android:value="5upr6p6g92"/>
-        <!-- Sample AdMob App ID: ca-app-pub-1913924580785717~7612473892 -->
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~4354546703" />
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 
 import 'globals.dart' as globals;
 
@@ -44,7 +43,11 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
 
   Widget _buildNotificationPage(BuildContext context) {
     return FutureBuilder(
-      future: db.collection('user').document(globals.dbUser.getUID()).collection('notification').getDocuments(),
+      future: db.collection('user')
+          .document(globals.dbUser.getUID())
+          .collection('notification')
+          .orderBy('date', descending: true)
+          .getDocuments(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) {
           return Container();

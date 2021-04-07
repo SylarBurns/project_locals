@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:badges/badges.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'homePage.dart';
@@ -11,8 +9,6 @@ import 'globals.dart' as globals;
 import 'searchPage.dart';
 import 'personalInfo.dart';
 import 'notificationBody.dart';
-import 'package:project_locals/colors.dart';
-final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class homeNavigator extends StatefulWidget {
   @override

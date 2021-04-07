@@ -86,10 +86,10 @@ class searchPageState extends State<searchPage> {
   }
   Widget searchResult(BuildContext context){
     if(_searchController.text ==""){
-      print("no result");
+      // print("no result");
       return SizedBox(height: 10, width: 10,);
     }else{
-      print("searching "+_searchController.text);
+      // print("searching "+_searchController.text);
       return _searchedPost(context);
     }
   }

@@ -4,8 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 
-import 'package:flutter/services.dart';
-
 import 'dart:io';
 
 import 'globals.dart' as globals;
@@ -39,13 +37,7 @@ class _PostWriteState extends State<PostWrite> {
   }
 
   void dispose() {
-    hideKeyboard();
-
     super.dispose();
-  }
-
-  void hideKeyboard() async {
-    await SystemChannels.textInput.invokeMethod('TextInput.hide');
   }
 
   @override
@@ -61,8 +53,6 @@ class _PostWriteState extends State<PostWrite> {
               Icons.check,
             ),
             onPressed: () async {
-              hideKeyboard();
-
               var data = {
                 'boardType': widget.boardType,
                 'comments': 0,

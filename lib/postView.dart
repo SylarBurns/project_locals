@@ -4,7 +4,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/services.dart';
 
 import 'globals.dart' as globals;
 
@@ -58,10 +57,6 @@ class _PostViewState extends State<PostView> {
     setState(() {});
   }
 
-  void hideKeyboard() async {
-    await SystemChannels.textInput.invokeMethod('TextInput.hide');
-  }
-
   void loadData() async {
     postDocRef = db.collection('board').document(widget.postDocID);
     postDocSnapshot = await postDocRef.get();
@@ -96,6 +91,10 @@ class _PostViewState extends State<PostView> {
     refresh();
   }
 
+  Future refreshPost() async {
+    await loadData();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -107,7 +106,6 @@ class _PostViewState extends State<PostView> {
   }
 
   void dispose() {
-    hideKeyboard();
     focusNode.dispose();
     commentController.dispose();
 
@@ -202,43 +200,46 @@ class _PostViewState extends State<PostView> {
           padding: globals.dbUser.getAuthority()
               ? EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9)
               : EdgeInsets.zero,
-          child: _isDataLoaded ? ListView(
-            children: [
-              _buildPost(context, postDocSnapshot),
-              Column(
-                children: commentListQuery.documents.map((comment) {
-                  return Column(
-                    children: [
-                      CommentTile(
-                        postDocID: widget.postDocID,
-                        comment: comment,
-                        postWriter: widget.writerUID,
-                        refresh: refresh,
-                        showDialog: _showDialog,
-                        loadData: loadData,
-                        boardType: widget.boardType,
-                      ),
-                      if(comment['nestedComments'] != 0)...[
-                        Column(
-                          children: nestedCommentQuery[comment.documentID].documents.map((nestedComment) {
-                            return  NestedCommentTile(
-                              postDocID: widget.postDocID,
-                              nestedComment: nestedComment,
-                              postWriter: widget.writerUID,
-                              commentRef: comment.reference,
-                              refresh: refresh,
-                              showDialog: _showDialog,
-                              loadData: loadData,
-                              boardType: widget.boardType,
-                            );
-                          }).toList(),
+          child: _isDataLoaded ? RefreshIndicator(
+            onRefresh: refreshPost,
+            child: ListView(
+              children: [
+                _buildPost(context, postDocSnapshot),
+                Column(
+                  children: commentListQuery.documents.map((comment) {
+                    return Column(
+                      children: [
+                        CommentTile(
+                          postDocID: widget.postDocID,
+                          comment: comment,
+                          postWriter: widget.writerUID,
+                          refresh: refresh,
+                          showDialog: _showDialog,
+                          loadData: loadData,
+                          boardType: widget.boardType,
                         ),
+                        if(comment['nestedComments'] != 0)...[
+                          Column(
+                            children: nestedCommentQuery[comment.documentID].documents.map((nestedComment) {
+                              return  NestedCommentTile(
+                                postDocID: widget.postDocID,
+                                nestedComment: nestedComment,
+                                postWriter: widget.writerUID,
+                                commentRef: comment.reference,
+                                refresh: refresh,
+                                showDialog: _showDialog,
+                                loadData: loadData,
+                                boardType: widget.boardType,
+                              );
+                            }).toList(),
+                          ),
+                        ],
                       ],
-                    ],
-                  );
-                }).toList(),
-              ),
-            ],
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ) : Center(
             child: globals.getLoadingAnimation(context),
           ),

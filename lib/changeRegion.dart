@@ -1,8 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 
 import 'globals.dart' as globals;
 
@@ -47,15 +45,19 @@ class _ChangeRegionState extends State<ChangeRegion> {
             icon: Icon(
               Icons.check,
             ),
-            onPressed: () {
-              globals.dbUser.setSelectedRegion(_selectedArea2);
-              Navigator.pop(context);
+            onPressed: () async {
+              if(_selectedArea1 != 'null' && _selectedArea2 != 'null') {
+                globals.dbUser.setSelectedRegion(_selectedArea2);
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/homeNavigator');
+              }
+              else _showDialog('지역을 선택하세요');
             },
           ),
         ],
       ),
       body: docList == null ?
-          Center(child: CircularProgressIndicator(),)
+          Center(child: globals.getLoadingAnimation(context),)
           : Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -117,6 +119,33 @@ class _ChangeRegionState extends State<ChangeRegion> {
           ],
         );
       }).toList(),
+    );
+  }
+
+  void _showDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        Future.delayed(Duration(seconds: 1), () {
+          Navigator.pop(context);
+        });
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0)
+          ),
+
+          content: SizedBox(
+            width: 50,
+            height: 30,
+            child: Center(
+              child: Text(
+                  '$message'
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

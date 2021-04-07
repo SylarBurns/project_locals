@@ -4,7 +4,6 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:project_locals/colors.dart';
 import 'package:project_locals/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 
 class selectThemeColor extends StatefulWidget {
   @override

@@ -3,10 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'postView.dart';
 import 'postWrite.dart';
-import 'ad_manager.dart';
 
 import 'globals.dart' as globals;
 
@@ -21,7 +19,6 @@ class PostList extends StatefulWidget {
 }
 
 class _PostListState extends State<PostList> {
-  bool _isAdLoaded = false;
   bool _isDataLoaded = false;
 
   QuerySnapshot postQuery;
@@ -32,7 +29,9 @@ class _PostListState extends State<PostList> {
     loadData();
   }
 
-  BannerAd _bannerAd;
+  Future refreshPost() async {
+    await loadData();
+  }
 
   void loadData() async {
     var ref = Firestore.instance.collection('board');
@@ -48,37 +47,14 @@ class _PostListState extends State<PostList> {
     setState(() {});
   }
 
-  void loadAd() async {
-    _bannerAd = BannerAd(
-      adUnitId: AdManager.bannerAdUnitId,
-      size: AdSize.banner,
-      request: AdRequest(),
-      listener: AdListener(
-        onAdLoaded: (_) {
-          _isAdLoaded = true;
-          setState(() {});
-        },
-        onAdFailedToLoad: (ad, error) {
-          ad.dispose();
-          print('Ad load failed (code=${error.code} message=${error.message})');
-        },
-      ),
-    );
-
-    _bannerAd.load();
-  }
-
   @override
   void initState() {
     super.initState();
     loadData();
-    loadAd();
   }
 
   @override
   void dispose() {
-    _bannerAd?.dispose();
-    _bannerAd = null;
 
     super.dispose();
   }
@@ -91,52 +67,35 @@ class _PostListState extends State<PostList> {
       ),
     );
 
-    final screenHeight = MediaQuery.of(context).size.height;
-    final appBarHeight = appBar.preferredSize.height;
-    final statusBarHeight = MediaQuery.of(context).padding.top;
-    final adHeight = AdSize.banner.height;
-
     return Scaffold(
       appBar: appBar,
-      body: (_isDataLoaded) ? Column(
-        children: [
-          Container(
-              height: (screenHeight - appBarHeight - statusBarHeight - adHeight - 12),
-              child: ListView.separated(
-                  itemCount: postQuery.documents.length,
-                  separatorBuilder: (context, index) => Divider(),
-                  itemBuilder: (context, index) {
-                    DocumentSnapshot post = postQuery.documents[index];
-                    int report = post['report'];
+      body: (_isDataLoaded) ? RefreshIndicator(
+        onRefresh: refreshPost,
+        child: ListView.separated(
+            itemCount: postQuery.documents.length,
+            separatorBuilder: (context, index) => Divider(),
+            itemBuilder: (context, index) {
+              DocumentSnapshot post = postQuery.documents[index];
+              int report = post['report'];
 
-                    if(report >= 10) {
-                      return _buildBlindPost(context, post);
-                    }
-                    else {
-                      return _buildPostTile(context, post);
-                    }
-                  }
-              )
-          ),
-          Container(
-            height: adHeight.toDouble()+10,
-            child: AdWidget(ad: _bannerAd,),
-            alignment: Alignment.center,
-          ),
-        ],
-      ) : globals.getLoadingAnimation(context),
-      floatingActionButton: globals.dbUser.getAuthority() ? Padding(
-        padding: EdgeInsets.only(bottom:55),
-        child: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => PostWrite(boardType: widget.boardType,)),
-            ).then(refresh);
-          },
-          child: Icon(Icons.add),
+              if(report >= 10) {
+                return _buildBlindPost(context, post);
+              }
+              else {
+                return _buildPostTile(context, post);
+              }
+            }
         ),
-      ) : null,
+      ) : globals.getLoadingAnimation(context),
+      floatingActionButton: globals.dbUser.getAuthority() ? FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => PostWrite(boardType: widget.boardType,)),
+          ).then(refresh);
+        },
+        child: Icon(Icons.add),
+      ): null,
     );
   }
 

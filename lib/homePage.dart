@@ -192,11 +192,12 @@ class homePageState extends State<homePage> {
           ),
         ),
         child: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
           child: Column(
             children: <Widget>[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
                   Container(
                     child: Row(
@@ -208,7 +209,7 @@ class homePageState extends State<homePage> {
                       ],
                     ),
                   ),
-                  Text('$date', style: TextStyle(color: Theme.of(context).primaryColor))
+                  Text('$date', style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color))
                 ],
               ),
               Padding(padding: EdgeInsets.only(top: 3.0)),
@@ -240,7 +241,7 @@ class homePageState extends State<homePage> {
                       '$boardName',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Theme.of(context).accentColor.withOpacity(0.45)
+                        color: Theme.of(context).accentColor.withOpacity(0.65)
                       ),
                     ),
                     Container(
@@ -250,24 +251,24 @@ class homePageState extends State<homePage> {
                           Icon(
                             Icons.thumb_up_alt_outlined,
                             size: 15,
-                            color: Theme.of(context).accentColor.withOpacity(0.45),
+                            color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                           ),
                           Padding(padding: EdgeInsets.only(right: 2.0)),
                           Text(
                             '$like',
                             style:
-                            TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
+                            TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
                           ),
                           Padding(padding: EdgeInsets.only(right: 10.0)),
                           Icon(
                               Icons.comment_bank_outlined,
                               size: 15.0,
-                              color: Theme.of(context).accentColor.withOpacity(0.45)
+                              color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)
                           ),
                           Padding(padding: EdgeInsets.only(right: 2.0)),
                           Text(
                             '$comments',
-                            style: TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
+                            style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
                           ),
                         ],
                       ),
@@ -382,7 +383,8 @@ class homePageState extends State<homePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text(date.toString(),style: TextStyle(color:Theme.of(context).accentColor.withOpacity(0.45)),),
+                Text(date.toString(),
+                  style: TextStyle(color:Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),),
                 Container(
                   alignment: Alignment.bottomRight,
                   child: Row(
@@ -390,24 +392,24 @@ class homePageState extends State<homePage> {
                       Icon(
                         Icons.thumb_up_alt_outlined,
                         size: 15,
-                        color: Theme.of(context).accentColor.withOpacity(0.45),
+                        color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                       ),
                       Padding(padding: EdgeInsets.only(right: 2.0)),
                       Text(
                         '$like',
                         style:
-                        TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
+                        TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
                       ),
                       Padding(padding: EdgeInsets.only(right: 10.0)),
                       Icon(
                           Icons.comment_bank_outlined,
                           size: 15.0,
-                          color: Theme.of(context).accentColor.withOpacity(0.45)
+                          color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)
                       ),
                       Padding(padding: EdgeInsets.only(right: 2.0)),
                       Text(
                         '$comments',
-                        style: TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
+                        style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
                       ),
                     ],
                   ),

@@ -150,7 +150,7 @@ class searchPageState extends State<searchPage> {
           ),
         ),
         child: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
           child: Column(
             children: <Widget>[
               Row(
@@ -188,6 +188,7 @@ class searchPageState extends State<searchPage> {
                   maxLines: 2,
                 ),
               ),
+              Padding(padding: EdgeInsets.only(bottom: 4),),
               Container(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -206,24 +207,24 @@ class searchPageState extends State<searchPage> {
                           Icon(
                             Icons.thumb_up_alt_outlined,
                             size: 15,
-                            color: Theme.of(context).accentColor.withOpacity(0.45),
+                            color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                           ),
                           Padding(padding: EdgeInsets.only(right: 2.0)),
                           Text(
                             '$like',
                             style:
-                            TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
+                            TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
                           ),
                           Padding(padding: EdgeInsets.only(right: 10.0)),
                           Icon(
                               Icons.comment_bank_outlined,
                               size: 15.0,
-                              color: Theme.of(context).accentColor.withOpacity(0.45)
+                              color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)
                           ),
                           Padding(padding: EdgeInsets.only(right: 2.0)),
                           Text(
                             '$comments',
-                            style: TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45)),
+                            style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
                           ),
                         ],
                       ),

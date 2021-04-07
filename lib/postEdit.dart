@@ -24,16 +24,9 @@ class _PostEditState extends State<PostEdit> {
 
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Colors.black,
-        ),
         title: Text(
           '글 수정',
-          style: TextStyle(
-            color: Colors.black,
-          ),
         ),
-        backgroundColor: Colors.white,
         actions: [
           IconButton(
             icon: Icon(

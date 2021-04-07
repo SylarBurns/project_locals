@@ -78,8 +78,8 @@ class themeData_5 extends appThemeData{
 }
 class themeData_6 extends appThemeData{
   bool islight = true;
-  Color accent = Color(0xFF0F5257);
-  Color primary = Color(0xFF0B3142);
+  Color accent = Color(0xFF0B3142);
+  Color primary = Color(0xFF0F5257);
   Color secondary = Color(0xFF49a078);
   Color tertiary = Color(0xFFC6B9CD);
   Color background = Color(0xFFFFFFFF);

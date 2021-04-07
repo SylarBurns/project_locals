@@ -38,8 +38,8 @@ class personalInfoState extends State<personalInfo> {
             FlatButton(
               onPressed: () => Navigator.pushNamed(context, '/likedList'),
               child: Text(
-                "좋아요 누른 게시물",
-                style: TextStyle(color: Theme.of(context).accentColor),
+                "좋아요 누른 글",
+                style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color),
               ),
             ),
             FlatButton(
@@ -53,7 +53,7 @@ class personalInfoState extends State<personalInfo> {
               }),
               child: Text(
                 "지역 변경",
-                style: TextStyle(color: Theme.of(context).accentColor),
+                style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color),
               ),
             ),
             FlatButton(
@@ -66,7 +66,7 @@ class personalInfoState extends State<personalInfo> {
               },
               child: Text(
                 "로그아웃",
-                style: TextStyle(color: Theme.of(context).accentColor),
+                style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color),
               ),
             ),
             FlatButton(
@@ -75,7 +75,7 @@ class personalInfoState extends State<personalInfo> {
               },
               child: Text(
                 "테마 색 설정",
-                style: TextStyle(color: Theme.of(context).accentColor),
+                style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color),
               ),
             ),
           ],

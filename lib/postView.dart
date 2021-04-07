@@ -438,7 +438,7 @@ class _PostViewState extends State<PostView> {
                   Text(
                     '$date',
                     style: TextStyle(
-                      color: Theme.of(context).accentColor.withOpacity(0.45),
+                      color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                     ),
                   ),
                 ],
@@ -450,13 +450,13 @@ class _PostViewState extends State<PostView> {
                   children: [
                     Icon(
                       Icons.thumb_up_alt_outlined,
-                      color: Theme.of(context).primaryColor,
+                      color: Theme.of(context).accentTextTheme.bodyText1.color,
                     ),
                     SizedBox(width: 3.0,),
                     Text(
                       'Like',
                       style: TextStyle(
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).accentTextTheme.bodyText1.color,
                       ),
                     ),
                   ],
@@ -544,7 +544,7 @@ class _PostViewState extends State<PostView> {
               Padding(padding: EdgeInsets.only(right: 2.0)),
               Text(
                 '$like',
-                style: TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45),),
+                style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),),
               ),
               Padding(padding: EdgeInsets.only(right: 10.0)),
               Icon(
@@ -555,7 +555,7 @@ class _PostViewState extends State<PostView> {
               Padding(padding: EdgeInsets.only(right: 2.0)),
               Text(
                   '$comments',
-                  style: TextStyle(color: Theme.of(context).accentColor.withOpacity(0.45),),
+                  style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),),
               ),
             ],
           ),
@@ -620,7 +620,7 @@ class CommentTileState extends State<CommentTile> {
                     Text(
                       '(삭제됨)',
                       style: TextStyle(
-                        color: Theme.of(context).accentColor.withOpacity(0.38),
+                        color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.40),
                       ),
                     ),
                   ],
@@ -687,7 +687,7 @@ class CommentTileState extends State<CommentTile> {
                       Text(
                         '(Blind)',
                         style: TextStyle(
-                          color: Theme.of(context).accentColor.withOpacity(0.38),
+                          color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.40),
                         ),
                       ),
                     ],
@@ -735,7 +735,7 @@ class CommentTileState extends State<CommentTile> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16.0,
-                            color: writerUID == widget.postWriter ? Colors.lightBlue : Theme.of(context).primaryColor,
+                            color: writerUID == widget.postWriter ? Colors.lightBlue : Theme.of(context).accentTextTheme.bodyText1.color,
                           ),
                         ),
                         SizedBox(height: 2.0,),
@@ -744,7 +744,7 @@ class CommentTileState extends State<CommentTile> {
                             Text(
                               '$date',
                               style: TextStyle(
-                                color: Theme.of(context).accentColor.withOpacity(0.45),
+                                color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                               ),
                             ),
                             SizedBox(width: 5.0,),
@@ -754,14 +754,14 @@ class CommentTileState extends State<CommentTile> {
                                   Icon(
                                     Icons.thumb_up_off_alt,
                                     size: 16.0,
-                                    color: Theme.of(context).accentColor.withOpacity(0.45),
+                                    color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                                   ),
                                   SizedBox(width: 2.0,),
                                   Text(
                                     '$like',
                                     style: TextStyle(
                                       fontSize: 16.0,
-                                      color: Theme.of(context).accentColor.withOpacity(0.45),
+                                      color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                                     ),
                                   ),
                                 ],
@@ -785,7 +785,7 @@ class CommentTileState extends State<CommentTile> {
                             icon: Icon(
                               Icons.comment,
                               size: 20,
-                              color: Theme.of(context).primaryColor,
+                              color: Theme.of(context).accentTextTheme.bodyText1.color,
                             ),
                             onPressed: () async {
                               bool result = await showDialog(
@@ -824,7 +824,7 @@ class CommentTileState extends State<CommentTile> {
                             icon: Icon(
                               Icons.thumb_up_off_alt,
                               size: 20,
-                              color: Theme.of(context).primaryColor,
+                              color: Theme.of(context).accentTextTheme.bodyText1.color,
                             ),
                             onPressed: () async {
                               DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());
@@ -870,7 +870,7 @@ class CommentTileState extends State<CommentTile> {
                             },
                           ),
                           IconTheme(
-                            data: IconThemeData(color: Theme.of(context).primaryColor),
+                            data: IconThemeData(color: Theme.of(context).accentTextTheme.bodyText1.color),
                             child: PopupMenuButton(
                               itemBuilder: (BuildContext context) =>
                               writerUID == globals.dbUser.getUID()
@@ -1053,7 +1053,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                         Text(
                           '(Blind)',
                           style: TextStyle(
-                            color: Theme.of(context).accentColor.withOpacity(0.38),
+                            color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                           ),
                         ),
                       ],
@@ -1114,7 +1114,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16.0,
-                              color: writerUID == widget.postWriter ? Colors.lightBlue : Theme.of(context).primaryColor,
+                              color: writerUID == widget.postWriter ? Colors.lightBlue : Theme.of(context).accentTextTheme.bodyText1.color,
                             ),
                           ),
                           SizedBox(height: 2.0,),
@@ -1123,7 +1123,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                               Text(
                                 '$date',
                                 style: TextStyle(
-                                  color: Theme.of(context).accentColor.withOpacity(0.45),
+                                  color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                                 ),
                               ),
                               SizedBox(width: 5.0,),
@@ -1133,14 +1133,14 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                                   Icon(
                                     Icons.thumb_up_off_alt,
                                     size: 16.0,
-                                    color: Theme.of(context).accentColor.withOpacity(0.45),
+                                    color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                                   ),
                                   SizedBox(width: 2.0,),
                                   Text(
                                     '$like',
                                     style: TextStyle(
                                       fontSize: 16.0,
-                                      color: Theme.of(context).accentColor.withOpacity(0.45),
+                                      color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                                     ),
                                   ),
                                 ],
@@ -1165,7 +1165,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                               icon: Icon(
                                 Icons.thumb_up_off_alt,
                                 size: 20,
-                                color: Theme.of(context).primaryColor
+                                color: Theme.of(context).accentTextTheme.bodyText1.color
                               ),
                               onPressed: () async {
                                 DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());
@@ -1211,7 +1211,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                               },
                             ),
                             IconTheme(
-                              data: IconThemeData(color: Theme.of(context).primaryColor),
+                              data: IconThemeData(color: Theme.of(context).accentTextTheme.bodyText1.color),
                               child: PopupMenuButton(
                                 itemBuilder: (BuildContext context) =>
                                 writerUID == globals.dbUser.getUID()

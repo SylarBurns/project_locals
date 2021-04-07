@@ -261,9 +261,11 @@ class homePageState extends State<homePage> {
                   maxLines: 2,
                 ),
               ),
+              Padding(padding: EdgeInsets.only(bottom: 4),),
               Container(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
                     Text(
                       '$boardName',
@@ -404,6 +406,7 @@ class homePageState extends State<homePage> {
               child: Text(
                 title,
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                maxLines: 1,
               ),
             ),
             Padding(padding: EdgeInsets.only(bottom: 10.0),),

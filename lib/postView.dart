@@ -196,58 +196,65 @@ class _PostViewState extends State<PostView> {
           ),
         ],
       ),
-      body: Padding(
-        padding: globals.dbUser.getAuthority()
-            ? EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9)
-            : EdgeInsets.zero,
-        child: _isDataLoaded ? ListView(
-          children: [
-            _buildPost(context, postDocSnapshot),
-            Column(
-              children: commentListQuery.documents.map((comment) {
-                return Column(
-                  children: [
-                    CommentTile(
-                      postDocID: widget.postDocID,
-                      comment: comment,
-                      postWriter: widget.writerUID,
-                      refresh: refresh,
-                      showDialog: _showDialog,
-                      loadData: loadData,
-                      boardType: widget.boardType,
-                    ),
-                    if(comment['nestedComments'] != 0)...[
-                      Column(
-                        children: nestedCommentQuery[comment.documentID].documents.map((nestedComment) {
-                          return  NestedCommentTile(
-                            postDocID: widget.postDocID,
-                            nestedComment: nestedComment,
-                            postWriter: widget.writerUID,
-                            commentRef: comment.reference,
-                            refresh: refresh,
-                            showDialog: _showDialog,
-                            loadData: loadData,
-                            boardType: widget.boardType,
-                          );
-                        }).toList(),
+      body: Stack(
+        children : [
+          Padding(
+          padding: globals.dbUser.getAuthority()
+              ? EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9)
+              : EdgeInsets.zero,
+          child: _isDataLoaded ? ListView(
+            children: [
+              _buildPost(context, postDocSnapshot),
+              Column(
+                children: commentListQuery.documents.map((comment) {
+                  return Column(
+                    children: [
+                      CommentTile(
+                        postDocID: widget.postDocID,
+                        comment: comment,
+                        postWriter: widget.writerUID,
+                        refresh: refresh,
+                        showDialog: _showDialog,
+                        loadData: loadData,
+                        boardType: widget.boardType,
                       ),
+                      if(comment['nestedComments'] != 0)...[
+                        Column(
+                          children: nestedCommentQuery[comment.documentID].documents.map((nestedComment) {
+                            return  NestedCommentTile(
+                              postDocID: widget.postDocID,
+                              nestedComment: nestedComment,
+                              postWriter: widget.writerUID,
+                              commentRef: comment.reference,
+                              refresh: refresh,
+                              showDialog: _showDialog,
+                              loadData: loadData,
+                              boardType: widget.boardType,
+                            );
+                          }).toList(),
+                        ),
+                      ],
                     ],
-                  ],
-                );
-              }).toList(),
-            ),
-          ],
-        ) : Center(
-          child: globals.getLoadingAnimation(context),
+                  );
+                }).toList(),
+              ),
+            ],
+          ) : Center(
+            child: globals.getLoadingAnimation(context),
+          ),
         ),
+          Align(
+              alignment: Alignment.bottomCenter,
+              child: _bottomTextField(context)
+          )
+        ]
       ),
-      bottomSheet: _bottomTextField(context),
     );
   }
 
   Widget _bottomTextField(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(8.0),
+      padding: EdgeInsets.all(4.0),
       child: TextField(
         controller: commentController,
         focusNode: focusNode,
@@ -336,8 +343,6 @@ class _PostViewState extends State<PostView> {
       await commentListRef.document(commentDocID).updateData({
         'nestedComments': FieldValue.increment(1),
       });
-      commentDocID = 'null';
-
       if(userUID != widget.writerUID) {
         DocumentSnapshot snap = await commentListRef.document(commentDocID).get();
         DocumentReference ref = db.collection('user').document(widget.writerUID);
@@ -357,6 +362,7 @@ class _PostViewState extends State<PostView> {
           'postDocID': widget.postDocID,
         });
       }
+      commentDocID = 'null';
     }
 
     await postDocRef.updateData({

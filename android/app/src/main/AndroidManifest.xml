@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="project_locals"
+        android:label="지역감정"
         android:icon="@mipmap/ic_launcher">
         <meta-data
             android:name="com.naver.maps.map.CLIENT_ID"

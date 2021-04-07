@@ -58,7 +58,8 @@ class _MyHomePageState extends State<homeNavigator> {
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
             title: Text(
-              'Project Locals',
+              '지역감정',
+              style: TextStyle(fontFamily: 'DXMobrRExtraBold'),
             ),
             actions: [
               Container(

@@ -62,6 +62,12 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
+    - assets/image/logo.png
+    - assets/image/logo2.png
+    - assets/image/logo3.png
+    - assets/image/logo4.png
+    - assets/image/logo5.png
+    - assets/image/logo6.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -81,6 +87,9 @@ flutter:
         - asset: assets/fonts/NotoSansKR-Regular.otf
         - asset: assets/fonts/NotoSansKR-Bold.otf
           weight: 700
+    - family: DXMobrRExtraBold
+      fonts:
+        - asset: assets/fonts/DXMobrRExtraBold-KSCpc-EUC-H.ttf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

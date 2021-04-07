@@ -67,7 +67,7 @@ class _MyHomePageState extends State<homeNavigator> {
                 child: InkWell(
                   child: Text(
                     globals.dbUser.getSelectedRegion(),
-                    style: TextStyle(color: Theme.of(context).accentColor),
+                    style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color),
                   ),
                   onTap: ()=>Navigator.pushNamed(context, '/naverMap')
                       .then((value)async{

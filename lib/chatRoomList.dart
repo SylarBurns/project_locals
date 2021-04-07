@@ -140,7 +140,7 @@ class _chatRoomListState extends State<chatRoomList> {
                         child: Text(
                           document['lastMessage'] ,
                           style: TextStyle(
-                            color: Theme.of(context).accentColor.withOpacity(0.65),
+                            color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                             fontSize: 10,
                             fontWeight: document['unreadCount'][globals.dbUser.getUID()]>1 ? FontWeight.bold : FontWeight.normal,
                           ),
@@ -153,7 +153,7 @@ class _chatRoomListState extends State<chatRoomList> {
                         child: Text(
                           date,
                           style: TextStyle(
-                              color: Theme.of(context).accentColor.withOpacity(0.65),
+                              color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
                               fontSize: 10,
                           ),
                         ),

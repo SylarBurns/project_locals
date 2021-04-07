@@ -544,7 +544,7 @@ class _chatRoomViewState extends State<chatRoomView>
                   children: [
                     Text(
                       date,
-                      style: TextStyle(fontSize: 12, color: Theme.of(context).primaryColor),
+                      style: TextStyle(fontSize: 12, color: Theme.of(context).accentTextTheme.bodyText1.color),
                     ),
                     messagebody(document["type"],document["content"], isSender, context)
                   ],
@@ -556,7 +556,7 @@ class _chatRoomViewState extends State<chatRoomView>
                     messagebody(document['type'],document["content"], isSender, context),
                     Text(
                       date,
-                      style: TextStyle(fontSize: 12, color:Theme.of(context).primaryColor),
+                      style: TextStyle(fontSize: 12, color:Theme.of(context).accentTextTheme.bodyText1.color),
                     ),
                   ],
                 )),

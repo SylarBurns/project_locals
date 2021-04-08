@@ -10,6 +10,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:full_screen_image/full_screen_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'globals.dart' as globals;
 
 final db = Firestore.instance;
@@ -574,7 +575,14 @@ class _chatRoomViewState extends State<chatRoomView>
             child: FullScreenWidget(
               child: Hero(
                 tag: content,
-                child: Image.network(content, fit: BoxFit.cover,),
+                child: CachedNetworkImage(
+                  placeholder: (context, url)=>Container(
+                      child: Center(child: SizedBox(width: 20,height: 20, child: CircularProgressIndicator(),),),
+                      color: Theme.of(context).backgroundColor,
+                  ),
+                  imageUrl: content,
+                  fit: BoxFit.cover
+                )
               )
             ),
           )

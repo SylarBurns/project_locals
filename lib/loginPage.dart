@@ -80,12 +80,14 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
                 backgroundColor: Theme.of(context).primaryColor,
               ))
             : Container(
-                height: 70,
-                width: MediaQuery.of(context).size.width / 1.8,
+          // decoration: BoxDecoration(borderRadius: ),
+                height: 60,
+                width: MediaQuery.of(context).size.width *0.50,
                 padding: const EdgeInsets.fromLTRB(0, 16.0, 0, 8.0),
                 alignment: Alignment.center,
                 child: RaisedButton(
-                  color: Color(0xFFF6BF4F),
+                  shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
+                  color: Color(0xFFFFCE6E),
                   onPressed: () async {
                     setState(() {
                       loginStarted = true;
@@ -102,8 +104,8 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Image.asset('assets/image/google-logo.png'),
-                      Text('Sign in with Google', style: TextStyle(color: Color(0xFFFAF6ED)),),
+                      Image.asset('assets/image/google-logo.png', fit: BoxFit.contain,),
+                      Text('Sign in with Google', style: TextStyle(color: Color(0xFFFFFFFF)),),
                     ],
                   ),
                 ),

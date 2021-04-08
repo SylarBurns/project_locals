@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:full_screen_image/full_screen_image.dart';
 import 'package:intl/intl.dart';
 
 import 'globals.dart' as globals;
@@ -516,15 +518,24 @@ class _PostViewState extends State<PostView> {
           SizedBox(height: 5.0,),
           if(image != null)...[
             Container(
+              height: MediaQuery.of(context).size.height/4,
               padding: EdgeInsets.fromLTRB(5, 3, 5, 3),
               alignment: Alignment.center,
               // decoration: BoxDecoration(
               //   borderRadius: BorderRadius.circular(20),
               //   border: Border.all(color: Colors.black12),
               // ),
-              child: Image.network(
-                imageURL,
-                height: MediaQuery.of(context).size.height/4,
+              child: FullScreenWidget(
+                child: Hero(
+                  tag: imageURL,
+                  child: CachedNetworkImage(
+                        placeholder: (context, url)=>Container(
+                          child: Center(child: SizedBox(width: 20,height: 20, child: CircularProgressIndicator(),),),
+                          color: Theme.of(context).backgroundColor,
+                        ),
+                        imageUrl: imageURL
+                    ),
+                ),
               ),
             ),
             SizedBox(height: 5.0,)

@@ -1,8 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:project_locals/routes.dart';
-import 'package:project_locals/loginPage.dart';
-import 'package:project_locals/homeNavigator.dart';
 import 'package:project_locals/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';

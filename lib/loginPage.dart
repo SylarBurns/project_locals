@@ -96,16 +96,16 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
                     setState(() {
                       if (_success != null) {
                         if (_success) {
-                          print("login success");
                         }
                       }
                     });
                   },
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Image.asset('assets/image/google-logo.png', fit: BoxFit.contain,),
-                      Text('Sign in with Google', style: TextStyle(color: Color(0xFFFFFFFF)),),
+                      Spacer(flex:1),
+                      Text('Sign in with Google', style: TextStyle(color: Color(0xFFFFFFFF)),textAlign: TextAlign.center,),
+                      Spacer(flex:1),
                     ],
                   ),
                 ),
@@ -157,7 +157,6 @@ class _GoogleSignInSectionState extends State<_GoogleSignInSection> {
       Navigator.pushNamed(context, '/registration');
     } else {
       await getUser(currentUser);
-      print("User with ID " + dbUser.documentID + " is in the DB\n");
     }
   }
 

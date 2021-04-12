@@ -95,8 +95,6 @@ class homePageState extends State<homePage> {
   @override
   Widget build(BuildContext context) {
     if(hotLoaded && recentLoaded){
-      // print("loaded hot posts: "+hotPostList.length.toString());
-      // print("loaded recent posts: "+recentPostLists.length.toString());
       return RefreshIndicator(
         onRefresh: refreshHomePage,
         child: ListView(
@@ -223,7 +221,6 @@ class homePageState extends State<homePage> {
               Container(
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
-                height: 30,
                 child: Text(
                   '$content',
                   style: TextStyle(fontSize: 12),

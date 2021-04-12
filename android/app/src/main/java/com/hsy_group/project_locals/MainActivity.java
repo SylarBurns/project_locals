@@ -1,4 +1,4 @@
-package com.example.project_locals;
+package com.hsy_group.project_locals;
 
 import io.flutter.embedding.android.FlutterActivity;
 

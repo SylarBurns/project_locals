@@ -36,7 +36,7 @@ class searchPageState extends State<searchPage> {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
+        padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -58,7 +58,7 @@ class searchPageState extends State<searchPage> {
               ),
             ),
             AspectRatio(
-              aspectRatio: 10/12,
+              aspectRatio: 10/11,
               child: searchResult(context),
             ),
           ],
@@ -86,10 +86,8 @@ class searchPageState extends State<searchPage> {
   }
   Widget searchResult(BuildContext context){
     if(_searchController.text ==""){
-      // print("no result");
       return SizedBox(height: 10, width: 10,);
     }else{
-      // print("searching "+_searchController.text);
       return _searchedPost(context);
     }
   }
@@ -100,7 +98,6 @@ class searchPageState extends State<searchPage> {
         if(snapshot.connectionState == ConnectionState.none && snapshot.hasData == null){
           return SizedBox(height: 5, width: 5,);
         }else if(snapshot.data!=null && snapshot.data.length == 0){
-          print("no result");
           return Center(child: Text("no result"));
         }else if(snapshot.data!=null){
             return ListView.builder(

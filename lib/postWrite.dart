@@ -132,7 +132,6 @@ class _PostWriteState extends State<PostWrite> {
       builder: (BuildContext context, AsyncSnapshot<PickedFile> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.data != null) {
-          print(snapshot.data.path);
           _imageFile = File(snapshot.data.path);
           return Container(
             padding: EdgeInsets.fromLTRB(5, 3, 5, 3),
@@ -163,7 +162,7 @@ class _PostWriteState extends State<PostWrite> {
     StorageUploadTask uploadTask = firebaseStorageRef.putFile(_imageFile);
     StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
     taskSnapshot.ref.getDownloadURL().then(
-          (value) => print("Done: $value"),
+          (value){}
     );
   }
 }

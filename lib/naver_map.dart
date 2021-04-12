@@ -63,7 +63,6 @@ class _naverMapState extends State<naverMap> {
   }
   _onMapLongTap(LatLng position) async {
     await fetchRegionInfo(position).then((response){
-      print("Area1: ${response.area1}\nArea2: ${response.area2}\nArea3: ${response.area3}");
       scaffoldKey.currentState.showSnackBar(SnackBar(
         content: Text(
             '[onLongTap]lat: ${position.latitude}, lon: ${position.longitude}'),
@@ -127,7 +126,6 @@ class _naverMapState extends State<naverMap> {
                 await db.collection("area1").document(info.area1).get().then((document) async {
                   if(document.exists){
                     if(document["area2"].contains(info.area2)){
-                      print("area2 already on the database");
                     }else{
                       await db.runTransaction((transaction) async {
                         final freshSnapshot = await transaction.get(document.reference);

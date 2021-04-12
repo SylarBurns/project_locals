@@ -50,13 +50,13 @@ class _registrationState extends State<registration> {
                     result = _nicknameController.text;
                     Navigator.pop(context);
                   },
-                  child: Text("예")),
+                  child: Text("예", style: TextStyle(color: Theme.of(context).textTheme.bodyText1.color),)),
               FlatButton(
                   onPressed: () {
                     result = null;
                     Navigator.pop(context);
                   },
-                  child: Text("아니오"))
+                  child: Text("아니오", style: TextStyle(color: Theme.of(context).textTheme.bodyText1.color),))
             ],
           );
         });

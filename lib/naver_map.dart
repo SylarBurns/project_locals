@@ -25,10 +25,6 @@ class _naverMapState extends State<naverMap> {
       body:Stack(
         children: <Widget>[
           NaverMap(
-            // initialCameraPosition: CameraPosition(
-            //   target: LatLng(35.87797320358528, 128.6278855048859),
-            //   zoom: 17,
-            // ),
             onMapCreated: onMapCreated,
             mapType: _mapType,
             initLocationTrackingMode: _trackingMode,

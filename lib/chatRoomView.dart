@@ -46,8 +46,8 @@ class _chatRoomViewState extends State<chatRoomView>
   bool _shouldScroll;
   File imageFile;
   void ScrollToEnd() async {
-    if(_shouldScroll){
-      print("scroll to end index: "+ _lastIndex.toString());
+    if (_shouldScroll) {
+      print("scroll to end index: " + _lastIndex.toString());
       itemScrollController.jumpTo(index: _lastIndex);
       _shouldScroll = false;
     }
@@ -67,9 +67,9 @@ class _chatRoomViewState extends State<chatRoomView>
   Future getInitialChatInfo() async {
     tokens = chatRoomID.split('/');
     receiverID = tokens[1];
-    if(tokens[2] == "anonymous"){
+    if (tokens[2] == "anonymous") {
       chatRoomName = "익명";
-    }else if(tokens.length == 3){
+    } else if (tokens.length == 3) {
       String senderID = globals.dbUser.getUID();
       QuerySnapshot docSnapshots = await db
           .collection('chatroom')
@@ -78,8 +78,8 @@ class _chatRoomViewState extends State<chatRoomView>
           .getDocuments();
       if (docSnapshots.documents.isNotEmpty) {
         for (int docIndex = 0;
-        docIndex < docSnapshots.documents.length;
-        docIndex++) {
+            docIndex < docSnapshots.documents.length;
+            docIndex++) {
           if (docSnapshots.documents[docIndex]['participants'].length == 2 &&
               docSnapshots.documents[docIndex]['participants']
                   .contains(receiverID)) {
@@ -91,7 +91,7 @@ class _chatRoomViewState extends State<chatRoomView>
         }
       }
       chatRoomName = await _getReceiverNick(receiverID);
-    }else{
+    } else {
       chatRoomName = "Error";
     }
     setState(() {});
@@ -111,7 +111,7 @@ class _chatRoomViewState extends State<chatRoomView>
 
   Future setStream(String CRID) async {
     //get receiverID
-    if (!chatRoomID.startsWith('charInit')) {
+    if (!chatRoomID.startsWith('chatInit')) {
       await db
           .collection('chatroom')
           .document(chatRoomID)
@@ -175,7 +175,8 @@ class _chatRoomViewState extends State<chatRoomView>
     await db.runTransaction((transaction) async {
       final freshSnapshot = await transaction.get(docRef);
       final fresh = freshSnapshot.data;
-      _unreadCount = fresh['unreadCount'][globals.dbUser.getUID()];
+      print(fresh["lastMessage"]);
+      _unreadCount = fresh["unreadCount"][globals.dbUser.getUID()];
       List<dynamic> onlineUsers = fresh["onlineUser"];
       if (!onlineUsers.contains(globals.dbUser.getUID())) {
         onlineUsers.add(globals.dbUser.getUID());
@@ -197,10 +198,9 @@ class _chatRoomViewState extends State<chatRoomView>
                 element.reference.updateData({'isRead': true});
               }));
     }
-    await globals.dbUser.userOnDB.get().then((userSnapshot){
-      globals.dbUser.userOnDB.updateData({
-        "unreadCount": FieldValue.increment(-_unreadCount)
-      });
+    await globals.dbUser.userOnDB.get().then((userSnapshot) {
+      globals.dbUser.userOnDB
+          .updateData({"unreadCount": FieldValue.increment(-_unreadCount)});
     });
   }
 
@@ -214,68 +214,96 @@ class _chatRoomViewState extends State<chatRoomView>
       await transaction.update(docRef, {'onlineUser': onlineUsers});
     });
   }
-  Future _showChoiceDialog(BuildContext context)
-  {
-    return showDialog(context: context,builder: (BuildContext context){
-      return AlertDialog(
-        title: Text("Choose option",style: TextStyle(color: Colors.blue),),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: [
-              Divider(height: 1,color: Colors.blue,),
-              ListTile(
-                onTap: (){
-                  _openGallery(context);
-                },
-                title: Text("Gallery"),
-                leading: Icon(Icons.account_box,color: Colors.blue,),
-              ),
-              Divider(height: 1,color: Colors.blue,),
-              ListTile(
-                onTap: (){
-                  _openCamera(context);
-                },
-                title: Text("Camera"),
-                leading: Icon(Icons.camera,color: Colors.blue,),
-              ),
-            ],
-          )
-        ),);
-    });
-  }
-  Future _showLoadedImage(BuildContext context){
-    return showDialog(context: context, builder: (BuildContext context){
-      return AlertDialog(
-        title: Text("Loaded Image"),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: [
-              Container(
-                child: Image.file(imageFile),
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.send),
-                    onPressed: () async {
-                      await uploadImageToFirebase(context);
-                      Navigator.pop(context);
-                    },
+
+  Future _showChoiceDialog(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(
+              "Choose option",
+              style: TextStyle(color: Colors.blue),
+            ),
+            content: SingleChildScrollView(
+                child: ListBody(
+              children: [
+                Divider(
+                  height: 1,
+                  color: Colors.blue,
+                ),
+                ListTile(
+                  onTap: () {
+                    _openGallery(context);
+                  },
+                  title: Text("Gallery"),
+                  leading: Icon(
+                    Icons.account_box,
+                    color: Colors.blue,
                   ),
-                  IconButton(icon: Icon(Icons.clear),onPressed: (){Navigator.pop(context);},)
+                ),
+                Divider(
+                  height: 1,
+                  color: Colors.blue,
+                ),
+                ListTile(
+                  onTap: () {
+                    _openCamera(context);
+                  },
+                  title: Text("Camera"),
+                  leading: Icon(
+                    Icons.camera,
+                    color: Colors.blue,
+                  ),
+                ),
+              ],
+            )),
+          );
+        });
+  }
+
+  Future _showLoadedImage(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Loaded Image"),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: [
+                  Container(
+                    child: Image.file(imageFile),
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.send),
+                        onPressed: () async {
+                          await uploadImageToFirebase(context);
+                          Navigator.pop(context);
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      )
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
-        ),
-      );
-    });
+            ),
+          );
+        });
   }
-  void _openGallery(BuildContext context) async{
-    await ImagePicker().getImage(
-      source: ImageSource.gallery ,
-    ).then((value){
+
+  void _openGallery(BuildContext context) async {
+    await ImagePicker()
+        .getImage(
+      source: ImageSource.gallery,
+    )
+        .then((value) {
       setState(() async {
         imageFile = File(value.path);
         await _showLoadedImage(context);
@@ -283,10 +311,13 @@ class _chatRoomViewState extends State<chatRoomView>
       });
     });
   }
-  void _openCamera(BuildContext context)  async{
-    await ImagePicker().getImage(
-      source: ImageSource.camera ,
-    ).then((value){
+
+  void _openCamera(BuildContext context) async {
+    await ImagePicker()
+        .getImage(
+      source: ImageSource.camera,
+    )
+        .then((value) {
       setState(() async {
         imageFile = File(value.path);
         await _showLoadedImage(context);
@@ -294,28 +325,30 @@ class _chatRoomViewState extends State<chatRoomView>
       });
     });
   }
+
   Future uploadImageToFirebase(BuildContext context) async {
     String fileName = basename(imageFile.path);
     StorageReference firebaseStorageRef =
-    FirebaseStorage.instance.ref().child('chatroom/$fileName');
+        FirebaseStorage.instance.ref().child('chatroom/$fileName');
     StorageUploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
     StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-    taskSnapshot.ref.getDownloadURL().then(
-          (value){
-            setState(() {
-              print("should scroll true, unfocus focus node");
-              _shouldScroll = true;
-              _focusNode.unfocus();
-              _saveMessage(true, value);
-            });
-        });
+    taskSnapshot.ref.getDownloadURL().then((value) {
+      setState(() {
+        print("should scroll true, unfocus focus node");
+        _shouldScroll = true;
+        _focusNode.unfocus();
+        _saveMessage(true, value);
+      });
+    });
   }
+
   @override
   void dispose() {
     if (!chatRoomID.startsWith("chatInit")) {
       userOffLine(chatRoomID);
       WidgetsBinding.instance.removeObserver(this);
     }
+    _focusNode.unfocus();
     super.dispose();
   }
 
@@ -356,16 +389,19 @@ class _chatRoomViewState extends State<chatRoomView>
                   : StreamBuilder(
                       stream: chatStream,
                       builder: (context, snapshots) {
-                        if (snapshots.connectionState == ConnectionState.waiting) {
+                        if (snapshots.connectionState ==
+                            ConnectionState.waiting) {
                           return LinearProgressIndicator();
-                        } else if(snapshots.hasData){
+                        } else if (snapshots.hasData) {
                           if (_shouldScroll) {
-                            _lastIndex = snapshots.data.documents.length-1;
+                            _lastIndex = snapshots.data.documents.length - 1;
                             WidgetsBinding.instance
                                 .addPostFrameCallback((_) => ScrollToEnd());
                           }
                           return ScrollablePositionedList.builder(
-                              initialScrollIndex: snapshots.data.documents.length-_unreadCount,
+                              initialScrollIndex:
+                                  snapshots.data.documents.length -
+                                      _unreadCount,
                               itemScrollController: itemScrollController,
                               itemPositionsListener: itemPositionsListener,
                               itemCount: snapshots.data.documents.length,
@@ -390,7 +426,7 @@ class _chatRoomViewState extends State<chatRoomView>
                                       context, snapshots.data.documents[index]);
                                 }
                               });
-                        }else{
+                        } else {
                           return LinearProgressIndicator();
                         }
                       }),
@@ -410,6 +446,12 @@ class _chatRoomViewState extends State<chatRoomView>
                       fillColor: Theme.of(context).backgroundColor,
                       border: OutlineInputBorder(),
                       hintText: 'Send a message',
+                      hintStyle: TextStyle(
+                          color: Theme.of(context)
+                              .textTheme
+                              .bodyText1
+                              .color
+                              .withOpacity(0.30)),
                       suffixIcon: _messageController.text.isNotEmpty
                           ? IconButton(
                               icon: Icon(
@@ -424,11 +466,9 @@ class _chatRoomViewState extends State<chatRoomView>
                             )
                           : IconButton(
                               icon: Icon(Icons.camera_alt),
-                              onPressed: (){
+                              onPressed: () {
                                 _showChoiceDialog(context);
-                              }
-                            )
-                  ),
+                              })),
                 ),
               ),
             ),
@@ -443,8 +483,8 @@ class _chatRoomViewState extends State<chatRoomView>
       List<String> _particitants = new List<String>();
       _particitants.add(globals.dbUser.getUID());
       _particitants.add(receiverID);
-      DocumentReference docRef = await chatroomRef.add({
-        'isAnonymous': tokens[2]=='anonymous',
+      await chatroomRef.add({
+        'isAnonymous': tokens[2] == 'anonymous',
         'lastDate': _now,
         'participants': _particitants,
         'onlineUser': [globals.dbUser.getUID()],
@@ -453,28 +493,29 @@ class _chatRoomViewState extends State<chatRoomView>
           receiverID: 1,
           globals.dbUser.getUID(): 0,
         }
-      });
-      CollectionReference msgsRef = docRef.collection('messages');
-      if(isImage){
-        await msgsRef.add({
-          'type' : 'image',
-          'content': content,
-          'date': _now,
-          'sender': globals.dbUser.getUID(),
-          'isRead': false,
-        });
-      }else{
-        await msgsRef.add({
-          'type' : 'text',
-          'content': content,
-          'date': _now,
-          'sender': globals.dbUser.getUID(),
-          'isRead': false,
-        });
-      }
-      await setStream(chatRoomID);
-      setState((){
+      }).then((docRef) async {
+        CollectionReference msgsRef = docRef.collection('messages');
+        if (isImage) {
+          await msgsRef.add({
+            'type': 'image',
+            'content': content,
+            'date': _now,
+            'sender': globals.dbUser.getUID(),
+            'isRead': false,
+          });
+        } else {
+          await msgsRef.add({
+            'type': 'text',
+            'content': content,
+            'date': _now,
+            'sender': globals.dbUser.getUID(),
+            'isRead': false,
+          });
+        }
         chatRoomID = docRef.documentID;
+      }).then((value) async {
+        await setStream(chatRoomID);
+        setState(() {});
       });
     } else {
       DocumentReference chatroomRef =
@@ -482,17 +523,17 @@ class _chatRoomViewState extends State<chatRoomView>
       DocumentSnapshot docSnapshot = await chatroomRef.get();
       CollectionReference msgsRef = chatroomRef.collection('messages');
       bool isRead = docSnapshot['onlineUser'].length > 1;
-      if(isImage){
+      if (isImage) {
         await msgsRef.add({
-          'type' : 'image',
+          'type': 'image',
           'content': content,
           'date': _now,
           'sender': globals.dbUser.getUID(),
           'isRead': isRead,
         });
-      }else{
+      } else {
         await msgsRef.add({
-          'type' : 'text',
+          'type': 'text',
           'content': content,
           'date': _now,
           'sender': globals.dbUser.getUID(),
@@ -517,9 +558,10 @@ class _chatRoomViewState extends State<chatRoomView>
         }
       });
     }
-    db.collection('user').document(receiverID).updateData({
-      "unreadCount":FieldValue.increment(1)
-    });
+    db
+        .collection('user')
+        .document(receiverID)
+        .updateData({"unreadCount": FieldValue.increment(1)});
     //_focusNode.unfocus();
     _messageController.clear();
   }
@@ -545,63 +587,79 @@ class _chatRoomViewState extends State<chatRoomView>
                   children: [
                     Text(
                       date,
-                      style: TextStyle(fontSize: 12, color: Theme.of(context).accentTextTheme.bodyText1.color),
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context)
+                              .accentTextTheme
+                              .bodyText1
+                              .color),
                     ),
-                    messagebody(document["type"],document["content"], isSender, context)
+                    messagebody(document["type"], document["content"], isSender,
+                        context)
                   ],
                 )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    messagebody(document['type'],document["content"], isSender, context),
+                    messagebody(document['type'], document["content"], isSender,
+                        context),
                     Text(
                       date,
-                      style: TextStyle(fontSize: 12, color:Theme.of(context).accentTextTheme.bodyText1.color),
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context)
+                              .accentTextTheme
+                              .bodyText1
+                              .color),
                     ),
                   ],
                 )),
     );
   }
 
-  Widget messagebody(String type, String content, bool isSender, BuildContext context) {
+  Widget messagebody(
+      String type, String content, bool isSender, BuildContext context) {
     return Flexible(
       child: type == 'image'
-        ? Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            width: MediaQuery.of(context).size.width*0.7,
-            height: MediaQuery.of(context).size.width*0.8,
-            child: FullScreenWidget(
-              child: Hero(
-                tag: content,
-                child: CachedNetworkImage(
-                  placeholder: (context, url)=>Container(
-                      child: Center(child: SizedBox(width: 20,height: 20, child: CircularProgressIndicator(),),),
-                      color: Theme.of(context).backgroundColor,
+          ? Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.7,
+                height: MediaQuery.of(context).size.width * 0.8,
+                child: FullScreenWidget(
+                    child: Hero(
+                        tag: content,
+                        child: CachedNetworkImage(
+                            placeholder: (context, url) => Container(
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
+                                  color: Theme.of(context).backgroundColor,
+                                ),
+                            imageUrl: content,
+                            fit: BoxFit.cover))),
+              ))
+          : Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.7),
+                  child: Text(
+                    content,
+                    style: TextStyle(fontSize: 20),
                   ),
-                  imageUrl: content,
-                  fit: BoxFit.cover
-                )
-              )
+                ),
+              ),
+              color: isSender
+                  ? Theme.of(context).cardColor
+                  : Theme.of(context).textSelectionColor,
             ),
-          )
-        )
-        : Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width*0.7
-            ),
-            child: Text(
-              content,
-              style: TextStyle(fontSize: 20),
-            ),
-          ),
-        ),
-        color: isSender ? Theme.of(context).cardColor : Theme.of(context).textSelectionColor,
-      ),
     );
   }
 }

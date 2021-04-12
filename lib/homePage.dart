@@ -29,7 +29,8 @@ class homePageState extends State<homePage> {
     "promo",
   ];
   List<DocumentSnapshot> hotPostList = List<DocumentSnapshot>();
-  HashMap<String, List<DocumentSnapshot>> recentPostLists = HashMap<String, List<DocumentSnapshot>>();
+  HashMap<String, List<DocumentSnapshot>> recentPostLists =
+      HashMap<String, List<DocumentSnapshot>>();
   bool hotLoaded;
   bool recentLoaded;
 
@@ -40,8 +41,8 @@ class homePageState extends State<homePage> {
     super.initState();
     getHotPosts();
     getRecentPosts();
-
   }
+
   void dispose() {
     super.dispose();
   }
@@ -51,7 +52,7 @@ class homePageState extends State<homePage> {
         .collection('board')
         .where("region", isEqualTo: globals.dbUser.getSelectedRegion())
         .where('date',
-        isGreaterThan: DateTime.now().subtract(Duration(days: 7)))
+            isGreaterThan: DateTime.now().subtract(Duration(days: 7)))
         .orderBy("date")
         .getDocuments()
         .then((value) {
@@ -65,6 +66,7 @@ class homePageState extends State<homePage> {
       });
     });
   }
+
   void getRecentPosts() async {
     await boardTypes.forEach((element) async {
       await db
@@ -74,18 +76,19 @@ class homePageState extends State<homePage> {
           .orderBy("date", descending: true)
           .limit(3)
           .getDocuments()
-          .then((value){
+          .then((value) {
         recentPostLists.addAll({
-          element : value.documents,
+          element: value.documents,
         });
       });
-      if(boardTypes.last == element){
+      if (boardTypes.last == element) {
         setState(() {
           recentLoaded = true;
         });
       }
     });
   }
+
   Future refreshHomePage() async {
     await getHotPosts();
     await getRecentPosts();
@@ -94,11 +97,11 @@ class homePageState extends State<homePage> {
 
   @override
   Widget build(BuildContext context) {
-    if(hotLoaded && recentLoaded){
+    if (hotLoaded && recentLoaded) {
       return RefreshIndicator(
         onRefresh: refreshHomePage,
         child: ListView(
-            padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
             children: <Widget>[
               SizedBox(
                 height: 10,
@@ -132,10 +135,11 @@ class homePageState extends State<homePage> {
               _recentPost(context),
             ]),
       );
-    }else{
+    } else {
       return globals.getLoadingAnimation(context);
     }
   }
+
   Widget _buildHotPostList(
       BuildContext context, List<DocumentSnapshot> snapshots) {
     return Container(
@@ -154,13 +158,14 @@ class homePageState extends State<homePage> {
       ),
     );
   }
+
   Widget _buildHotPostListItem(
-    BuildContext context, DocumentSnapshot document) {
+      BuildContext context, DocumentSnapshot document) {
     String title = document["title"];
     String writer = document["writerNick"];
     Timestamp tt = document["date"];
     DateTime dateTime =
-    DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+        DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
     int like = document["like"];
     int comments = document['comments'];
@@ -186,7 +191,12 @@ class homePageState extends State<homePage> {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PostView(postDocID: document.documentID, boardName: boardName, boardType: document["boardType"], writerUID: document['writer'],),
+            builder: (context) => PostView(
+              postDocID: document.documentID,
+              boardName: boardName,
+              boardType: document["boardType"],
+              writerUID: document['writer'],
+            ),
           ),
         ),
         child: Container(
@@ -207,7 +217,12 @@ class homePageState extends State<homePage> {
                       ],
                     ),
                   ),
-                  Text('$date', style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color))
+                  Text('$date',
+                      style: TextStyle(
+                          color: Theme.of(context)
+                              .accentTextTheme
+                              .bodyText1
+                              .color))
                 ],
               ),
               Padding(padding: EdgeInsets.only(top: 3.0)),
@@ -228,7 +243,9 @@ class homePageState extends State<homePage> {
                   maxLines: 2,
                 ),
               ),
-              Padding(padding: EdgeInsets.only(bottom: 4),),
+              Padding(
+                padding: EdgeInsets.only(bottom: 4),
+              ),
               Container(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -237,9 +254,9 @@ class homePageState extends State<homePage> {
                     Text(
                       '$boardName',
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).accentColor.withOpacity(0.65)
-                      ),
+                          fontSize: 12,
+                          color:
+                              Theme.of(context).accentColor.withOpacity(0.65)),
                     ),
                     Container(
                       alignment: Alignment.bottomRight,
@@ -248,24 +265,39 @@ class homePageState extends State<homePage> {
                           Icon(
                             Icons.thumb_up_alt_outlined,
                             size: 15,
-                            color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
+                            color: Theme.of(context)
+                                .accentTextTheme
+                                .bodyText1
+                                .color
+                                .withOpacity(0.65),
                           ),
                           Padding(padding: EdgeInsets.only(right: 2.0)),
                           Text(
                             '$like',
-                            style:
-                            TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
+                            style: TextStyle(
+                                color: Theme.of(context)
+                                    .accentTextTheme
+                                    .bodyText1
+                                    .color
+                                    .withOpacity(0.65)),
                           ),
                           Padding(padding: EdgeInsets.only(right: 10.0)),
-                          Icon(
-                              Icons.comment_bank_outlined,
+                          Icon(Icons.comment_bank_outlined,
                               size: 15.0,
-                              color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)
-                          ),
+                              color: Theme.of(context)
+                                  .accentTextTheme
+                                  .bodyText1
+                                  .color
+                                  .withOpacity(0.65)),
                           Padding(padding: EdgeInsets.only(right: 2.0)),
                           Text(
                             '$comments',
-                            style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
+                            style: TextStyle(
+                                color: Theme.of(context)
+                                    .accentTextTheme
+                                    .bodyText1
+                                    .color
+                                    .withOpacity(0.65)),
                           ),
                         ],
                       ),
@@ -279,6 +311,7 @@ class homePageState extends State<homePage> {
       ),
     );
   }
+
   Widget _recentPost(BuildContext context) {
     return Column(
       children: List.generate(recentPostLists.length, (index) {
@@ -311,6 +344,7 @@ class homePageState extends State<homePage> {
       }),
     );
   }
+
   Widget _buildRecentPostList(BuildContext context,
       List<DocumentSnapshot> snapshots, String boardName) {
     return Container(
@@ -336,19 +370,21 @@ class homePageState extends State<homePage> {
         Container(
           child: Column(
             children: snapshots
-                .map((data) => _buildRecentPostListItem(context, data, boardName))
+                .map((data) =>
+                    _buildRecentPostListItem(context, data, boardName))
                 .toList(),
           ),
         ),
       ]),
     );
   }
+
   Widget _buildRecentPostListItem(
       BuildContext context, DocumentSnapshot document, String boardName) {
     String title = document["title"];
     Timestamp tt = document["date"];
     DateTime dateTime =
-    DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+        DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = "";
     if (DateTime.now().difference(dateTime) <= new Duration(hours: 24)) {
       date = DateFormat.Hm().format(dateTime);
@@ -361,7 +397,12 @@ class homePageState extends State<homePage> {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PostView(postDocID: document.documentID, boardName: boardName, boardType: document["boardType"], writerUID: document['writer'],),
+          builder: (context) => PostView(
+            postDocID: document.documentID,
+            boardName: boardName,
+            boardType: document["boardType"],
+            writerUID: document['writer'],
+          ),
         ),
       ),
       child: Container(
@@ -376,12 +417,21 @@ class homePageState extends State<homePage> {
                 maxLines: 1,
               ),
             ),
-            Padding(padding: EdgeInsets.only(bottom: 10.0),),
+            Padding(
+              padding: EdgeInsets.only(bottom: 10.0),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text(date.toString(),
-                  style: TextStyle(color:Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),),
+                Text(
+                  date.toString(),
+                  style: TextStyle(
+                      color: Theme.of(context)
+                          .accentTextTheme
+                          .bodyText1
+                          .color
+                          .withOpacity(0.65)),
+                ),
                 Container(
                   alignment: Alignment.bottomRight,
                   child: Row(
@@ -389,24 +439,39 @@ class homePageState extends State<homePage> {
                       Icon(
                         Icons.thumb_up_alt_outlined,
                         size: 15,
-                        color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
+                        color: Theme.of(context)
+                            .accentTextTheme
+                            .bodyText1
+                            .color
+                            .withOpacity(0.65),
                       ),
                       Padding(padding: EdgeInsets.only(right: 2.0)),
                       Text(
                         '$like',
-                        style:
-                        TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
+                        style: TextStyle(
+                            color: Theme.of(context)
+                                .accentTextTheme
+                                .bodyText1
+                                .color
+                                .withOpacity(0.65)),
                       ),
                       Padding(padding: EdgeInsets.only(right: 10.0)),
-                      Icon(
-                          Icons.comment_bank_outlined,
+                      Icon(Icons.comment_bank_outlined,
                           size: 15.0,
-                          color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)
-                      ),
+                          color: Theme.of(context)
+                              .accentTextTheme
+                              .bodyText1
+                              .color
+                              .withOpacity(0.65)),
                       Padding(padding: EdgeInsets.only(right: 2.0)),
                       Text(
                         '$comments',
-                        style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
+                        style: TextStyle(
+                            color: Theme.of(context)
+                                .accentTextTheme
+                                .bodyText1
+                                .color
+                                .withOpacity(0.65)),
                       ),
                     ],
                   ),

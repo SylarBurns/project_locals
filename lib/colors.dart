@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 appThemeData theme_1;
 appThemeData theme_2;
 appThemeData theme_3;
@@ -6,16 +7,17 @@ appThemeData theme_4;
 appThemeData theme_5;
 appThemeData theme_6;
 appThemeData theme_7;
-List<appThemeData> themeDataList =[
-  theme_1=themeData_1(),
-  theme_2=themeData_2(),
-  theme_3=themeData_3(),
-  theme_4=themeData_4(),
-  theme_5=themeData_5(),
-  theme_6=themeData_6(),
-  theme_7=themeData_7(),
+List<appThemeData> themeDataList = [
+  theme_1 = themeData_1(),
+  theme_2 = themeData_2(),
+  theme_3 = themeData_3(),
+  theme_4 = themeData_4(),
+  theme_5 = themeData_5(),
+  theme_6 = themeData_6(),
+  theme_7 = themeData_7(),
 ];
-class appThemeData{
+
+class appThemeData {
   bool islight;
   Color accent;
   Color primary;
@@ -25,7 +27,8 @@ class appThemeData{
   Color backgroundSecondary;
   Color error;
 }
-class themeData_1 extends appThemeData{
+
+class themeData_1 extends appThemeData {
   bool islight = true;
   Color accent = Color(0xFF003049);
   Color primary = Color(0xFFD62828);
@@ -35,7 +38,8 @@ class themeData_1 extends appThemeData{
   Color backgroundSecondary = Color(0xFFFFFFFF);
   Color error = Color(0xFFC5032B);
 }
-class themeData_2 extends appThemeData{
+
+class themeData_2 extends appThemeData {
   bool islight = false;
   Color accent = Color(0xFF6FFFE9);
   Color primary = Color(0xFF5BC0BE);
@@ -46,7 +50,7 @@ class themeData_2 extends appThemeData{
   Color error = Color(0xFFC5032B);
 }
 
-class themeData_3 extends appThemeData{
+class themeData_3 extends appThemeData {
   bool islight = true;
   Color accent = Color(0xFF331832);
   Color primary = Color(0xFFD81E5B);
@@ -56,7 +60,8 @@ class themeData_3 extends appThemeData{
   Color backgroundSecondary = Color(0xFFFDF0D5);
   Color error = Color(0xFFC5032B);
 }
-class themeData_4 extends appThemeData{
+
+class themeData_4 extends appThemeData {
   bool islight = false;
   Color accent = Color(0xFFD8B4E2);
   Color primary = Color(0xFFAE759F);
@@ -66,7 +71,8 @@ class themeData_4 extends appThemeData{
   Color backgroundSecondary = Color(0xFF212F45);
   Color error = Color(0xFFC5032B);
 }
-class themeData_5 extends appThemeData{
+
+class themeData_5 extends appThemeData {
   bool islight = true;
   Color accent = Color(0xFF210B2C);
   Color primary = Color(0xFF55286F);
@@ -76,7 +82,8 @@ class themeData_5 extends appThemeData{
   Color backgroundSecondary = Color(0xFFD8B4E2);
   Color error = Color(0xFFC5032B);
 }
-class themeData_6 extends appThemeData{
+
+class themeData_6 extends appThemeData {
   bool islight = true;
   Color accent = Color(0xFF0B3142);
   Color primary = Color(0xFF0F5257);
@@ -86,7 +93,8 @@ class themeData_6 extends appThemeData{
   Color backgroundSecondary = Color(0xff9ac69b);
   Color error = Color(0xFFC5032B);
 }
-class themeData_7 extends appThemeData{
+
+class themeData_7 extends appThemeData {
   bool islight = true;
   Color accent = Color(0xFF054A91);
   Color primary = Color(0xFF3E7CB1);

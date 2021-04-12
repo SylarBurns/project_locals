@@ -3,7 +3,8 @@ import 'package:project_locals/routes.dart';
 import 'package:project_locals/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
-void main() => runApp(Phoenix(child:MyApp()));
+
+void main() => runApp(Phoenix(child: MyApp()));
 
 class MyApp extends StatefulWidget {
   @override
@@ -17,13 +18,16 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _loadTheme();
   }
+
   _loadTheme() async {
-    await SharedPreferences.getInstance().then((preference){
+    await SharedPreferences.getInstance().then((preference) {
       setState(() {
-        appTheme = _buildTheme(themeDataList.elementAt(preference.getInt('ThemeIndex') ?? 0));
+        appTheme = _buildTheme(
+            themeDataList.elementAt(preference.getInt('ThemeIndex') ?? 0));
       });
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -33,18 +37,18 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-ThemeData _buildTheme(appThemeData data){
+
+ThemeData _buildTheme(appThemeData data) {
   ThemeData base;
-  if(data.islight){
+  if (data.islight) {
     base = ThemeData.light();
-  }else{
+  } else {
     base = ThemeData.dark();
   }
   base.textTheme.apply(fontFamily: 'NotoSansKR');
   base.primaryTextTheme.apply(fontFamily: 'NotoSansKR');
   base.accentTextTheme.apply(fontFamily: 'NotoSansKR');
   return base.copyWith(
-
     accentColor: data.accent,
     primaryColor: data.primary,
     backgroundColor: data.background,
@@ -76,7 +80,7 @@ ThemeData _buildTheme(appThemeData data){
       ),
     ),
     buttonBarTheme: base.buttonBarTheme.copyWith(
-      buttonTextTheme:ButtonTextTheme.accent,
+      buttonTextTheme: ButtonTextTheme.accent,
     ),
     bottomNavigationBarTheme: base.bottomNavigationBarTheme.copyWith(
       backgroundColor: data.backgroundSecondary,
@@ -86,21 +90,17 @@ ThemeData _buildTheme(appThemeData data){
     appBarTheme: base.appBarTheme.copyWith(
         color: data.backgroundSecondary,
         textTheme: TextTheme(
-          headline6: TextStyle(
-              color: data.accent,
-              fontSize: 20
-          ),
+          headline6: TextStyle(color: data.accent, fontSize: 20),
         ),
         iconTheme: IconThemeData(color: data.accent),
         actionsIconTheme: IconThemeData(color: data.accent),
-        elevation: 5
-    ),
+        elevation: 5),
     floatingActionButtonTheme: base.floatingActionButtonTheme.copyWith(
       backgroundColor: data.primary,
     ),
     scaffoldBackgroundColor: data.background,
     cardColor: data.backgroundSecondary,
-    textSelectionColor:data.tertiary,
-    errorColor:data.error,
+    textSelectionColor: data.tertiary,
+    errorColor: data.error,
   );
 }

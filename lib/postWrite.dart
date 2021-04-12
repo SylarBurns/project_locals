@@ -11,7 +11,10 @@ import 'globals.dart' as globals;
 class PostWrite extends StatefulWidget {
   final String boardType;
 
-  PostWrite({Key key, @required this.boardType,});
+  PostWrite({
+    Key key,
+    @required this.boardType,
+  });
 
   @override
   _PostWriteState createState() => _PostWriteState();
@@ -66,20 +69,19 @@ class _PostWriteState extends State<PostWrite> {
                 'title': titleController.text,
                 'writer': globals.dbUser.getUID(),
               };
-              if(_imageFile != null) {
+              if (_imageFile != null) {
                 data['image'] = basename(_imageFile.path);
               }
 
-              if(widget.boardType == 'anonymous') {
+              if (widget.boardType == 'anonymous') {
                 String uid = globals.dbUser.getUID();
                 data['writerNick'] = 'Anonymous';
                 data['anonymousList'] = {'$uid': 'Anonymous(writer)'};
-              }
-              else {
+              } else {
                 data['writerNick'] = globals.dbUser.getNickName();
               }
               await Firestore.instance.collection('board').add(data);
-              if(_imageFile != null) await uploadImageToFirebase(context);
+              if (_imageFile != null) await uploadImageToFirebase(context);
               Navigator.pop(context);
             },
           ),
@@ -95,24 +97,30 @@ class _PostWriteState extends State<PostWrite> {
                   controller: titleController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Title',
+                    labelText: '제목',
                   ),
                 ),
-                SizedBox(height: 8.0,),
+                SizedBox(
+                  height: 8.0,
+                ),
                 TextField(
                   controller: contentController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Content',
+                    labelText: '글',
                   ),
                   maxLines: null,
                 ),
-                SizedBox(height: 30.0,),
+                SizedBox(
+                  height: 30.0,
+                ),
                 _showImage(context),
-                SizedBox(height: 10,),
+                SizedBox(
+                  height: 10,
+                ),
                 Center(
                   child: RaisedButton(
-                    child: Text("Select Image from Gallery"),
+                    child: Text("이미지 선택하기"),
                     onPressed: () {
                       pickImageFromGallery(ImageSource.gallery);
                     },
@@ -138,7 +146,7 @@ class _PostWriteState extends State<PostWrite> {
             child: Image.file(
               _imageFile,
               // width: 300,
-              height: MediaQuery.of(context).size.height/4,
+              height: MediaQuery.of(context).size.height / 4,
             ),
           );
         } else if (snapshot.error != null) {
@@ -158,11 +166,10 @@ class _PostWriteState extends State<PostWrite> {
 
   Future uploadImageToFirebase(BuildContext context) async {
     String fileName = basename(_imageFile.path);
-    StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child('post/$fileName');
+    StorageReference firebaseStorageRef =
+        FirebaseStorage.instance.ref().child('post/$fileName');
     StorageUploadTask uploadTask = firebaseStorageRef.putFile(_imageFile);
     StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-    taskSnapshot.ref.getDownloadURL().then(
-          (value){}
-    );
+    taskSnapshot.ref.getDownloadURL().then((value) {});
   }
 }

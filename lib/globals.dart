@@ -3,9 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:project_locals/colors.dart';
 import 'package:loading_animations/loading_animations.dart';
+
 UserInfo dbUser;
 
-class UserInfo{
+class UserInfo {
   FirebaseUser _user;
   DocumentReference userOnDB;
   String _nickName = "Loading..";
@@ -15,8 +16,9 @@ class UserInfo{
     _user = newUser;
   }
   Future getUserFromDB() async {
-    print("User ID: "+_user.uid);
-    DocumentSnapshot dbUser = await Firestore.instance.collection('user').document(_user.uid).get();
+    print("User ID: " + _user.uid);
+    DocumentSnapshot dbUser =
+        await Firestore.instance.collection('user').document(_user.uid).get();
     userOnDB = Firestore.instance.collection('user').document(_user.uid);
     print(dbUser.data["region"]);
     _nickName = await dbUser.data["nickName"];
@@ -49,11 +51,10 @@ class UserInfo{
   }
 }
 
-Widget getLoadingAnimation(BuildContext context){
+Widget getLoadingAnimation(BuildContext context) {
   return Center(
       child: LoadingBouncingGrid.square(
-        inverted: true,
-        backgroundColor: Theme.of(context).primaryColor,
-      ));
+    inverted: true,
+    backgroundColor: Theme.of(context).primaryColor,
+  ));
 }
-

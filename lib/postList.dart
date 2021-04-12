@@ -12,10 +12,16 @@ class PostList extends StatefulWidget {
   final String boardName;
   final String boardType;
 
-  PostList({Key key, @required this.boardName, @required this.boardType,});
+  PostList({
+    Key key,
+    @required this.boardName,
+    @required this.boardType,
+  });
 
   @override
-  _PostListState createState() => _PostListState(key: this.key,);
+  _PostListState createState() => _PostListState(
+        key: this.key,
+      );
 }
 
 class _PostListState extends State<PostList> {
@@ -23,7 +29,9 @@ class _PostListState extends State<PostList> {
 
   QuerySnapshot postQuery;
 
-  _PostListState({Key key,});
+  _PostListState({
+    Key key,
+  });
 
   FutureOr refresh(dynamic value) {
     loadData();
@@ -39,7 +47,8 @@ class _PostListState extends State<PostList> {
         .where('region', isEqualTo: globals.dbUser.getSelectedRegion())
         .where("boardType", isEqualTo: widget.boardType)
         .orderBy('date', descending: true)
-        .getDocuments().then((value) {
+        .getDocuments()
+        .then((value) {
       postQuery = value;
     });
 
@@ -55,7 +64,6 @@ class _PostListState extends State<PostList> {
 
   @override
   void dispose() {
-
     super.dispose();
   }
 
@@ -69,46 +77,54 @@ class _PostListState extends State<PostList> {
 
     return Scaffold(
       appBar: appBar,
-      body: (_isDataLoaded) ? RefreshIndicator(
-        onRefresh: refreshPost,
-        child: ListView.separated(
-            itemCount: postQuery.documents.length,
-            separatorBuilder: (context, index) => Divider(),
-            itemBuilder: (context, index) {
-              DocumentSnapshot post = postQuery.documents[index];
-              int report = post['report'];
+      body: (_isDataLoaded)
+          ? RefreshIndicator(
+              onRefresh: refreshPost,
+              child: Container(
+                padding: EdgeInsets.only(top: 15),
+                child: ListView.separated(
+                    itemCount: postQuery.documents.length,
+                    separatorBuilder: (context, index) => Divider(),
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot post = postQuery.documents[index];
+                      int report = post['report'];
 
-              if(report >= 10) {
-                return _buildBlindPost(context, post);
-              }
-              else {
-                return _buildPostTile(context, post);
-              }
-            }
-        ),
-      ) : globals.getLoadingAnimation(context),
-      floatingActionButton: globals.dbUser.getAuthority() ? FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => PostWrite(boardType: widget.boardType,)),
-          ).then(refresh);
-        },
-        child: Icon(Icons.add),
-      ): null,
+                      if (report >= 10) {
+                        return _buildBlindPost(context, post);
+                      } else {
+                        return _buildPostTile(context, post);
+                      }
+                    }),
+              ),
+            )
+          : globals.getLoadingAnimation(context),
+      floatingActionButton: globals.dbUser.getAuthority()
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => PostWrite(
+                            boardType: widget.boardType,
+                          )),
+                ).then(refresh);
+              },
+              child: Icon(Icons.add),
+            )
+          : null,
     );
   }
 
   String _getDate(DocumentSnapshot post) {
     Timestamp tt = post['date'];
 
-    DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+    DateTime dateTime =
+        DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     DateTime curTime = DateTime.now();
 
-    if(dateTime.difference(curTime).inDays == 0) {
+    if (dateTime.difference(curTime).inDays == 0) {
       return DateFormat.Hm().format(dateTime);
-    }
-    else {
+    } else {
       return DateFormat('MM/dd').format(dateTime);
     }
   }
@@ -143,44 +159,66 @@ class _PostListState extends State<PostList> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(height: 2.0,),
+            SizedBox(
+              height: 2.0,
+            ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '$date | ',
                   style: TextStyle(
-                    color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)
-                  ),
+                      color: Theme.of(context)
+                          .accentTextTheme
+                          .bodyText1
+                          .color
+                          .withOpacity(0.65)),
                 ),
                 Padding(padding: EdgeInsets.only(right: 2.0)),
                 Text(
                   isEdit ? '$writer | (edited)' : '$writer',
                   style: TextStyle(
-                    color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)
-                  ),
+                      color: Theme.of(context)
+                          .accentTextTheme
+                          .bodyText1
+                          .color
+                          .withOpacity(0.65)),
                 ),
                 Spacer(),
-                Icon(
-                  Icons.thumb_up_alt_outlined,
-                  size: 15.0,
-                    color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)
-                ),
+                Icon(Icons.thumb_up_alt_outlined,
+                    size: 15.0,
+                    color: Theme.of(context)
+                        .accentTextTheme
+                        .bodyText1
+                        .color
+                        .withOpacity(0.65)),
                 Padding(padding: EdgeInsets.only(right: 2.0)),
                 Text(
                   '$like',
-                  style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
+                  style: TextStyle(
+                      color: Theme.of(context)
+                          .accentTextTheme
+                          .bodyText1
+                          .color
+                          .withOpacity(0.65)),
                 ),
                 Padding(padding: EdgeInsets.only(right: 10.0)),
-                Icon(
-                  Icons.comment_bank_outlined,
-                  size: 15.0,
-                    color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)
-                ),
+                Icon(Icons.comment_bank_outlined,
+                    size: 15.0,
+                    color: Theme.of(context)
+                        .accentTextTheme
+                        .bodyText1
+                        .color
+                        .withOpacity(0.65)),
                 Padding(padding: EdgeInsets.only(right: 2.0)),
                 Text(
-                    '$comments',
-                  style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65)),
+                  '$comments',
+                  style: TextStyle(
+                      color: Theme.of(context)
+                          .accentTextTheme
+                          .bodyText1
+                          .color
+                          .withOpacity(0.65)),
                 ),
               ],
             ),
@@ -233,14 +271,20 @@ class _PostListState extends State<PostList> {
                 color: Colors.black54,
               ),
             ),
-            SizedBox(height: 2.0,),
+            SizedBox(
+              height: 2.0,
+            ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '$date | ',
                   style: TextStyle(
-                    color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
+                    color: Theme.of(context)
+                        .accentTextTheme
+                        .bodyText1
+                        .color
+                        .withOpacity(0.65),
                   ),
                 ),
                 Padding(padding: EdgeInsets.only(right: 2.0)),
@@ -265,9 +309,7 @@ class _PostListState extends State<PostList> {
                   size: 15.0,
                 ),
                 Padding(padding: EdgeInsets.only(right: 2.0)),
-                Text(
-                    '$comments'
-                ),
+                Text('$comments'),
               ],
             ),
           ],
@@ -278,9 +320,7 @@ class _PostListState extends State<PostList> {
             builder: (BuildContext context) {
               return AlertDialog(
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0)
-                ),
-
+                    borderRadius: BorderRadius.circular(8.0)),
                 content: Text('게시글을 열람하시겠습니까?'),
                 actions: [
                   FlatButton(
@@ -299,7 +339,7 @@ class _PostListState extends State<PostList> {
               );
             },
           );
-          if(result) {
+          if (result) {
             Navigator.push(
               context,
               MaterialPageRoute(

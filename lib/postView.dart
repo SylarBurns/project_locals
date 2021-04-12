@@ -48,7 +48,8 @@ class _PostViewState extends State<PostView> {
   CollectionReference commentListRef;
   QuerySnapshot commentListQuery;
 
-  Map<String, CollectionReference> nestedCommentRef = Map<String, CollectionReference>();
+  Map<String, CollectionReference> nestedCommentRef =
+      Map<String, CollectionReference>();
   Map<String, QuerySnapshot> nestedCommentQuery = Map<String, QuerySnapshot>();
 
   FutureOr _refresh(dynamic value) {
@@ -63,7 +64,7 @@ class _PostViewState extends State<PostView> {
     postDocRef = db.collection('board').document(widget.postDocID);
     postDocSnapshot = await postDocRef.get();
     String temp = postDocSnapshot['image'];
-    if(temp != null) {
+    if (temp != null) {
       storageRef = FirebaseStorage.instance.ref().child('post/$temp');
       imageURL = await storageRef.getDownloadURL();
     }
@@ -71,13 +72,13 @@ class _PostViewState extends State<PostView> {
     commentDocRef = db.collection('comments').document(widget.postDocID);
     commentListRef = commentDocRef.collection('commentList');
     await commentListRef.orderBy('date').getDocuments().then((value) async {
-       commentListQuery = value;
+      commentListQuery = value;
     });
 
     int len = commentListQuery.documents.length;
-    for(int i=0; i<len; ++i) {
+    for (int i = 0; i < len; ++i) {
       DocumentSnapshot comment = commentListQuery.documents[i];
-      if(comment['nestedComments'] != 0) {
+      if (comment['nestedComments'] != 0) {
         String docID = comment.documentID;
         CollectionReference ref = comment.reference.collection('nestedComment');
         await ref.orderBy('date').getDocuments().then((value) {
@@ -124,34 +125,36 @@ class _PostViewState extends State<PostView> {
         actions: [
           PopupMenuButton(
             itemBuilder: (BuildContext context) =>
-            widget.writerUID == globals.dbUser.getUID()
-                ? [
-              PopupMenuItem(
-                child: Text('수정하기'),
-                value: 'edit',
-              ),
-              PopupMenuItem(
-                child: Text('삭제하기'),
-                value: 'remove',
-              ),
-            ]
-                : [
-              PopupMenuItem(
-                child: Text('쪽지 보내기'),
-                value: 'message',
-              ),
-              PopupMenuItem(
-                child: Text('신고하기'),
-                value: 'report',
-              ),
-            ],
+                widget.writerUID == globals.dbUser.getUID()
+                    ? [
+                        PopupMenuItem(
+                          child: Text('수정하기'),
+                          value: 'edit',
+                        ),
+                        PopupMenuItem(
+                          child: Text('삭제하기'),
+                          value: 'remove',
+                        ),
+                      ]
+                    : [
+                        PopupMenuItem(
+                          child: Text('쪽지 보내기'),
+                          value: 'message',
+                        ),
+                        PopupMenuItem(
+                          child: Text('신고하기'),
+                          value: 'report',
+                        ),
+                      ],
             onSelected: (selectedMenu) async {
-              switch(selectedMenu) {
+              switch (selectedMenu) {
                 case 'edit':
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PostEdit(post: postDocSnapshot,),
+                      builder: (context) => PostEdit(
+                        post: postDocSnapshot,
+                      ),
                     ),
                   ).then(_refresh);
                   break;
@@ -162,96 +165,93 @@ class _PostViewState extends State<PostView> {
                   Navigator.pop(context);
                   break;
                 case 'message':
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context){
-                            String chatRoomID = "chatInit/${widget.writerUID}/${widget.boardType}";
-                            return chatRoomView(
-                              chatRoomID: chatRoomID,
-                              chatRoomName: "new message",
-                            );
-                          }
-                      )
-                  );
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    String chatRoomID =
+                        "chatInit/${widget.writerUID}/${widget.boardType}";
+                    return chatRoomView(
+                      chatRoomID: chatRoomID,
+                      chatRoomName: "new message",
+                    );
+                  }));
                   break;
                 case 'report':
                   List reportUserList = postDocSnapshot['reportUserList'];
 
-                  if(reportUserList.contains(globals.dbUser.getUID())) {
+                  if (reportUserList.contains(globals.dbUser.getUID())) {
                     _showDialog('이미 신고한 게시글입니다.');
-                  }
-                  else {
+                  } else {
                     await postDocRef.updateData({
                       'report': FieldValue.increment(1),
-                      'reportUserList': FieldValue.arrayUnion([globals.dbUser.getUID()]),
+                      'reportUserList':
+                          FieldValue.arrayUnion([globals.dbUser.getUID()]),
                     });
                     _showDialog('신고가 접수 되었습니다.');
                   }
                   break;
-                default :
+                default:
                   break;
               }
             },
           ),
         ],
       ),
-      body: Stack(
-        children : [
-          Padding(
+      body: Stack(children: [
+        Padding(
           padding: globals.dbUser.getAuthority()
               ? EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 9)
               : EdgeInsets.zero,
-          child: _isDataLoaded ? RefreshIndicator(
-            onRefresh: refreshPost,
-            child: ListView(
-              children: [
-                _buildPost(context, postDocSnapshot),
-                Column(
-                  children: commentListQuery.documents.map((comment) {
-                    return Column(
-                      children: [
-                        CommentTile(
-                          postDocID: widget.postDocID,
-                          comment: comment,
-                          postWriter: widget.writerUID,
-                          refresh: refresh,
-                          showDialog: _showDialog,
-                          loadData: loadData,
-                          boardType: widget.boardType,
-                        ),
-                        if(comment['nestedComments'] != 0)...[
-                          Column(
-                            children: nestedCommentQuery[comment.documentID].documents.map((nestedComment) {
-                              return  NestedCommentTile(
+          child: _isDataLoaded
+              ? RefreshIndicator(
+                  onRefresh: refreshPost,
+                  child: ListView(
+                    children: [
+                      _buildPost(context, postDocSnapshot),
+                      Column(
+                        children: commentListQuery.documents.map((comment) {
+                          return Column(
+                            children: [
+                              CommentTile(
                                 postDocID: widget.postDocID,
-                                nestedComment: nestedComment,
+                                comment: comment,
                                 postWriter: widget.writerUID,
-                                commentRef: comment.reference,
                                 refresh: refresh,
                                 showDialog: _showDialog,
                                 loadData: loadData,
                                 boardType: widget.boardType,
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ],
-                    );
-                  }).toList(),
+                              ),
+                              if (comment['nestedComments'] != 0) ...[
+                                Column(
+                                  children:
+                                      nestedCommentQuery[comment.documentID]
+                                          .documents
+                                          .map((nestedComment) {
+                                    return NestedCommentTile(
+                                      postDocID: widget.postDocID,
+                                      nestedComment: nestedComment,
+                                      postWriter: widget.writerUID,
+                                      commentRef: comment.reference,
+                                      refresh: refresh,
+                                      showDialog: _showDialog,
+                                      loadData: loadData,
+                                      boardType: widget.boardType,
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                )
+              : Center(
+                  child: globals.getLoadingAnimation(context),
                 ),
-              ],
-            ),
-          ) : Center(
-            child: globals.getLoadingAnimation(context),
-          ),
         ),
-          Align(
-              alignment: Alignment.bottomCenter,
-              child: _bottomTextField(context)
-          )
-        ]
-      ),
+        Align(
+            alignment: Alignment.bottomCenter, child: _bottomTextField(context))
+      ]),
     );
   }
 
@@ -267,14 +267,15 @@ class _PostViewState extends State<PostView> {
           filled: true,
           fillColor: Theme.of(context).backgroundColor,
           suffixIcon: IconButton(
-            icon: Icon(Icons.send_rounded,),
+            icon: Icon(
+              Icons.send_rounded,
+            ),
             onPressed: () async {
-              if(commentController.text.length > 0) {
+              if (commentController.text.length > 0) {
                 await _saveComment();
                 focusNode.unfocus();
                 commentController.clear();
-              }
-              else {
+              } else {
                 _showDialog('텍스트를 입력하세요.');
               }
               loadData();
@@ -298,15 +299,14 @@ class _PostViewState extends State<PostView> {
       'reportUserList': [],
     };
 
-    if(widget.boardType == 'anonymous') {
+    if (widget.boardType == 'anonymous') {
       writerNick = 'Anonymous';
       await db.runTransaction((transaction) async {
         final freshSnapshot = await transaction.get(postDocRef);
         final anonymousList = freshSnapshot.data['anonymousList'];
         if (anonymousList.containsKey(userUID)) {
           data['writerNick'] = anonymousList[userUID];
-        }
-        else {
+        } else {
           int num = anonymousList.length;
           data['writerNick'] = 'Anonymous' + num.toString();
           await transaction.update(postDocRef, {
@@ -316,14 +316,15 @@ class _PostViewState extends State<PostView> {
       });
     }
 
-    if(commentDocID == 'null') {
+    if (commentDocID == 'null') {
       data['isDelete'] = false;
       data['nestedComments'] = 0;
       await commentListRef.add(data);
 
-      if(userUID != widget.writerUID) {
+      if (userUID != widget.writerUID) {
         DocumentSnapshot snap = await postDocRef.get();
-        DocumentReference ref = db.collection('user').document(widget.writerUID);
+        DocumentReference ref =
+            db.collection('user').document(widget.writerUID);
         ref.updateData({
           'unreadNotification': FieldValue.increment(1),
           'unreadCount': FieldValue.increment(1),
@@ -340,15 +341,19 @@ class _PostViewState extends State<PostView> {
           'postDocID': widget.postDocID,
         });
       }
-    }
-    else {
-      await commentListRef.document(commentDocID).collection('nestedComment').add(data);
+    } else {
+      await commentListRef
+          .document(commentDocID)
+          .collection('nestedComment')
+          .add(data);
       await commentListRef.document(commentDocID).updateData({
         'nestedComments': FieldValue.increment(1),
       });
-      if(userUID != widget.writerUID) {
-        DocumentSnapshot snap = await commentListRef.document(commentDocID).get();
-        DocumentReference ref = db.collection('user').document(widget.writerUID);
+      if (userUID != widget.writerUID) {
+        DocumentSnapshot snap =
+            await commentListRef.document(commentDocID).get();
+        DocumentReference ref =
+            db.collection('user').document(widget.writerUID);
         ref.updateData({
           'unreadNotification': FieldValue.increment(1),
           'unreadCount': FieldValue.increment(1),
@@ -382,17 +387,13 @@ class _PostViewState extends State<PostView> {
         });
 
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0)
-          ),
-
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
           content: SizedBox(
             width: 50,
             height: 30,
             child: Center(
-              child: Text(
-                  '$message'
-              ),
+              child: Text('$message'),
             ),
           ),
         );
@@ -410,7 +411,8 @@ class _PostViewState extends State<PostView> {
     String boardType = post['boardType'];
     String image = post['image'];
 
-    DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+    DateTime dateTime =
+        DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     String date = DateFormat.Md().add_Hm().format(dateTime);
 
     return Container(
@@ -424,7 +426,9 @@ class _PostViewState extends State<PostView> {
               Icon(
                 Icons.person,
               ),
-              SizedBox(width: 4.0,),
+              SizedBox(
+                width: 4.0,
+              ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -436,11 +440,17 @@ class _PostViewState extends State<PostView> {
                       color: Colors.lightBlueAccent,
                     ),
                   ),
-                  SizedBox(height: 2.0,),
+                  SizedBox(
+                    height: 2.0,
+                  ),
                   Text(
                     '$date',
                     style: TextStyle(
-                      color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
+                      color: Theme.of(context)
+                          .accentTextTheme
+                          .bodyText1
+                          .color
+                          .withOpacity(0.65),
                     ),
                   ),
                 ],
@@ -454,24 +464,27 @@ class _PostViewState extends State<PostView> {
                       Icons.thumb_up_alt_outlined,
                       color: Theme.of(context).accentTextTheme.bodyText1.color,
                     ),
-                    SizedBox(width: 3.0,),
+                    SizedBox(
+                      width: 3.0,
+                    ),
                     Text(
                       'Like',
                       style: TextStyle(
-                        color: Theme.of(context).accentTextTheme.bodyText1.color,
+                        color:
+                            Theme.of(context).accentTextTheme.bodyText1.color,
                       ),
                     ),
                   ],
                 ),
                 onPressed: () async {
-                  DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());
+                  DocumentReference docRef =
+                      db.collection('user').document(globals.dbUser.getUID());
                   DocumentSnapshot doc = await docRef.get();
                   List tags = doc.data['postLikeList'];
 
-                  if(tags.contains(post.documentID)) {
+                  if (tags.contains(post.documentID)) {
                     _showDialog('이미 좋아요를 눌렀습니다.');
-                  }
-                  else {
+                  } else {
                     _showDialog('성공적으로 좋아요를 눌렀습니다.');
                     docRef.updateData({
                       'postLikeList': FieldValue.arrayUnion([post.documentID]),
@@ -480,16 +493,19 @@ class _PostViewState extends State<PostView> {
                       'like': FieldValue.increment(1),
                     });
 
-                    if(globals.dbUser.getUID() != widget.writerUID) {
-                      DocumentReference ref = db.collection('user').document(widget.writerUID);
+                    if (globals.dbUser.getUID() != widget.writerUID) {
+                      DocumentReference ref =
+                          db.collection('user').document(widget.writerUID);
                       ref.updateData({
                         'unreadNotification': FieldValue.increment(1),
                         'unreadCount': FieldValue.increment(1),
                       });
 
                       String writerNick;
-                      if(widget.boardType == 'anonymous') writerNick = 'Anonymous';
-                      else writerNick = globals.dbUser.getNickName();
+                      if (widget.boardType == 'anonymous')
+                        writerNick = 'Anonymous';
+                      else
+                        writerNick = globals.dbUser.getNickName();
 
                       ref.collection('notification').add({
                         'type': 'like',
@@ -507,7 +523,9 @@ class _PostViewState extends State<PostView> {
               ),
             ],
           ),
-          SizedBox(height: 5.0,),
+          SizedBox(
+            height: 5.0,
+          ),
           Text(
             '$title',
             style: TextStyle(
@@ -515,10 +533,12 @@ class _PostViewState extends State<PostView> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 5.0,),
-          if(image != null)...[
+          SizedBox(
+            height: 5.0,
+          ),
+          if (image != null) ...[
             Container(
-              height: MediaQuery.of(context).size.height/4,
+              height: MediaQuery.of(context).size.height / 4,
               padding: EdgeInsets.fromLTRB(5, 3, 5, 3),
               alignment: Alignment.center,
               // decoration: BoxDecoration(
@@ -529,21 +549,30 @@ class _PostViewState extends State<PostView> {
                 child: Hero(
                   tag: imageURL,
                   child: CachedNetworkImage(
-                        placeholder: (context, url)=>Container(
-                          child: Center(child: SizedBox(width: 20,height: 20, child: CircularProgressIndicator(),),),
-                          color: Theme.of(context).backgroundColor,
-                        ),
-                        imageUrl: imageURL
-                    ),
+                      placeholder: (context, url) => Container(
+                            child: Center(
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                            color: Theme.of(context).backgroundColor,
+                          ),
+                      imageUrl: imageURL),
                 ),
               ),
             ),
-            SizedBox(height: 5.0,)
+            SizedBox(
+              height: 5.0,
+            )
           ],
           Text(
             '$content',
           ),
-          SizedBox(height: 8.0,),
+          SizedBox(
+            height: 8.0,
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -555,7 +584,13 @@ class _PostViewState extends State<PostView> {
               Padding(padding: EdgeInsets.only(right: 2.0)),
               Text(
                 '$like',
-                style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),),
+                style: TextStyle(
+                  color: Theme.of(context)
+                      .accentTextTheme
+                      .bodyText1
+                      .color
+                      .withOpacity(0.65),
+                ),
               ),
               Padding(padding: EdgeInsets.only(right: 10.0)),
               Icon(
@@ -565,8 +600,14 @@ class _PostViewState extends State<PostView> {
               ),
               Padding(padding: EdgeInsets.only(right: 2.0)),
               Text(
-                  '$comments',
-                  style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),),
+                '$comments',
+                style: TextStyle(
+                  color: Theme.of(context)
+                      .accentTextTheme
+                      .bodyText1
+                      .color
+                      .withOpacity(0.65),
+                ),
               ),
             ],
           ),
@@ -608,7 +649,7 @@ class CommentTileState extends State<CommentTile> {
     int nestedComments = widget.comment['nestedComments'];
     bool isDelete = widget.comment['isDelete'];
 
-    if(report >= 10 && !_onClicked) _isBlind = true;
+    if (report >= 10 && !_onClicked) _isBlind = true;
 
     if (isDelete && nestedComments == 0)
       return Container();
@@ -627,16 +668,24 @@ class CommentTileState extends State<CommentTile> {
                     Icon(
                       Icons.person,
                     ),
-                    SizedBox(width: 4.0,),
+                    SizedBox(
+                      width: 4.0,
+                    ),
                     Text(
                       '(삭제됨)',
                       style: TextStyle(
-                        color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.40),
+                        color: Theme.of(context)
+                            .accentTextTheme
+                            .bodyText1
+                            .color
+                            .withOpacity(0.40),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 4.0,),
+                SizedBox(
+                  height: 4.0,
+                ),
                 Text(
                   '삭제된 댓글입니다.',
                 ),
@@ -645,8 +694,7 @@ class CommentTileState extends State<CommentTile> {
           ),
         ],
       );
-    }
-    else if (_isBlind) {
+    } else if (_isBlind) {
       return Column(
         children: [
           Divider(),
@@ -657,18 +705,19 @@ class CommentTileState extends State<CommentTile> {
                 builder: (BuildContext context) {
                   return AlertDialog(
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0)
-                    ),
+                        borderRadius: BorderRadius.circular(8.0)),
                     content: Text('댓글 내용을 확인하시겠습니까?'),
                     actions: [
                       FlatButton(
-                        child: Text('OK', style: Theme.of(context).textTheme.button),
+                        child: Text('OK',
+                            style: Theme.of(context).textTheme.button),
                         onPressed: () {
                           Navigator.pop(context, true);
                         },
                       ),
                       FlatButton(
-                        child: Text('Cancel', style: Theme.of(context).textTheme.button),
+                        child: Text('Cancel',
+                            style: Theme.of(context).textTheme.button),
                         onPressed: () {
                           Navigator.pop(context, false);
                         },
@@ -677,7 +726,7 @@ class CommentTileState extends State<CommentTile> {
                   );
                 },
               );
-              if(result) {
+              if (result) {
                 _isBlind = false;
                 _onClicked = true;
                 setState(() {});
@@ -694,33 +743,39 @@ class CommentTileState extends State<CommentTile> {
                       Icon(
                         Icons.person,
                       ),
-                      SizedBox(width: 4.0,),
+                      SizedBox(
+                        width: 4.0,
+                      ),
                       Text(
                         '(Blind)',
                         style: TextStyle(
-                          color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.40),
+                          color: Theme.of(context)
+                              .accentTextTheme
+                              .bodyText1
+                              .color
+                              .withOpacity(0.40),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 4.0,),
-                  Text(
-                      '블라인드 처리된 댓글입니다.'
+                  SizedBox(
+                    height: 4.0,
                   ),
+                  Text('블라인드 처리된 댓글입니다.'),
                 ],
               ),
             ),
           ),
         ],
       );
-    }
-    else {
+    } else {
       String writer = widget.comment['writerNick'];
       String writerUID = widget.comment['writer'];
       String content = widget.comment['content'];
       int like = widget.comment['like'];
       Timestamp tt = widget.comment['date'];
-      DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+      DateTime dateTime =
+          DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
       String date = DateFormat.Md().add_Hm().format(dateTime);
 
       return Column(
@@ -737,7 +792,9 @@ class CommentTileState extends State<CommentTile> {
                     Icon(
                       Icons.person,
                     ),
-                    SizedBox(width: 4.0,),
+                    SizedBox(
+                      width: 4.0,
+                    ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -746,33 +803,56 @@ class CommentTileState extends State<CommentTile> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16.0,
-                            color: writerUID == widget.postWriter ? Colors.lightBlue : Theme.of(context).accentTextTheme.bodyText1.color,
+                            color: writerUID == widget.postWriter
+                                ? Colors.lightBlue
+                                : Theme.of(context)
+                                    .accentTextTheme
+                                    .bodyText1
+                                    .color,
                           ),
                         ),
-                        SizedBox(height: 2.0,),
+                        SizedBox(
+                          height: 2.0,
+                        ),
                         Row(
                           children: [
                             Text(
                               '$date',
                               style: TextStyle(
-                                color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
+                                color: Theme.of(context)
+                                    .accentTextTheme
+                                    .bodyText1
+                                    .color
+                                    .withOpacity(0.65),
                               ),
                             ),
-                            SizedBox(width: 5.0,),
+                            SizedBox(
+                              width: 5.0,
+                            ),
                             if (like != 0)
                               Row(
                                 children: [
                                   Icon(
                                     Icons.thumb_up_off_alt,
                                     size: 16.0,
-                                    color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
+                                    color: Theme.of(context)
+                                        .accentTextTheme
+                                        .bodyText1
+                                        .color
+                                        .withOpacity(0.65),
                                   ),
-                                  SizedBox(width: 2.0,),
+                                  SizedBox(
+                                    width: 2.0,
+                                  ),
                                   Text(
                                     '$like',
                                     style: TextStyle(
                                       fontSize: 16.0,
-                                      color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
+                                      color: Theme.of(context)
+                                          .accentTextTheme
+                                          .bodyText1
+                                          .color
+                                          .withOpacity(0.65),
                                     ),
                                   ),
                                 ],
@@ -786,7 +866,8 @@ class CommentTileState extends State<CommentTile> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(30)),
                         border: Border.all(
-                          color: Theme.of(context).accentColor.withOpacity(0.26),
+                          color:
+                              Theme.of(context).accentColor.withOpacity(0.26),
                         ),
                       ),
                       child: Row(
@@ -796,7 +877,10 @@ class CommentTileState extends State<CommentTile> {
                             icon: Icon(
                               Icons.comment,
                               size: 20,
-                              color: Theme.of(context).accentTextTheme.bodyText1.color,
+                              color: Theme.of(context)
+                                  .accentTextTheme
+                                  .bodyText1
+                                  .color,
                             ),
                             onPressed: () async {
                               bool result = await showDialog(
@@ -804,20 +888,26 @@ class CommentTileState extends State<CommentTile> {
                                 builder: (BuildContext context) {
                                   return AlertDialog(
                                     shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8.0)
-                                    ),
-
+                                        borderRadius:
+                                            BorderRadius.circular(8.0)),
                                     content: Text('대댓글을 작성하시겠습니까?'),
                                     actions: [
                                       FlatButton(
-                                        child: Text('OK', style: Theme.of(context).textTheme.button),
+                                        child: Text('OK',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .button),
                                         onPressed: () {
-                                          commentDocID = widget.comment.documentID;
+                                          commentDocID =
+                                              widget.comment.documentID;
                                           Navigator.pop(context, true);
                                         },
                                       ),
                                       FlatButton(
-                                        child: Text('Cancel', style: Theme.of(context).textTheme.button),
+                                        child: Text('Cancel',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .button),
                                         onPressed: () {
                                           Navigator.pop(context, false);
                                         },
@@ -826,7 +916,7 @@ class CommentTileState extends State<CommentTile> {
                                   );
                                 },
                               );
-                              if(result) {
+                              if (result) {
                                 focusNode.requestFocus();
                               }
                             },
@@ -835,36 +925,45 @@ class CommentTileState extends State<CommentTile> {
                             icon: Icon(
                               Icons.thumb_up_off_alt,
                               size: 20,
-                              color: Theme.of(context).accentTextTheme.bodyText1.color,
+                              color: Theme.of(context)
+                                  .accentTextTheme
+                                  .bodyText1
+                                  .color,
                             ),
                             onPressed: () async {
-                              DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());
+                              DocumentReference docRef = db
+                                  .collection('user')
+                                  .document(globals.dbUser.getUID());
                               DocumentSnapshot doc = await docRef.get();
                               List tags = doc.data['commentLikeList'];
 
-                              if(tags.contains(widget.comment.documentID)) {
+                              if (tags.contains(widget.comment.documentID)) {
                                 widget.showDialog('이미 좋아요를 눌렀습니다.');
-                              }
-                              else {
+                              } else {
                                 // _isDataLoaded = false;
                                 widget.showDialog('성공적으로 좋아요를 눌렀습니다.');
                                 await docRef.updateData({
-                                  'commentLikeList': FieldValue.arrayUnion([widget.comment.documentID]),
+                                  'commentLikeList': FieldValue.arrayUnion(
+                                      [widget.comment.documentID]),
                                 });
                                 await widget.comment.reference.updateData({
                                   'like': FieldValue.increment(1),
                                 });
 
-                                if(globals.dbUser.getUID() != writerUID) {
-                                  DocumentReference ref = db.collection('user').document(writerUID);
+                                if (globals.dbUser.getUID() != writerUID) {
+                                  DocumentReference ref =
+                                      db.collection('user').document(writerUID);
                                   ref.updateData({
-                                    'unreadNotification': FieldValue.increment(1),
+                                    'unreadNotification':
+                                        FieldValue.increment(1),
                                     'unreadCount': FieldValue.increment(1),
                                   });
 
                                   String nick;
-                                  if(widget.boardType == 'anonymous') nick = 'Anonymous';
-                                  else nick = globals.dbUser.getNickName();
+                                  if (widget.boardType == 'anonymous')
+                                    nick = 'Anonymous';
+                                  else
+                                    nick = globals.dbUser.getNickName();
 
                                   ref.collection('notification').add({
                                     'type': 'like',
@@ -881,30 +980,37 @@ class CommentTileState extends State<CommentTile> {
                             },
                           ),
                           IconTheme(
-                            data: IconThemeData(color: Theme.of(context).accentTextTheme.bodyText1.color),
+                            data: IconThemeData(
+                                color: Theme.of(context)
+                                    .accentTextTheme
+                                    .bodyText1
+                                    .color),
                             child: PopupMenuButton(
                               itemBuilder: (BuildContext context) =>
-                              writerUID == globals.dbUser.getUID()
-                                  ? [
-                                PopupMenuItem(
-                                  child: Text('삭제하기'),
-                                  value: 'remove',
-                                )
-                              ]
-                                  : [
-                                PopupMenuItem(
-                                  child: Text('쪽지 보내기'),
-                                  value: 'message',
-                                ),
-                                PopupMenuItem(
-                                  child: Text('신고하기'),
-                                  value: 'report',
-                                ),
-                              ],
+                                  writerUID == globals.dbUser.getUID()
+                                      ? [
+                                          PopupMenuItem(
+                                            child: Text('삭제하기'),
+                                            value: 'remove',
+                                          )
+                                        ]
+                                      : [
+                                          PopupMenuItem(
+                                            child: Text('쪽지 보내기'),
+                                            value: 'message',
+                                          ),
+                                          PopupMenuItem(
+                                            child: Text('신고하기'),
+                                            value: 'report',
+                                          ),
+                                        ],
                               onSelected: (selectedMenu) async {
-                                switch(selectedMenu) {
+                                switch (selectedMenu) {
                                   case 'remove':
-                                    await db.collection('board').document(widget.postDocID).updateData({
+                                    await db
+                                        .collection('board')
+                                        .document(widget.postDocID)
+                                        .updateData({
                                       'comments': FieldValue.increment(-1),
                                     });
                                     await widget.comment.reference.updateData({
@@ -918,30 +1024,32 @@ class CommentTileState extends State<CommentTile> {
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context)=>
-                                              chatRoomView(
-                                                chatRoomID: "chatInit/$writerUID/${widget.boardType}",
-                                                chatRoomName: "new message",
-                                              ),
-                                        )
-                                    );
+                                          builder: (context) => chatRoomView(
+                                            chatRoomID:
+                                                "chatInit/$writerUID/${widget.boardType}",
+                                            chatRoomName: "new message",
+                                          ),
+                                        ));
                                     break;
                                   case 'report':
-                                    List reportUserList = widget.comment['reportUserList'];
+                                    List reportUserList =
+                                        widget.comment['reportUserList'];
 
-                                    if(reportUserList.contains(globals.dbUser.getUID())) {
+                                    if (reportUserList
+                                        .contains(globals.dbUser.getUID())) {
                                       widget.showDialog('이미 신고한 게시글입니다.');
-                                    }
-                                    else {
-                                      await widget.comment.reference.updateData({
+                                    } else {
+                                      await widget.comment.reference
+                                          .updateData({
                                         'report': FieldValue.increment(1),
-                                        'reportUserList': FieldValue.arrayUnion([globals.dbUser.getUID()]),
+                                        'reportUserList': FieldValue.arrayUnion(
+                                            [globals.dbUser.getUID()]),
                                       });
                                       widget.showDialog('신고가 접수 되었습니다.');
                                     }
                                     setState(() {});
                                     break;
-                                  default :
+                                  default:
                                     break;
                                 }
                               },
@@ -952,7 +1060,9 @@ class CommentTileState extends State<CommentTile> {
                     ),
                   ],
                 ),
-                SizedBox(height: 4.0,),
+                SizedBox(
+                  height: 4.0,
+                ),
                 Text(
                   '$content',
                 ),
@@ -991,16 +1101,15 @@ class NestedCommentTile extends StatefulWidget {
 }
 
 class NestedCommentTileState extends State<NestedCommentTile> {
-
   bool _isBlind = false;
   bool _onClicked = false;
 
   @override
   Widget build(BuildContext context) {
     int report = widget.nestedComment['report'];
-    if(report >= 10 && !_onClicked) _isBlind = true;
+    if (report >= 10 && !_onClicked) _isBlind = true;
 
-    if(_isBlind) {
+    if (_isBlind) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1018,18 +1127,19 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                   builder: (BuildContext context) {
                     return AlertDialog(
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0)
-                      ),
+                          borderRadius: BorderRadius.circular(8.0)),
                       content: Text('댓글 내용을 확인하시겠습니까?'),
                       actions: [
                         FlatButton(
-                          child: Text('OK', style: Theme.of(context).textTheme.button),
+                          child: Text('OK',
+                              style: Theme.of(context).textTheme.button),
                           onPressed: () {
                             Navigator.pop(context, true);
                           },
                         ),
                         FlatButton(
-                          child: Text('Cancel', style: Theme.of(context).textTheme.button),
+                          child: Text('Cancel',
+                              style: Theme.of(context).textTheme.button),
                           onPressed: () {
                             Navigator.pop(context, false);
                           },
@@ -1038,7 +1148,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                     );
                   },
                 );
-                if(result) {
+                if (result) {
                   _isBlind = false;
                   _onClicked = true;
                   setState(() {});
@@ -1060,19 +1170,25 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                         Icon(
                           Icons.person,
                         ),
-                        SizedBox(width: 4.0,),
+                        SizedBox(
+                          width: 4.0,
+                        ),
                         Text(
                           '(Blind)',
                           style: TextStyle(
-                            color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
+                            color: Theme.of(context)
+                                .accentTextTheme
+                                .bodyText1
+                                .color
+                                .withOpacity(0.65),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 4.0,),
-                    Text(
-                        '블라인드 처리된 댓글입니다.'
+                    SizedBox(
+                      height: 4.0,
                     ),
+                    Text('블라인드 처리된 댓글입니다.'),
                   ],
                 ),
               ),
@@ -1080,14 +1196,14 @@ class NestedCommentTileState extends State<NestedCommentTile> {
           ),
         ],
       );
-    }
-    else {
+    } else {
       String content = widget.nestedComment['content'];
       String writer = widget.nestedComment['writerNick'];
       int like = widget.nestedComment['like'];
       Timestamp tt = widget.nestedComment['date'];
       String writerUID = widget.nestedComment['writer'];
-      DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+      DateTime dateTime =
+          DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
       String date = DateFormat.Md().add_Hm().format(dateTime);
 
       return Row(
@@ -1116,7 +1232,9 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                       Icon(
                         Icons.person,
                       ),
-                      SizedBox(width: 4.0,),
+                      SizedBox(
+                        width: 4.0,
+                      ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1125,38 +1243,61 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16.0,
-                              color: writerUID == widget.postWriter ? Colors.lightBlue : Theme.of(context).accentTextTheme.bodyText1.color,
+                              color: writerUID == widget.postWriter
+                                  ? Colors.lightBlue
+                                  : Theme.of(context)
+                                      .accentTextTheme
+                                      .bodyText1
+                                      .color,
                             ),
                           ),
-                          SizedBox(height: 2.0,),
+                          SizedBox(
+                            height: 2.0,
+                          ),
                           Row(
                             children: [
                               Text(
                                 '$date',
                                 style: TextStyle(
-                                  color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
+                                  color: Theme.of(context)
+                                      .accentTextTheme
+                                      .bodyText1
+                                      .color
+                                      .withOpacity(0.65),
                                 ),
                               ),
-                              SizedBox(width: 5.0,),
-                              like != 0 ?
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.thumb_up_off_alt,
-                                    size: 16.0,
-                                    color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
-                                  ),
-                                  SizedBox(width: 2.0,),
-                                  Text(
-                                    '$like',
-                                    style: TextStyle(
-                                      fontSize: 16.0,
-                                      color: Theme.of(context).accentTextTheme.bodyText1.color.withOpacity(0.65),
-                                    ),
-                                  ),
-                                ],
-                              ) :
-                              Container(),
+                              SizedBox(
+                                width: 5.0,
+                              ),
+                              like != 0
+                                  ? Row(
+                                      children: [
+                                        Icon(
+                                          Icons.thumb_up_off_alt,
+                                          size: 16.0,
+                                          color: Theme.of(context)
+                                              .accentTextTheme
+                                              .bodyText1
+                                              .color
+                                              .withOpacity(0.65),
+                                        ),
+                                        SizedBox(
+                                          width: 2.0,
+                                        ),
+                                        Text(
+                                          '$like',
+                                          style: TextStyle(
+                                            fontSize: 16.0,
+                                            color: Theme.of(context)
+                                                .accentTextTheme
+                                                .bodyText1
+                                                .color
+                                                .withOpacity(0.65),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Container(),
                             ],
                           ),
                         ],
@@ -1166,46 +1307,56 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.all(Radius.circular(30)),
                           border: Border.all(
-                            color: Theme.of(context).accentColor.withOpacity(0.26),
+                            color:
+                                Theme.of(context).accentColor.withOpacity(0.26),
                           ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             IconButton(
-                              icon: Icon(
-                                Icons.thumb_up_off_alt,
-                                size: 20,
-                                color: Theme.of(context).accentTextTheme.bodyText1.color
-                              ),
+                              icon: Icon(Icons.thumb_up_off_alt,
+                                  size: 20,
+                                  color: Theme.of(context)
+                                      .accentTextTheme
+                                      .bodyText1
+                                      .color),
                               onPressed: () async {
-                                DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());
+                                DocumentReference docRef = db
+                                    .collection('user')
+                                    .document(globals.dbUser.getUID());
                                 DocumentSnapshot doc = await docRef.get();
                                 List tags = doc.data['commentLikeList'];
 
-                                if(tags.contains(widget.nestedComment.documentID)) {
+                                if (tags.contains(
+                                    widget.nestedComment.documentID)) {
                                   widget.showDialog('이미 좋아요를 눌렀습니다.');
-                                }
-                                else {
+                                } else {
                                   widget.showDialog('성공적으로 좋아요를 눌렀습니다.');
                                   await docRef.updateData({
                                     'commentLikeList': FieldValue.arrayUnion(
                                         [widget.nestedComment.documentID]),
                                   });
-                                  await widget.nestedComment.reference.updateData({
+                                  await widget.nestedComment.reference
+                                      .updateData({
                                     'like': FieldValue.increment(1),
                                   });
 
-                                  if(globals.dbUser.getUID() != writerUID) {
-                                    DocumentReference ref = db.collection('user').document(writerUID);
+                                  if (globals.dbUser.getUID() != writerUID) {
+                                    DocumentReference ref = db
+                                        .collection('user')
+                                        .document(writerUID);
                                     ref.updateData({
-                                      'unreadNotification': FieldValue.increment(1),
+                                      'unreadNotification':
+                                          FieldValue.increment(1),
                                       'unreadCount': FieldValue.increment(1),
                                     });
 
                                     String nick;
-                                    if(widget.boardType == 'anonymous') nick = 'Anonymous';
-                                    else nick = globals.dbUser.getNickName();
+                                    if (widget.boardType == 'anonymous')
+                                      nick = 'Anonymous';
+                                    else
+                                      nick = globals.dbUser.getNickName();
 
                                     ref.collection('notification').add({
                                       'type': 'like',
@@ -1222,34 +1373,42 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                               },
                             ),
                             IconTheme(
-                              data: IconThemeData(color: Theme.of(context).accentTextTheme.bodyText1.color),
+                              data: IconThemeData(
+                                  color: Theme.of(context)
+                                      .accentTextTheme
+                                      .bodyText1
+                                      .color),
                               child: PopupMenuButton(
                                 itemBuilder: (BuildContext context) =>
-                                writerUID == globals.dbUser.getUID()
-                                    ? [
-                                  PopupMenuItem(
-                                    child: Text('삭제하기'),
-                                    value: 'remove',
-                                  )
-                                ]
-                                    : [
-                                  PopupMenuItem(
-                                    child: Text('쪽지 보내기'),
-                                    value: 'message',
-                                  ),
-                                  PopupMenuItem(
-                                    child: Text('신고하기'),
-                                    value: 'report',
-                                  ),
-                                ],
+                                    writerUID == globals.dbUser.getUID()
+                                        ? [
+                                            PopupMenuItem(
+                                              child: Text('삭제하기'),
+                                              value: 'remove',
+                                            )
+                                          ]
+                                        : [
+                                            PopupMenuItem(
+                                              child: Text('쪽지 보내기'),
+                                              value: 'message',
+                                            ),
+                                            PopupMenuItem(
+                                              child: Text('신고하기'),
+                                              value: 'report',
+                                            ),
+                                          ],
                                 onSelected: (selectedMenu) async {
-                                  switch(selectedMenu) {
+                                  switch (selectedMenu) {
                                     case 'remove':
                                       widget.nestedComment.reference.delete();
                                       widget.commentRef.updateData({
-                                        'nestedComments': FieldValue.increment(-1),
+                                        'nestedComments':
+                                            FieldValue.increment(-1),
                                       });
-                                      db.collection('board').document(widget.postDocID).updateData({
+                                      db
+                                          .collection('board')
+                                          .document(widget.postDocID)
+                                          .updateData({
                                         'comments': FieldValue.increment(-1),
                                       });
                                       widget.showDialog('성공적으로 삭제되었습니다.');
@@ -1259,31 +1418,34 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                                       Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context)=>
-                                                chatRoomView(
-                                                  chatRoomID: "chatInit/$writerUID/${widget.boardType}",
-                                                  chatRoomName: "new message",
-                                                ),
-                                          )
-                                      );
+                                            builder: (context) => chatRoomView(
+                                              chatRoomID:
+                                                  "chatInit/$writerUID/${widget.boardType}",
+                                              chatRoomName: "new message",
+                                            ),
+                                          ));
                                       break;
                                     case 'report':
-                                      List reportUserList = widget.nestedComment['reportUserList'];
+                                      List reportUserList = widget
+                                          .nestedComment['reportUserList'];
 
-                                      if(reportUserList.contains(globals.dbUser.getUID())) {
+                                      if (reportUserList
+                                          .contains(globals.dbUser.getUID())) {
                                         widget.showDialog('이미 신고한 게시글입니다.');
-                                      }
-                                      else {
-                                        await widget.nestedComment.reference.updateData({
+                                      } else {
+                                        await widget.nestedComment.reference
+                                            .updateData({
                                           'report': FieldValue.increment(1),
-                                          'reportUserList': FieldValue.arrayUnion([globals.dbUser.getUID()]),
+                                          'reportUserList':
+                                              FieldValue.arrayUnion(
+                                                  [globals.dbUser.getUID()]),
                                         });
                                         widget.showDialog('신고가 접수 되었습니다.');
                                       }
                                       setState(() {});
                                       break;
 
-                                    default :
+                                    default:
                                       break;
                                   }
                                 },
@@ -1294,7 +1456,9 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 4.0,),
+                  SizedBox(
+                    height: 4.0,
+                  ),
                   Text(
                     '$content',
                   ),

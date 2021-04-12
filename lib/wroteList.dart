@@ -9,51 +9,43 @@ import 'globals.dart' as globals;
 
 final db = Firestore.instance;
 
-class likeList extends StatefulWidget {
+class wroteList extends StatefulWidget {
   @override
-  _likeListState createState() => _likeListState();
+  _wroteListState createState() => _wroteListState();
 }
 
-class _likeListState extends State<likeList> {
+class _wroteListState extends State<wroteList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           title: Text(
-            "좋아요 누른 글",
+            "내가 쓴 글",
           ),
         ),
-        body: _likedPost(context));
+        body: _wrotePost(context));
   }
 
-  Future getLikedPosts() async {
-    List<DocumentSnapshot> result = await db
-        .collection('user')
-        .document(globals.dbUser.getUID())
-        .get()
-        .then((value) async {
-      List<dynamic> likedIDList = value["postLikeList"];
-      List<DocumentSnapshot> likedPostList = List<DocumentSnapshot>();
-      await Future.forEach(likedIDList, (element) async {
-        await db.collection('board').document(element).get().then((value) {
-          likedPostList.add(value);
-        });
-      });
-      return likedPostList;
-    });
+  Future getWrotePosts() async {
+    List<DocumentSnapshot> result = (await db
+            .collection('board')
+            .where('writer', isEqualTo: globals.dbUser.getUID())
+            .orderBy('date', descending: true)
+            .getDocuments())
+        .documents;
     return result;
   }
 
-  Widget _likedPost(BuildContext context) {
+  Widget _wrotePost(BuildContext context) {
     return FutureBuilder(
-      future: getLikedPosts(),
+      future: getWrotePosts(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return LinearProgressIndicator();
         } else if (snapshot.hasData) {
           return _buildlikedPostList(context, snapshot.data);
         } else if (snapshot.data.length == 0) {
-          return Center(child: Text("좋아요 누른 글이 없습니다"));
+          return Center(child: Text("내가 쓴 글이 없습니다"));
         } else {
           return LinearProgressIndicator();
         }

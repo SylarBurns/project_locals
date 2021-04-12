@@ -7,7 +7,6 @@ import 'globals.dart' as globals;
 final db = Firestore.instance;
 
 class ChangeRegion extends StatefulWidget {
-
   _ChangeRegionState createState() => _ChangeRegionState();
 }
 
@@ -46,54 +45,61 @@ class _ChangeRegionState extends State<ChangeRegion> {
               Icons.check,
             ),
             onPressed: () async {
-              if(_selectedArea1 != 'null' && _selectedArea2 != 'null') {
+              if (_selectedArea1 != 'null' && _selectedArea2 != 'null') {
                 globals.dbUser.setSelectedRegion(_selectedArea2);
                 Navigator.pop(context);
                 Navigator.pushReplacementNamed(context, '/homeNavigator');
-              }
-              else _showDialog('지역을 선택하세요');
+              } else
+                _showDialog('지역을 선택하세요');
             },
           ),
         ],
       ),
-      body: docList == null ?
-          Center(child: globals.getLoadingAnimation(context),)
+      body: docList == null
+          ? Center(
+              child: globals.getLoadingAnimation(context),
+            )
           : Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            width: MediaQuery.of(context).size.width/2 - 3,
-            child: ListView(
-              children: docList.map((area1) {
-                return Column(
-                  children: [
-                    Container(
-                      child: ListTile(
-                        title: Text(area1.documentID),
-                        onTap: () {
-                          _selectedArea1 = area1.documentID;
-                          _selectedIndex = docList.indexOf(area1);
-                          _selectedArea2 = 'null';
-                          setState(() {});
-                        },
-                      ),
-                      color: area1.documentID == _selectedArea1 ? Colors.black12 : Colors.white12,
-                    ),
-                    Divider(),
-                  ],
-                );
-              }).toList(),
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  width: MediaQuery.of(context).size.width / 2 - 3,
+                  child: ListView(
+                    children: docList.map((area1) {
+                      return Column(
+                        children: [
+                          Container(
+                            child: ListTile(
+                              title: Text(area1.documentID),
+                              onTap: () {
+                                _selectedArea1 = area1.documentID;
+                                _selectedIndex = docList.indexOf(area1);
+                                _selectedArea2 = 'null';
+                                setState(() {});
+                              },
+                            ),
+                            color: area1.documentID == _selectedArea1
+                                ? Colors.black12
+                                : Colors.white12,
+                          ),
+                          Divider(),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+                VerticalDivider(
+                  width: 4,
+                ),
+                Container(
+                    width: MediaQuery.of(context).size.width / 2 - 2,
+                    child: _selectedArea1 == 'null'
+                        ? Center(
+                            child: Text('지역을 선택하세요'),
+                          )
+                        : _buildArea2(context, docList[_selectedIndex])),
+              ],
             ),
-          ),
-          VerticalDivider(width: 4,),
-          Container(
-              width: MediaQuery.of(context).size.width/2 - 2,
-              child: _selectedArea1 == 'null' ?
-              Center(child: Text('지역을 선택하세요'),)
-                  : _buildArea2(context, docList[_selectedIndex])
-          ),
-        ],
-      ),
     );
   }
 
@@ -131,17 +137,13 @@ class _ChangeRegionState extends State<ChangeRegion> {
         });
 
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0)
-          ),
-
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
           content: SizedBox(
             width: 50,
             height: 30,
             child: Center(
-              child: Text(
-                  '$message'
-              ),
+              child: Text('$message'),
             ),
           ),
         );

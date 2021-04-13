@@ -76,6 +76,7 @@ class _chatRoomViewState extends State<chatRoomView>
       WidgetsBinding.instance.removeObserver(this);
     }
     _focusNode.unfocus();
+    _focusNode.dispose();
     super.dispose();
   }
   @override
@@ -364,7 +365,6 @@ class _chatRoomViewState extends State<chatRoomView>
         .snapshots();
     chatStreamSub = chatStream.listen(null);
     chatStreamSub.onData((snapshot) {
-      print("On DATA");
       if (snapshot.documents[0]["sender"] !=
           globals.dbUser.getUID()) {
         if (_scrollController.hasClients) {

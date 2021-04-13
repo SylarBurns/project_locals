@@ -47,8 +47,9 @@ class _chatRoomViewState extends State<chatRoomView>
   File imageFile;
   void ScrollToEnd() async {
     if (_shouldScroll) {
-      print("scroll to end index: " + _lastIndex.toString());
-      itemScrollController.jumpTo(index: _lastIndex);
+      print("current"+_scrollController.position.pixels.toString());
+      print("min"+_scrollController.position.minScrollExtent.toString());
+      _scrollController.jumpTo(_scrollController.position.minScrollExtent);
       _shouldScroll = false;
       _unreadCount+=1;
     }
@@ -133,15 +134,14 @@ class _chatRoomViewState extends State<chatRoomView>
         .collection('chatroom')
         .document(CRID)
         .collection('messages')
-        .orderBy('date')
+        .orderBy('date', descending: true)
         .snapshots();
     chatStreamSub = chatStream.listen(null);
     chatStreamSub.onData((snapshot) {
       if (snapshot.documents[snapshot.documents.length - 1]["sender"] !=
           globals.dbUser.getUID()) {
-        if (itemScrollController.isAttached) {
-          if (itemPositionsListener.itemPositions.value.last.index <
-              _lastIndex) {
+        if (_scrollController.hasClients) {
+          if (_scrollController.position.pixels > 50) {
             _unreadCount += 1;
             String latestMessage =
                 snapshot.documents[snapshot.documents.length - 1]["content"];
@@ -400,27 +400,22 @@ class _chatRoomViewState extends State<chatRoomView>
                             WidgetsBinding.instance
                                 .addPostFrameCallback((_) => ScrollToEnd());
                           }
-                          return ScrollablePositionedList.builder(
-                              initialScrollIndex:
-                                  snapshots.data.documents.length -
-                                      _unreadCount,
-                              itemScrollController: itemScrollController,
-                              itemPositionsListener: itemPositionsListener,
+                          return ListView.builder(
+                              reverse: true,
+                              controller: _scrollController,
                               itemCount: snapshots.data.documents.length,
                               itemBuilder: (context, index) {
-                                if (index ==
-                                    snapshots.data.documents.length -
-                                        _unreadCount) {
+                                if (_unreadCount>0 && index == _unreadCount) {
                                   // _unreadIndex = index;
                                   return Column(
                                     children: [
+                                      chatMessageItem(context,
+                                          snapshots.data.documents[index]),
                                       Container(
                                         width: 150,
                                         alignment: Alignment.center,
                                         child: Text("여기까지 읽었습니다"),
                                       ),
-                                      chatMessageItem(context,
-                                          snapshots.data.documents[index])
                                     ],
                                   );
                                 } else {

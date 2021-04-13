@@ -6,12 +6,15 @@ import 'package:project_locals/registration.dart';
 import 'package:project_locals/likedList.dart';
 import 'package:project_locals/naver_map.dart';
 import 'package:project_locals/selectThemeColor.dart';
+import 'package:project_locals/wroteList.dart';
+
 final routes = {
   '/': (BuildContext context) => loginPage(),
   '/homeNavigator': (BuildContext context) => homeNavigator(),
   '/board': (BuildContext context) => boardHome(),
-  '/registration': (BuildContext context)=> registration(),
-  '/likedList':(BuildContext context)=> likeList(),
-  '/naverMap' :(BuildContext context)=> naverMap(),
-  '/selectThemeColor':(BuildContext context)=>selectThemeColor(),
+  '/registration': (BuildContext context) => registration(),
+  '/wroteList': (BuildContext context) => wroteList(),
+  '/likedList': (BuildContext context) => likeList(),
+  '/naverMap': (BuildContext context) => naverMap(),
+  '/selectThemeColor': (BuildContext context) => selectThemeColor(),
 };

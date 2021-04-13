@@ -10,11 +10,11 @@ import 'postView.dart';
 final db = Firestore.instance;
 
 class NotificationPage extends StatefulWidget {
-
   _NotificationPageState createState() => _NotificationPageState();
 }
 
-class _NotificationPageState extends State<NotificationPage> with SingleTickerProviderStateMixin {
+class _NotificationPageState extends State<NotificationPage>
+    with SingleTickerProviderStateMixin {
   Timer _timer;
   bool changeColor = false;
 
@@ -23,7 +23,7 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
     super.initState();
     _timer = Timer.periodic(Duration(seconds: 2), (timer) {
       setState(() {
-          changeColor = true;
+        changeColor = true;
       });
     });
   }
@@ -43,7 +43,8 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
 
   Widget _buildNotificationPage(BuildContext context) {
     return FutureBuilder(
-      future: db.collection('user')
+      future: db
+          .collection('user')
           .document(globals.dbUser.getUID())
           .collection('notification')
           .orderBy('date', descending: true)
@@ -51,22 +52,24 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) {
           return Container();
-        }
-        else {
+        } else {
           return Expanded(
             child: ListView(
               children: snapshot.data.documents.map((notification) {
                 String type = notification['type'];
                 bool isRead = notification['isRead'];
 
-                if(!isRead) {
+                if (!isRead) {
                   notification.reference.updateData({
                     'isRead': true,
                   });
                 }
 
-                if(type == 'like') return _buildLikeNotifyTile(context, notification, isRead);
-                else return _buildCommentNotifyTile(context, notification, isRead, type);
+                if (type == 'like')
+                  return _buildLikeNotifyTile(context, notification, isRead);
+                else
+                  return _buildCommentNotifyTile(
+                      context, notification, isRead, type);
               }).toList(),
             ),
           );
@@ -75,13 +78,18 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
     );
   }
 
-  Widget _buildLikeNotifyTile(BuildContext context, DocumentSnapshot snapshot, bool isRead) {
+  Widget _buildLikeNotifyTile(
+      BuildContext context, DocumentSnapshot snapshot, bool isRead) {
     String writerNick = snapshot['writerNick'];
     String content = snapshot['content'];
 
     return AnimatedContainer(
       duration: Duration(seconds: 2),
-      color: !isRead ? changeColor? Colors.white12 : Colors.black12 : Colors.white12,
+      color: !isRead
+          ? changeColor
+              ? Colors.white12
+              : Colors.black12
+          : Colors.white12,
       child: ListTile(
         leading: Icon(
           Icons.favorite,
@@ -98,33 +106,39 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => PostView(
-              postDocID: snapshot['postDocID'],
-              boardName: '',
-              boardType: snapshot['boardType'],
-              writerUID: globals.dbUser.getUID(),
-            )),
+            MaterialPageRoute(
+                builder: (context) => PostView(
+                      postDocID: snapshot['postDocID'],
+                      boardName: '',
+                      boardType: snapshot['boardType'],
+                      writerUID: globals.dbUser.getUID(),
+                    )),
           );
         },
       ),
     );
   }
 
-  Widget _buildCommentNotifyTile(BuildContext context, DocumentSnapshot snapshot, bool isRead, String type) {
+  Widget _buildCommentNotifyTile(BuildContext context,
+      DocumentSnapshot snapshot, bool isRead, String type) {
     String writerNick = snapshot['writerNick'];
     String content = snapshot['content'];
     String comment = snapshot['comment'];
 
     return AnimatedContainer(
       duration: Duration(seconds: 2),
-      color: !isRead ? changeColor ? Colors.white12 : Colors.black12 : Colors.white12,
+      color: !isRead
+          ? changeColor
+              ? Colors.white12
+              : Colors.black12
+          : Colors.white12,
       child: ListTile(
         leading: Icon(
           Icons.comment_outlined,
         ),
         title: Text(
-          type == 'comment'?
-          '$writerNick님이 댓글을 작성했습니다.'
+          type == 'comment'
+              ? '$writerNick님이 댓글을 작성했습니다.'
               : '$writerNick님이 대댓글을 작성했습니다.',
         ),
         subtitle: Text(
@@ -135,16 +149,16 @@ class _NotificationPageState extends State<NotificationPage> with SingleTickerPr
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => PostView(
-              postDocID: snapshot['postDocID'],
-              boardName: '',
-              boardType: snapshot['boardType'],
-              writerUID: globals.dbUser.getUID(),
-            )),
+            MaterialPageRoute(
+                builder: (context) => PostView(
+                      postDocID: snapshot['postDocID'],
+                      boardName: '',
+                      boardType: snapshot['boardType'],
+                      writerUID: globals.dbUser.getUID(),
+                    )),
           );
         },
       ),
     );
   }
 }
-

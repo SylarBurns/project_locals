@@ -7,7 +7,9 @@ import 'package:naver_map_plugin/naver_map_plugin.dart';
 import 'package:project_locals/confidential.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:project_locals/globals.dart' as globals;
+
 final db = Firestore.instance;
+
 class naverMap extends StatefulWidget {
   @override
   _naverMapState createState() => _naverMapState();
@@ -17,18 +19,23 @@ class _naverMapState extends State<naverMap> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   Completer<NaverMapController> _controller = Completer();
   MapType _mapType = MapType.Basic;
-  LocationTrackingMode _trackingMode = LocationTrackingMode.Follow;
+  LocationTrackingMode _trackingMode = LocationTrackingMode.NoFollow;
+  bool mapLoaded;
+  @override
+  void initState() {
+    mapLoaded = false;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: scaffoldKey,
-      body:Stack(
-        children: <Widget>[
+        key: scaffoldKey,
+        body: Stack(children: <Widget>[
           NaverMap(
-            // initialCameraPosition: CameraPosition(
-            //   target: LatLng(35.87797320358528, 128.6278855048859),
-            //   zoom: 17,
-            // ),
+            initialCameraPosition: CameraPosition(
+              target: LatLng(36.082021817106835, 129.3975191650997),
+            ),
             onMapCreated: onMapCreated,
             mapType: _mapType,
             initLocationTrackingMode: _trackingMode,
@@ -38,16 +45,40 @@ class _naverMapState extends State<naverMap> {
             tiltGestureEnable: false,
             zoomGestureEnable: false,
           ),
-          _regionAuthenticator(context),
-        ],
-      ),
-    );
+          mapLoaded
+              ? Container(
+                  color: Theme.of(context).backgroundColor,
+                  child: Center(
+                    child: Column(children: [
+                      Spacer(
+                        flex: 1,
+                      ),
+                      globals.getLoadingAnimation(context),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Text(
+                        "지도를 로딩중입니다\n1분 이상 이 화면이 지속될 시 재시도해주세요",
+                        style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText1.color),
+                        textAlign: TextAlign.center,
+                      ),
+                      Spacer(
+                        flex: 1,
+                      ),
+                    ]),
+                  ),
+                )
+              : _regionAuthenticator(context),
+        ]));
   }
+
   Future<regionInfo> fetchRegionInfo(LatLng position) async {
     confidentialInfo info = new confidentialInfo();
     final response = await http.get(
-      Uri.encodeFull("https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?"+
-          "request=coordsToaddr&coords=${position.longitude},${position.latitude}&sourcecrs=epsg:4326&output=json&orders=addr"),
+      Uri.encodeFull(
+          "https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?" +
+              "request=coordsToaddr&coords=${position.longitude},${position.latitude}&sourcecrs=epsg:4326&output=json&orders=addr"),
       headers: {
         //Client ID
         "X-NCP-APIGW-API-KEY-ID": info.getNaverCID(),
@@ -61,8 +92,9 @@ class _naverMapState extends State<naverMap> {
       throw Exception('Failed to load location Information');
     }
   }
+
   _onMapLongTap(LatLng position) async {
-    await fetchRegionInfo(position).then((response){
+    await fetchRegionInfo(position).then((response) {
       scaffoldKey.currentState.showSnackBar(SnackBar(
         content: Text(
             '[onLongTap]lat: ${position.latitude}, lon: ${position.longitude}'),
@@ -71,102 +103,130 @@ class _naverMapState extends State<naverMap> {
       ));
     });
   }
+
   _regionAuthenticator(BuildContext context) {
     return Align(
-      alignment: Alignment.bottomRight,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: FloatingActionButton.extended(
-          onPressed: (){
-            _onPressedTakeRegionInfo();
+        alignment: Alignment.bottomRight,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              _onPressedTakeRegionInfo();
             },
-          backgroundColor: Theme.of(context).buttonTheme.colorScheme.secondary,
-          label: Text('지역인증', style: TextStyle(color:Theme.of(context).accentColor),),
-          icon: Icon(Icons.my_location_sharp, color:Theme.of(context).accentColor,),
-        ),
-      )
-    );
+            backgroundColor:
+                Theme.of(context).buttonTheme.colorScheme.secondary,
+            label: Text(
+              '지역인증',
+              style: TextStyle(color: Theme.of(context).accentColor),
+            ),
+            icon: Icon(
+              Icons.my_location_sharp,
+              color: Theme.of(context).accentColor,
+            ),
+          ),
+        ));
   }
+
   /// 지도 생성 완료시
   void onMapCreated(NaverMapController controller) {
     if (_controller.isCompleted) _controller = Completer();
     _controller.complete(controller);
+    scaffoldKey.currentState.setState(() {
+      print("map complete!");
+      mapLoaded = true;
+    });
   }
+
   /// 위치 파악
   void _onPressedTakeRegionInfo() async {
     final controller = await _controller.future;
-    await controller.getCameraPosition().then((position) async{
-      await fetchRegionInfo(position.target).then((info)async{
+    await controller.getCameraPosition().then((position) async {
+      await fetchRegionInfo(position.target).then((info) async {
         // await _showDialog(info).then((value){Navigator.pop(context);});
         _showDialog(info);
       });
     });
   }
+
   void _showDialog(regionInfo info) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0)
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+          title: Text(
+            "확인을 눌러 지역인증을 완료해주세요",
+            style: TextStyle(fontSize: 18),
           ),
-          title: Text("확인을 눌러 지역인증을 완료해주세요", style: TextStyle(fontSize: 18),),
-          content: Container(height: 20, alignment:Alignment.center,child:Text("${info.area1} ${info.area2}")),
+          content: Container(
+              height: 20,
+              alignment: Alignment.center,
+              child: Text("${info.area1} ${info.area2}")),
           actions: <Widget>[
             FlatButton(
-              child: Text("취소", style: Theme.of(context).textTheme.button,),
+              child: Text(
+                "취소",
+                style: Theme.of(context).textTheme.button,
+              ),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
             FlatButton(
-              child: Text("확인", style: Theme.of(context).textTheme.button),
-              onPressed: () async {
-                await db.collection("area1").document(info.area1).get().then((document) async {
-                  if(document.exists){
-                    if(document["area2"].contains(info.area2)){
-                    }else{
-                      await db.runTransaction((transaction) async {
-                        final freshSnapshot = await transaction.get(document.reference);
-                        final fresh = freshSnapshot.data;
-                        List<dynamic> area2List = fresh["area2"];
-                        if (!area2List.contains(info.area2)) {
-                          area2List.add(info.area2);
-                        }
-                        await transaction.update(document.reference, {
-                          'area2': area2List,
+                child: Text("확인", style: Theme.of(context).textTheme.button),
+                onPressed: () async {
+                  await db
+                      .collection("area1")
+                      .document(info.area1)
+                      .get()
+                      .then((document) async {
+                    if (document.exists) {
+                      if (document["area2"].contains(info.area2)) {
+                      } else {
+                        await db.runTransaction((transaction) async {
+                          final freshSnapshot =
+                              await transaction.get(document.reference);
+                          final fresh = freshSnapshot.data;
+                          List<dynamic> area2List = fresh["area2"];
+                          if (!area2List.contains(info.area2)) {
+                            area2List.add(info.area2);
+                          }
+                          await transaction.update(document.reference, {
+                            'area2': area2List,
+                          });
                         });
+                      }
+                    } else {
+                      await db
+                          .collection('area1')
+                          .document(info.area1)
+                          .setData({
+                        "area2": [info.area2]
                       });
                     }
-                  }else{
-                    await db.collection('area1').document(info.area1).setData(
-                      {
-                        "area2":[info.area2]
-                      }
-                    );
-                  }
-                });
-                Navigator.pop(context);
-                Navigator.pop(context, info.area2);
-              }
-            )
+                  });
+                  Navigator.pop(context);
+                  Navigator.pop(context, info.area2);
+                })
           ],
         );
       },
     );
   }
 }
+
 class regionInfo {
   final area1;
   final area2;
   final area3;
-  regionInfo({@required this.area1, @required this.area2, @required this.area3});
+  regionInfo(
+      {@required this.area1, @required this.area2, @required this.area3});
   factory regionInfo.fromJson(Map<String, dynamic> json) {
     return regionInfo(
         area1: json["results"][0]["region"]["area1"]["name"].toString(),
         area2: json["results"][0]["region"]["area2"]["name"].toString(),
-        area3: json["results"][0]["region"]["area3"]["name"].toString()
-    );
+        area3: json["results"][0]["region"]["area3"]["name"].toString());
   }
 }

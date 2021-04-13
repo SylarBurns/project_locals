@@ -49,30 +49,34 @@ class _selectThemeColorState extends State<selectThemeColor> {
         children: [
           colorBlock(themeDataList[index].accent, boxheight, paddingInbetween),
           colorBlock(themeDataList[index].primary, boxheight, paddingInbetween),
-          colorBlock(themeDataList[index].secondary, boxheight, paddingInbetween),
-          colorBlock(themeDataList[index].backgroundSecondary, boxheight, paddingInbetween),
+          colorBlock(
+              themeDataList[index].secondary, boxheight, paddingInbetween),
+          colorBlock(themeDataList[index].backgroundSecondary, boxheight,
+              paddingInbetween),
         ],
       ),
     );
   }
-  Widget colorBlock(Color blockColor, double boxheight, double paddingInbetween){
+
+  Widget colorBlock(
+      Color blockColor, double boxheight, double paddingInbetween) {
     return Expanded(
-        child: Container(
-          padding: EdgeInsets.all(paddingInbetween),
-          child: Card(
-            elevation: 5,
-            child: ClipRRect(
-              borderRadius: BorderRadius.all(Radius.circular(5.0)),
-              child: Container(
-                height: boxheight,
-                decoration: BoxDecoration(
-                  color: blockColor,
-                ),
-                ),
+      child: Container(
+        padding: EdgeInsets.all(paddingInbetween),
+        child: Card(
+          elevation: 5,
+          child: ClipRRect(
+            borderRadius: BorderRadius.all(Radius.circular(5.0)),
+            child: Container(
+              height: boxheight,
+              decoration: BoxDecoration(
+                color: blockColor,
               ),
+            ),
           ),
-          ),
-        );
+        ),
+      ),
+    );
   }
 
   void _showDialog(int index) {
@@ -88,7 +92,9 @@ class _selectThemeColorState extends State<selectThemeColor> {
             style: TextStyle(fontSize: 15),
             textAlign: TextAlign.center,
           ),
-          content: SizedBox(height: MediaQuery.of(context).size.height*0.2, child: colorRow(context, index, 4.0)),
+          content: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.2,
+              child: colorRow(context, index, 4.0)),
           actions: <Widget>[
             FlatButton(
               child: Text(

@@ -6,16 +6,25 @@ import 'globals.dart' as globals;
 class PostEdit extends StatefulWidget {
   final DocumentSnapshot post;
 
-  PostEdit({Key key, @required this.post,});
+  PostEdit({
+    Key key,
+    @required this.post,
+  });
 
   @override
-  _PostEditState createState() => _PostEditState(key: this.key, post: this.post,);
+  _PostEditState createState() => _PostEditState(
+        key: this.key,
+        post: this.post,
+      );
 }
 
 class _PostEditState extends State<PostEdit> {
   DocumentSnapshot post;
 
-  _PostEditState({Key key, this.post,});
+  _PostEditState({
+    Key key,
+    this.post,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +64,9 @@ class _PostEditState extends State<PostEdit> {
                     border: OutlineInputBorder(),
                   ),
                 ),
-                SizedBox(height: 8.0,),
+                SizedBox(
+                  height: 8.0,
+                ),
                 TextField(
                   controller: contentController,
                   decoration: InputDecoration(

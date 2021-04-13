@@ -17,7 +17,10 @@ class NotificationBody extends StatefulWidget {
 }
 
 class NotificationBodyState extends State<NotificationBody> {
-  Refresh(){setState(() {});}
+  Refresh() {
+    setState(() {});
+  }
+
   bool _isChat = true;
 
   @override
@@ -26,53 +29,54 @@ class NotificationBodyState extends State<NotificationBody> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(20, 5, 20, 5),
+          padding: EdgeInsets.fromLTRB(20, 15, 20, 0),
           child: Row(
             children: [
               InkWell(
-                child: _isChat ?
-                Text(
-                  'Message',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 25,
-                    decoration: TextDecoration.underline,
-                  ),
-                )
+                child: _isChat
+                    ? Text(
+                        'Message',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 23,
+                        ),
+                      )
                     : Text(
-                  'Message',
-                  style: TextStyle(
-                    fontSize: 23,
-                  ),
-                ),
+                        'Message',
+                        style: TextStyle(
+                          fontSize: 23,
+                        ),
+                      ),
                 onTap: () {
                   _isChat = true;
                   setState(() {});
                 },
               ),
-              SizedBox(width: 20.0,),
+              SizedBox(
+                width: 20.0,
+              ),
               InkWell(
-                child: !_isChat ?
-                Text(
-                  'Notification',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 25,
-                    decoration: TextDecoration.underline,
-                  ),
-                )
+                child: !_isChat
+                    ? Text(
+                        'Notification',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 23,
+                        ),
+                      )
                     : Text(
-                  'Notification',
-                  style: TextStyle(
-                    fontSize: 23,
-                  ),
-                ),
+                        'Notification',
+                        style: TextStyle(
+                          fontSize: 23,
+                        ),
+                      ),
                 onTap: () async {
                   _isChat = false;
-                  DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());
+                  DocumentReference docRef =
+                      db.collection('user').document(globals.dbUser.getUID());
                   DocumentSnapshot snapshot = await docRef.get();
                   int unread = snapshot['unreadNotification'] * (-1);
-                  if(unread != 0) {
+                  if (unread != 0) {
                     await docRef.updateData({
                       'unreadNotification': 0,
                       'unreadCount': FieldValue.increment(unread),
@@ -84,9 +88,7 @@ class NotificationBodyState extends State<NotificationBody> {
             ],
           ),
         ),
-        _isChat ?
-            chatRoomList()
-          : NotificationPage(),
+        _isChat ? chatRoomList() : NotificationPage(),
       ],
     );
   }

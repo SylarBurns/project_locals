@@ -32,14 +32,23 @@ class personalInfoState extends State<personalInfo> {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: EdgeInsets.only(top: 15),
         child: ListView(
           children: [
+            FlatButton(
+              onPressed: () => Navigator.pushNamed(context, '/wroteList'),
+              child: Text(
+                "내가 쓴 글",
+                style: TextStyle(
+                    color: Theme.of(context).accentTextTheme.bodyText1.color),
+              ),
+            ),
             FlatButton(
               onPressed: () => Navigator.pushNamed(context, '/likedList'),
               child: Text(
                 "좋아요 누른 글",
-                style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color),
+                style: TextStyle(
+                    color: Theme.of(context).accentTextTheme.bodyText1.color),
               ),
             ),
             FlatButton(
@@ -53,7 +62,8 @@ class personalInfoState extends State<personalInfo> {
               }),
               child: Text(
                 "지역 변경",
-                style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color),
+                style: TextStyle(
+                    color: Theme.of(context).accentTextTheme.bodyText1.color),
               ),
             ),
             FlatButton(
@@ -66,7 +76,8 @@ class personalInfoState extends State<personalInfo> {
               },
               child: Text(
                 "로그아웃",
-                style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color),
+                style: TextStyle(
+                    color: Theme.of(context).accentTextTheme.bodyText1.color),
               ),
             ),
             FlatButton(
@@ -75,7 +86,8 @@ class personalInfoState extends State<personalInfo> {
               },
               child: Text(
                 "테마 색 설정",
-                style: TextStyle(color: Theme.of(context).accentTextTheme.bodyText1.color),
+                style: TextStyle(
+                    color: Theme.of(context).accentTextTheme.bodyText1.color),
               ),
             ),
           ],

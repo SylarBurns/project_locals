@@ -26,7 +26,11 @@ class PostList extends StatefulWidget {
 
 class _PostListState extends State<PostList> {
   bool _isDataLoaded = false;
-
+  bool _hasMore = true;
+  int documentLimit = 10;
+  ScrollController _scrollController = ScrollController();
+  DocumentSnapshot lastDocument;
+  List<DocumentSnapshot> posts = [];
   QuerySnapshot postQuery;
 
   _PostListState({
@@ -38,20 +42,54 @@ class _PostListState extends State<PostList> {
   }
 
   Future refreshPost() async {
+    setState(() {
+      posts.clear();
+      lastDocument = null;
+      postQuery = null;
+      _hasMore = true;
+      _isDataLoaded = false;
+    });
+
     await loadData();
   }
 
   void loadData() async {
-    var ref = Firestore.instance.collection('board');
-    await ref
-        .where('region', isEqualTo: globals.dbUser.getSelectedRegion())
-        .where("boardType", isEqualTo: widget.boardType)
-        .orderBy('date', descending: true)
-        .getDocuments()
-        .then((value) {
-      postQuery = value;
-    });
+    if (!_hasMore) {
+      return;
+    }
 
+    var ref = Firestore.instance.collection('board');
+
+    if(lastDocument == null) {
+      await ref
+          .where('region', isEqualTo: globals.dbUser.getSelectedRegion())
+          .where("boardType", isEqualTo: widget.boardType)
+          .orderBy('date', descending: true)
+          .limit(documentLimit)
+          .getDocuments()
+          .then((value) {
+        postQuery = value;
+      });
+    }
+    else {
+      await ref
+          .where('region', isEqualTo: globals.dbUser.getSelectedRegion())
+          .where("boardType", isEqualTo: widget.boardType)
+          .orderBy('date', descending: true)
+          .startAfterDocument(lastDocument)
+          .limit(documentLimit)
+          .getDocuments()
+          .then((value) {
+        postQuery = value;
+      });
+    }
+
+    if (postQuery.documents.length < documentLimit) {
+      _hasMore = false;
+    }
+
+    lastDocument = postQuery.documents[postQuery.documents.length - 1];
+    posts.addAll(postQuery.documents);
     _isDataLoaded = true;
     setState(() {});
   }
@@ -60,6 +98,14 @@ class _PostListState extends State<PostList> {
   void initState() {
     super.initState();
     loadData();
+
+    _scrollController.addListener(() {
+      double maxScroll = _scrollController.position.maxScrollExtent;
+      double currentScroll = _scrollController.position.pixels;
+      if(currentScroll == maxScroll && _hasMore) {
+        loadData();
+      }
+    });
   }
 
   @override
@@ -83,16 +129,22 @@ class _PostListState extends State<PostList> {
               child: Container(
                 padding: EdgeInsets.only(top: 15),
                 child: ListView.separated(
-                    itemCount: postQuery.documents.length,
+                    controller: _scrollController,
+                    itemCount: _hasMore ? posts.length+1 : posts.length,
                     separatorBuilder: (context, index) => Divider(),
                     itemBuilder: (context, index) {
-                      DocumentSnapshot post = postQuery.documents[index];
-                      int report = post['report'];
+                      if(index == posts.length) {
+                        return globals.getLoadingAnimation(context);
+                      }
+                      else {
+                        DocumentSnapshot post = posts[index];
+                        int report = post['report'];
 
-                      if (report >= 10) {
-                        return _buildBlindPost(context, post);
-                      } else {
-                        return _buildPostTile(context, post);
+                        if (report >= 10) {
+                          return _buildBlindPost(context, post);
+                        } else {
+                          return _buildPostTile(context, post);
+                        }
                       }
                     }),
               ),
@@ -118,8 +170,7 @@ class _PostListState extends State<PostList> {
   String _getDate(DocumentSnapshot post) {
     Timestamp tt = post['date'];
 
-    DateTime dateTime =
-        DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+    DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
     DateTime curTime = DateTime.now();
 
     if (dateTime.difference(curTime).inDays == 0) {

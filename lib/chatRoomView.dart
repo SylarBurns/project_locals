@@ -222,14 +222,14 @@ class _chatRoomViewState extends State<chatRoomView>
           return AlertDialog(
             title: Text(
               "Choose option",
-              style: TextStyle(color: Colors.blue),
+              style: TextStyle(color: Theme.of(context).accentColor),
             ),
             content: SingleChildScrollView(
                 child: ListBody(
               children: [
                 Divider(
                   height: 1,
-                  color: Colors.blue,
+                  color: Theme.of(context).accentColor,
                 ),
                 ListTile(
                   onTap: () {
@@ -238,12 +238,12 @@ class _chatRoomViewState extends State<chatRoomView>
                   title: Text("Gallery"),
                   leading: Icon(
                     Icons.account_box,
-                    color: Colors.blue,
+                    color: Theme.of(context).accentColor,
                   ),
                 ),
                 Divider(
                   height: 1,
-                  color: Colors.blue,
+                  color: Theme.of(context).accentColor
                 ),
                 ListTile(
                   onTap: () {
@@ -252,7 +252,7 @@ class _chatRoomViewState extends State<chatRoomView>
                   title: Text("Camera"),
                   leading: Icon(
                     Icons.camera,
-                    color: Colors.blue,
+                    color: Theme.of(context).accentColor,
                   ),
                 ),
               ],
@@ -266,7 +266,7 @@ class _chatRoomViewState extends State<chatRoomView>
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("Loaded Image"),
+            title: Text("선택된 사진"),
             content: SingleChildScrollView(
               child: ListBody(
                 children: [
@@ -279,8 +279,8 @@ class _chatRoomViewState extends State<chatRoomView>
                       IconButton(
                         icon: Icon(Icons.send),
                         onPressed: () async {
-                          await uploadImageToFirebase(context);
                           Navigator.pop(context);
+                          await uploadImageToFirebase(context);
                         },
                       ),
                       IconButton(
@@ -334,7 +334,6 @@ class _chatRoomViewState extends State<chatRoomView>
     StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
     taskSnapshot.ref.getDownloadURL().then((value) {
       setState(() {
-        print("should scroll true, unfocus focus node");
         _shouldScroll = true;
         _focusNode.unfocus();
         _saveMessage(true, value);
@@ -459,8 +458,8 @@ class _chatRoomViewState extends State<chatRoomView>
                               ),
                               onPressed: () {
                                 setState(() {
-                                  _shouldScroll = true;
                                   _saveMessage(false, _messageController.text);
+                                  _shouldScroll = true;
                                 });
                               },
                             )

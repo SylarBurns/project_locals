@@ -19,7 +19,7 @@ class _naverMapState extends State<naverMap> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   Completer<NaverMapController> _controller = Completer();
   MapType _mapType = MapType.Basic;
-  LocationTrackingMode _trackingMode = LocationTrackingMode.Follow;
+  LocationTrackingMode _trackingMode = LocationTrackingMode.NoFollow;
   bool mapLoaded;
   @override
   void initState() {
@@ -33,6 +33,9 @@ class _naverMapState extends State<naverMap> {
         key: scaffoldKey,
         body: Stack(children: <Widget>[
           NaverMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(36.082021817106835, 129.3975191650997),
+            ),
             onMapCreated: onMapCreated,
             mapType: _mapType,
             initLocationTrackingMode: _trackingMode,

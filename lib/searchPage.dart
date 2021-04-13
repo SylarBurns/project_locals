@@ -49,32 +49,27 @@ class searchPageState extends State<searchPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              child: AspectRatio(
-                aspectRatio: 10 / 1.5,
-                child: TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: "title, contents",
-                    hintStyle: TextStyle(
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodyText1
-                            .color
-                            .withOpacity(0.30)),
-                    suffixIcon: IconButton(
-                      icon: Icon(Icons.clear),
-                      onPressed: _clear,
-                    ),
+              child: TextField(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: "title, contents",
+                  hintStyle: TextStyle(
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyText1
+                          .color
+                          .withOpacity(0.30)),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.clear),
+                    onPressed: _clear,
                   ),
-                  controller: _searchController,
-                  onSubmitted: (data) => updateSearchResult(),
                 ),
+                controller: _searchController,
+                onSubmitted: (data) => updateSearchResult(),
               ),
             ),
-            AspectRatio(
-              aspectRatio: 10 / 11,
-              child: searchResult(context),
-            ),
+            SizedBox(height: 15,),
+            Expanded(child: searchResult(context)),
           ],
         ),
       ),
@@ -215,7 +210,6 @@ class searchPageState extends State<searchPage> {
               Container(
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
-                height: 30,
                 child: Text(
                   '$content',
                   style: TextStyle(fontSize: 12),

@@ -27,31 +27,35 @@ class chatRoomView extends StatefulWidget {
 
 class _chatRoomViewState extends State<chatRoomView>
     with WidgetsBindingObserver {
+  _chatRoomViewState({Key key, this.chatRoomID, this.chatRoomName});
+
   final scaffoldKey = GlobalKey<ScaffoldState>();
   String chatRoomID;
   String chatRoomName;
   String receiverID;
   List<String> tokens = List<String>();
+
   final _focusNode = FocusNode();
   final _messageController = TextEditingController();
+  File imageFile;
+
   final ScrollController _scrollController = ScrollController();
-  final ItemScrollController itemScrollController = ItemScrollController();
-  final ItemPositionsListener itemPositionsListener =
-      ItemPositionsListener.create();
+
   Stream chatStream;
   StreamSubscription chatStreamSub;
-  _chatRoomViewState({Key key, this.chatRoomID, this.chatRoomName});
+
   int _unreadCount;
-  int _lastIndex;
   bool _shouldScroll;
-  File imageFile;
+
   void ScrollToEnd() async {
     if (_shouldScroll) {
       print("current"+_scrollController.position.pixels.toString());
       print("min"+_scrollController.position.minScrollExtent.toString());
       _scrollController.jumpTo(_scrollController.position.minScrollExtent);
       _shouldScroll = false;
-      _unreadCount+=1;
+      if(_unreadCount!=0){
+        _unreadCount+=1;
+      }
     }
   }
 
@@ -64,6 +68,228 @@ class _chatRoomViewState extends State<chatRoomView>
       setStream(chatRoomID);
     }
     _shouldScroll = false;
+  }
+  @override
+  void dispose() {
+    if (!chatRoomID.startsWith("chatInit")) {
+      userOffLine(chatRoomID);
+      WidgetsBinding.instance.removeObserver(this);
+    }
+    _focusNode.unfocus();
+    super.dispose();
+  }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (!chatRoomID.startsWith('chatInit')) {
+      if (state == AppLifecycleState.paused ||
+          state == AppLifecycleState.inactive ||
+          state == AppLifecycleState.detached) {
+        print("app paused");
+        userOffLine(chatRoomID);
+      } else if (state == AppLifecycleState.resumed) {
+        print("app resumed");
+        userOnLine(chatRoomID);
+      }
+    }
+  }
+  @override
+  Widget build(BuildContext context) {
+    _messageController.addListener(() {
+      setState(() {});
+    });
+    return Scaffold(
+        key: scaffoldKey,
+        appBar: AppBar(
+          title: chatRoomName != null ? Text(chatRoomName) : Text("Error"),
+        ),
+        body: Stack(
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 75),
+              child: chatRoomID.startsWith("chatInit")
+                  ? Center(
+                child: Text("Send the first message"),
+              )
+                  : StreamBuilder(
+                  stream: chatStream,
+                  builder: (context, snapshots) {
+                    if (snapshots.connectionState ==
+                        ConnectionState.waiting) {
+                      return LinearProgressIndicator();
+                    } else if (snapshots.hasData) {
+                      if (_shouldScroll) {
+                        WidgetsBinding.instance
+                            .addPostFrameCallback((_) => ScrollToEnd());
+                      }
+                      return ListView.builder(
+                          reverse: true,
+                          controller: _scrollController,
+                          itemCount: snapshots.data.documents.length,
+                          itemBuilder: (context, index) {
+                            if (_unreadCount>0 && index == _unreadCount) {
+                              // _unreadIndex = index;
+                              return Column(
+                                children: [
+                                  chatMessageItem(context,
+                                      snapshots.data.documents[index]),
+                                  Container(
+                                    width: 150,
+                                    alignment: Alignment.center,
+                                    child: Text("여기까지 읽었습니다"),
+                                  ),
+                                ],
+                              );
+                            } else {
+                              return chatMessageItem(
+                                  context, snapshots.data.documents[index]);
+                            }
+                          });
+                    } else {
+                      return LinearProgressIndicator();
+                    }
+                  }),
+            ),
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: Padding(
+                padding: EdgeInsets.all(4.0),
+                child: TextField(
+                  style: TextStyle(fontSize: 15),
+                  focusNode: _focusNode,
+                  controller: _messageController,
+                  minLines: 1,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Theme.of(context).backgroundColor,
+                      border: OutlineInputBorder(),
+                      hintText: 'Send a message',
+                      hintStyle: TextStyle(
+                          color: Theme.of(context)
+                              .textTheme
+                              .bodyText1
+                              .color
+                              .withOpacity(0.30)),
+                      suffixIcon: _messageController.text.isNotEmpty
+                          ? IconButton(
+                        icon: Icon(
+                          Icons.send_rounded,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _saveMessage(false, _messageController.text);
+                            _shouldScroll = true;
+                          });
+                        },
+                      )
+                          : IconButton(
+                          icon: Icon(Icons.camera_alt),
+                          onPressed: () {
+                            _showChoiceDialog(context);
+                          })),
+                ),
+              ),
+            ),
+          ],
+        ));
+  }
+
+  Widget chatMessageItem(BuildContext context, DocumentSnapshot document) {
+    bool isSender = document['sender'] == globals.dbUser.getUID();
+    Timestamp tt = document["date"];
+    DateTime dateTime =
+    DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
+    String date = "";
+    if (DateTime.now().difference(dateTime) <= new Duration(hours: 24)) {
+      date = DateFormat.Hm().format(dateTime);
+    } else {
+      date = DateFormat.Md().add_Hm().format(dateTime);
+    }
+    return Container(
+      padding: EdgeInsets.all(8),
+      child: FractionallySizedBox(
+          child: isSender
+              ? Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                date,
+                style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context)
+                        .accentTextTheme
+                        .bodyText1
+                        .color),
+              ),
+              messagebody(document["type"], document["content"], isSender,
+                  context)
+            ],
+          )
+              : Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              messagebody(document['type'], document["content"], isSender,
+                  context),
+              Text(
+                date,
+                style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context)
+                        .accentTextTheme
+                        .bodyText1
+                        .color),
+              ),
+            ],
+          )),
+    );
+  }
+
+  Widget messagebody(
+      String type, String content, bool isSender, BuildContext context) {
+    return Flexible(
+      child: type == 'image'
+          ? Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.7,
+            height: MediaQuery.of(context).size.width * 0.8,
+            child: FullScreenWidget(
+                child: Hero(
+                    tag: content,
+                    child: CachedNetworkImage(
+                        placeholder: (context, url) => Container(
+                          child: Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                          color: Theme.of(context).backgroundColor,
+                        ),
+                        imageUrl: content,
+                        fit: BoxFit.cover))),
+          ))
+          : Card(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.7),
+            child: Text(
+              content,
+              style: TextStyle(fontSize: 20),
+            ),
+          ),
+        ),
+        color: isSender
+            ? Theme.of(context).cardColor
+            : Theme.of(context).textSelectionColor,
+      ),
+    );
   }
 
   Future getInitialChatInfo() async {
@@ -138,13 +364,16 @@ class _chatRoomViewState extends State<chatRoomView>
         .snapshots();
     chatStreamSub = chatStream.listen(null);
     chatStreamSub.onData((snapshot) {
-      if (snapshot.documents[snapshot.documents.length - 1]["sender"] !=
+      print("On DATA");
+      if (snapshot.documents[0]["sender"] !=
           globals.dbUser.getUID()) {
         if (_scrollController.hasClients) {
           if (_scrollController.position.pixels > 50) {
-            _unreadCount += 1;
+            if(_unreadCount!=0){
+              _unreadCount += 1;
+            }
             String latestMessage =
-                snapshot.documents[snapshot.documents.length - 1]["content"];
+                snapshot.documents[0]["content"];
             scaffoldKey.currentState.showSnackBar(
               SnackBar(
                 content: Text(latestMessage),
@@ -152,7 +381,9 @@ class _chatRoomViewState extends State<chatRoomView>
                   label: "보기",
                   onPressed: () => {
                     setState(() {
-                      _unreadCount -= 1;
+                      if(_unreadCount!=0){
+                        _unreadCount += 1;
+                      }
                       _shouldScroll = true;
                     })
                   },
@@ -301,6 +532,21 @@ class _chatRoomViewState extends State<chatRoomView>
         });
   }
 
+  Future uploadImageToFirebase(BuildContext context) async {
+    String fileName = basename(imageFile.path);
+    StorageReference firebaseStorageRef =
+    FirebaseStorage.instance.ref().child('chatroom/$fileName');
+    StorageUploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
+    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
+    taskSnapshot.ref.getDownloadURL().then((value) {
+      setState(() {
+        _shouldScroll = true;
+        _focusNode.unfocus();
+        _saveMessage(true, value);
+      });
+    });
+  }
+
   void _openGallery(BuildContext context) async {
     await ImagePicker()
         .getImage(
@@ -327,150 +573,6 @@ class _chatRoomViewState extends State<chatRoomView>
         Navigator.pop(context);
       });
     });
-  }
-
-  Future uploadImageToFirebase(BuildContext context) async {
-    String fileName = basename(imageFile.path);
-    StorageReference firebaseStorageRef =
-        FirebaseStorage.instance.ref().child('chatroom/$fileName');
-    StorageUploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
-    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-    taskSnapshot.ref.getDownloadURL().then((value) {
-      setState(() {
-        _shouldScroll = true;
-        _focusNode.unfocus();
-        _saveMessage(true, value);
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    if (!chatRoomID.startsWith("chatInit")) {
-      userOffLine(chatRoomID);
-      WidgetsBinding.instance.removeObserver(this);
-    }
-    _focusNode.unfocus();
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (!chatRoomID.startsWith('chatInit')) {
-      if (state == AppLifecycleState.paused ||
-          state == AppLifecycleState.inactive ||
-          state == AppLifecycleState.detached) {
-        print("app paused");
-        userOffLine(chatRoomID);
-      } else if (state == AppLifecycleState.resumed) {
-        print("app resumed");
-        userOnLine(chatRoomID);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    _messageController.addListener(() {
-      setState(() {});
-    });
-    return Scaffold(
-        key: scaffoldKey,
-        appBar: AppBar(
-          title: chatRoomName != null ? Text(chatRoomName) : Text("Error"),
-        ),
-        body: Stack(
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.fromLTRB(0, 0, 0, 75),
-              child: chatRoomID.startsWith("chatInit")
-                  ? Center(
-                      child: Text("Send the first message"),
-                    )
-                  : StreamBuilder(
-                      stream: chatStream,
-                      builder: (context, snapshots) {
-                        if (snapshots.connectionState ==
-                            ConnectionState.waiting) {
-                          return LinearProgressIndicator();
-                        } else if (snapshots.hasData) {
-                          if (_shouldScroll) {
-                            _lastIndex = snapshots.data.documents.length - 1;
-                            WidgetsBinding.instance
-                                .addPostFrameCallback((_) => ScrollToEnd());
-                          }
-                          return ListView.builder(
-                              reverse: true,
-                              controller: _scrollController,
-                              itemCount: snapshots.data.documents.length,
-                              itemBuilder: (context, index) {
-                                if (_unreadCount>0 && index == _unreadCount) {
-                                  // _unreadIndex = index;
-                                  return Column(
-                                    children: [
-                                      chatMessageItem(context,
-                                          snapshots.data.documents[index]),
-                                      Container(
-                                        width: 150,
-                                        alignment: Alignment.center,
-                                        child: Text("여기까지 읽었습니다"),
-                                      ),
-                                    ],
-                                  );
-                                } else {
-                                  return chatMessageItem(
-                                      context, snapshots.data.documents[index]);
-                                }
-                              });
-                        } else {
-                          return LinearProgressIndicator();
-                        }
-                      }),
-            ),
-            Align(
-              alignment: Alignment.bottomLeft,
-              child: Padding(
-                padding: EdgeInsets.all(4.0),
-                child: TextField(
-                  style: TextStyle(fontSize: 15),
-                  focusNode: _focusNode,
-                  controller: _messageController,
-                  minLines: 1,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Theme.of(context).backgroundColor,
-                      border: OutlineInputBorder(),
-                      hintText: 'Send a message',
-                      hintStyle: TextStyle(
-                          color: Theme.of(context)
-                              .textTheme
-                              .bodyText1
-                              .color
-                              .withOpacity(0.30)),
-                      suffixIcon: _messageController.text.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(
-                                Icons.send_rounded,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _saveMessage(false, _messageController.text);
-                                  _shouldScroll = true;
-                                });
-                              },
-                            )
-                          : IconButton(
-                              icon: Icon(Icons.camera_alt),
-                              onPressed: () {
-                                _showChoiceDialog(context);
-                              })),
-                ),
-              ),
-            ),
-          ],
-        ));
   }
 
   void _saveMessage(bool isImage, String content) async {
@@ -514,6 +616,7 @@ class _chatRoomViewState extends State<chatRoomView>
         await setStream(chatRoomID);
         setState(() {});
       });
+      db.collection('user').document(receiverID).updateData({"unreadCount": FieldValue.increment(1)});
     } else {
       DocumentReference chatroomRef =
           db.collection('chatroom').document(chatRoomID);
@@ -552,111 +655,11 @@ class _chatRoomViewState extends State<chatRoomView>
             'lastMessage': isImage ? '<Photo>' : content,
             'unreadCount.$receiverID': fresh['unreadCount'][receiverID] + 1,
           });
+          db.collection('user').document(receiverID).updateData({"unreadCount": FieldValue.increment(1)});
         }
       });
     }
-    db
-        .collection('user')
-        .document(receiverID)
-        .updateData({"unreadCount": FieldValue.increment(1)});
     //_focusNode.unfocus();
     _messageController.clear();
-  }
-
-  Widget chatMessageItem(BuildContext context, DocumentSnapshot document) {
-    bool isSender = document['sender'] == globals.dbUser.getUID();
-    Timestamp tt = document["date"];
-    DateTime dateTime =
-        DateTime.fromMicrosecondsSinceEpoch(tt.microsecondsSinceEpoch);
-    String date = "";
-    if (DateTime.now().difference(dateTime) <= new Duration(hours: 24)) {
-      date = DateFormat.Hm().format(dateTime);
-    } else {
-      date = DateFormat.Md().add_Hm().format(dateTime);
-    }
-    return Container(
-      padding: EdgeInsets.all(8),
-      child: FractionallySizedBox(
-          child: isSender
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      date,
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context)
-                              .accentTextTheme
-                              .bodyText1
-                              .color),
-                    ),
-                    messagebody(document["type"], document["content"], isSender,
-                        context)
-                  ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    messagebody(document['type'], document["content"], isSender,
-                        context),
-                    Text(
-                      date,
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context)
-                              .accentTextTheme
-                              .bodyText1
-                              .color),
-                    ),
-                  ],
-                )),
-    );
-  }
-
-  Widget messagebody(
-      String type, String content, bool isSender, BuildContext context) {
-    return Flexible(
-      child: type == 'image'
-          ? Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.7,
-                height: MediaQuery.of(context).size.width * 0.8,
-                child: FullScreenWidget(
-                    child: Hero(
-                        tag: content,
-                        child: CachedNetworkImage(
-                            placeholder: (context, url) => Container(
-                                  child: Center(
-                                    child: SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  ),
-                                  color: Theme.of(context).backgroundColor,
-                                ),
-                            imageUrl: content,
-                            fit: BoxFit.cover))),
-              ))
-          : Card(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.7),
-                  child: Text(
-                    content,
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ),
-              ),
-              color: isSender
-                  ? Theme.of(context).cardColor
-                  : Theme.of(context).textSelectionColor,
-            ),
-    );
   }
 }

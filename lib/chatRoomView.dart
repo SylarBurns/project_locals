@@ -50,6 +50,7 @@ class _chatRoomViewState extends State<chatRoomView>
       print("scroll to end index: " + _lastIndex.toString());
       itemScrollController.jumpTo(index: _lastIndex);
       _shouldScroll = false;
+      _unreadCount+=1;
     }
   }
 
@@ -141,6 +142,7 @@ class _chatRoomViewState extends State<chatRoomView>
         if (itemScrollController.isAttached) {
           if (itemPositionsListener.itemPositions.value.last.index <
               _lastIndex) {
+            _unreadCount += 1;
             String latestMessage =
                 snapshot.documents[snapshot.documents.length - 1]["content"];
             scaffoldKey.currentState.showSnackBar(
@@ -150,6 +152,7 @@ class _chatRoomViewState extends State<chatRoomView>
                   label: "보기",
                   onPressed: () => {
                     setState(() {
+                      _unreadCount -= 1;
                       _shouldScroll = true;
                     })
                   },

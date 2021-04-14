@@ -215,6 +215,7 @@ class _registrationState extends State<registration> {
                                 "commentLikeList": [],
                                 "unreadCount": 0,
                                 "unreadNotification": 0,
+                                "lastModified" : DateTime.now(),
                               });
                               await getUser(currentUser);
                             } else {

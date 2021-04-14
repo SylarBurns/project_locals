@@ -49,6 +49,10 @@ class UserInfo {
   void setSelectedRegion(String region) {
     _selectedRegion = region;
   }
+
+  void setNickName(String nickName) {
+    _nickName = nickName;
+  }
 }
 
 Widget getLoadingAnimation(BuildContext context) {

@@ -144,13 +144,13 @@ class _registrationState extends State<registration> {
         title: Text('Registration'),
       ),
       body: Center(
-        child: Padding(
-            padding: EdgeInsets.fromLTRB(20, 30, 20, 30),
+        child: Container(
+            margin: EdgeInsets.fromLTRB(20, 30, 20, 30),
             child: Column(
               children: [
                 Container(
-                  height: 50,
-                  width: 350,
+                  height: 60,
+                  width: MediaQuery.of(context).size.width*0.8,
                   child: TextField(
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
@@ -161,6 +161,8 @@ class _registrationState extends State<registration> {
                               selectedNickname = await searchNickname();
                             })),
                     controller: _nicknameController,
+                    minLines: 1,
+                    maxLines: 1,
                   ),
                 ),
                 SizedBox(

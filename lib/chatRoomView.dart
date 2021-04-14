@@ -59,18 +59,6 @@ class _chatRoomViewState extends State<chatRoomView>
   List<DocumentSnapshot> _messages = List<DocumentSnapshot>();
   QuerySnapshot messageQuery;
 
-  void ScrollToEnd() async {
-    if (_shouldScroll) {
-      print("current" + _scrollController.position.pixels.toString());
-      print("min" + _scrollController.position.minScrollExtent.toString());
-      _scrollController.jumpTo(_scrollController.position.minScrollExtent);
-      _shouldScroll = false;
-      if (_unreadCount != 0) {
-        _unreadCount += 1;
-      }
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -94,7 +82,7 @@ class _chatRoomViewState extends State<chatRoomView>
 
   @override
   void dispose() {
-    print("good bye!");
+    // print("good bye!");
     if (!chatRoomID.startsWith("chatInit")) {
       userOffLine(chatRoomID);
       WidgetsBinding.instance.removeObserver(this);
@@ -102,13 +90,15 @@ class _chatRoomViewState extends State<chatRoomView>
     _focusNode.unfocus();
     _focusNode.dispose();
 
-    chatStreamSub.cancel();
-    _messages.clear();
-    lastDocument = null;
-    messageQuery = null;
-    _hasMore = true;
-    _isMessagesLoaded = false;
-    super.dispose();
+    if(chatStreamSub!=null) {
+      chatStreamSub.cancel();
+    }
+      _messages.clear();
+      lastDocument = null;
+      messageQuery = null;
+      _hasMore = true;
+      _isMessagesLoaded = false;
+      super.dispose();
   }
 
   @override
@@ -118,10 +108,10 @@ class _chatRoomViewState extends State<chatRoomView>
       if (state == AppLifecycleState.paused ||
           state == AppLifecycleState.inactive ||
           state == AppLifecycleState.detached) {
-        print("app paused");
+        // print("app paused");
         userOffLine(chatRoomID);
       } else if (state == AppLifecycleState.resumed) {
-        print("app resumed");
+        // print("app resumed");
         userOnLine(chatRoomID);
       }
     }
@@ -135,39 +125,57 @@ class _chatRoomViewState extends State<chatRoomView>
     return Scaffold(
         key: scaffoldKey,
         appBar: AppBar(
-          title: chatRoomName != null ? Text(chatRoomName) : Text("Error"),
+          title: chatRoomName != null ? Text(chatRoomName) : Text("Loading..."),
         ),
         body: Stack(
           children: <Widget>[
             Padding(
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 75),
                 child: chatRoomID.startsWith("chatInit")
-                    ? Center(
-                        child: Text("Send the first message"),
-                      )
+                    ? chatRoomName != null
+                        ? Center(
+                            child: Text(
+                              "Send the first message",
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyText1
+                                      .color),
+                            ),
+                          )
+                        : globals.getLoadingAnimation(context)
                     : _isMessagesLoaded
                         ? ListView.builder(
                             reverse: true,
                             controller: _scrollController,
-                            itemCount: _hasMore ? _messages.length+1 : _messages.length,
+                            itemCount: _hasMore
+                                ? _messages.length + 1
+                                : _messages.length,
                             itemBuilder: (context, index) {
                               if (_shouldScroll) {
                                 WidgetsBinding.instance
                                     .addPostFrameCallback((_) => ScrollToEnd());
                               }
-                              if(index == _messages.length) {
+                              if (index == _messages.length) {
                                 return globals.getLoadingAnimation(context);
-                              }else{
+                              } else {
                                 if (_unreadCount > 0 && index == _unreadCount) {
                                   // _unreadIndex = index;
                                   return Column(
                                     children: [
-                                      chatMessageItem(context,
-                                          _messages[index]),
+                                      chatMessageItem(
+                                          context, _messages[index]),
                                       Container(
                                         width: 150,
                                         alignment: Alignment.center,
-                                        child: Text("여기까지 읽었습니다"),
+                                        child: Text(
+                                          "여기까지 읽었습니다",
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyText1
+                                                  .color),
+                                        ),
                                       ),
                                     ],
                                   );
@@ -181,7 +189,7 @@ class _chatRoomViewState extends State<chatRoomView>
             Align(
               alignment: Alignment.bottomLeft,
               child: Padding(
-                padding: EdgeInsets.all(4.0),
+                padding: EdgeInsets.all(2.0),
                 child: TextField(
                   style: TextStyle(fontSize: 15),
                   focusNode: _focusNode,
@@ -322,6 +330,8 @@ class _chatRoomViewState extends State<chatRoomView>
     );
   }
 
+  //when chatroomID starts with "chatInit"
+  //글이나 댓글을 통해서 채팅을 시작하는 경우
   Future getInitialChatInfo() async {
     tokens = chatRoomID.split('/');
     receiverID = tokens[1];
@@ -341,7 +351,7 @@ class _chatRoomViewState extends State<chatRoomView>
           if (docSnapshots.documents[docIndex]['participants'].length == 2 &&
               docSnapshots.documents[docIndex]['participants']
                   .contains(receiverID)) {
-            print("already exists");
+            // print("already exists");
             chatRoomID = docSnapshots.documents[docIndex].documentID;
             await setStream(chatRoomID);
             setState(() {});
@@ -350,7 +360,7 @@ class _chatRoomViewState extends State<chatRoomView>
       }
       chatRoomName = await _getReceiverNick(receiverID);
     } else {
-      chatRoomName = "Error";
+      chatRoomName = "에러가 발생했습니다. 재시도해주세요.";
     }
     setState(() {});
   }
@@ -362,13 +372,14 @@ class _chatRoomViewState extends State<chatRoomView>
     if (ds.data.isNotEmpty) {
       result = ds["nickName"];
     } else {
-      result = "Requested user is not on our database!";
+      result = "에러가 발생했습니다. 재시도해주세요.";
     }
     return result;
   }
 
   Future setStream(String CRID) async {
     //get receiverID
+    //채팅방 리스트를 통해 채팅방에 들어온 경우
     if (!chatRoomID.startsWith('chatInit')) {
       await db
           .collection('chatroom')
@@ -400,7 +411,8 @@ class _chatRoomViewState extends State<chatRoomView>
           _isOnDataFirstCalled = false;
         } else {
           _messages.insert(0, snapshot.documents[0]);
-          print("On Data, new message: ${_messages[0].data["content"]} message list length: ${_messages.length.toString()} PID: ${Isolate.current.debugName}");
+          // print(
+          //     "On Data, new message: ${_messages[0].data["content"]} message list length: ${_messages.length.toString()} PID: ${Isolate.current.debugName}");
           setState(() {});
         }
         if (_scrollController.hasClients) {
@@ -634,7 +646,7 @@ class _chatRoomViewState extends State<chatRoomView>
     lastDocument = messageQuery.documents[messageQuery.documents.length - 1];
     _messages.addAll(messageQuery.documents);
     _isMessagesLoaded = true;
-    print("message list length: " + _messages.length.toString());
+    // print("message list length: " + _messages.length.toString());
     setState(() {});
   }
 
@@ -664,10 +676,6 @@ class _chatRoomViewState extends State<chatRoomView>
             'date': _now,
             'sender': globals.dbUser.getUID(),
             'isRead': false,
-          }).then((DocRef) async {
-            await DocRef.get().then((DocSnapshot) {
-              _messages.insert(0, DocSnapshot);
-            });
           });
         } else {
           await msgsRef.add({
@@ -676,13 +684,6 @@ class _chatRoomViewState extends State<chatRoomView>
             'date': _now,
             'sender': globals.dbUser.getUID(),
             'isRead': false,
-          }).then((DocRef) async {
-            await DocRef.get().then((DocSnapshot) {
-              _messages.insert(0, DocSnapshot);
-            });
-            print(
-                "On Save Message, new message: ${_messages[0].data["content"]} message list length: ${_messages.length.toString()}");
-            setState(() {});
           });
         }
         chatRoomID = docRef.documentID;
@@ -711,8 +712,8 @@ class _chatRoomViewState extends State<chatRoomView>
           await DocRef.get().then((DocSnapshot) {
             _messages.insert(0, DocSnapshot);
           });
-          print(
-              "On Save Message,new message: ${_messages[0].data["content"]} message list length: ${_messages.length.toString()}");
+          // print(
+          //     "On Save Message,new message: ${_messages[0].data["content"]} message list length: ${_messages.length.toString()}");
           setState(() {});
         });
       } else {
@@ -726,8 +727,8 @@ class _chatRoomViewState extends State<chatRoomView>
           await DocRef.get().then((DocSnapshot) {
             _messages.insert(0, DocSnapshot);
           });
-          print(
-              "On Save Message, new message: ${_messages[0].data["content"]} message list length: ${_messages.length.toString()}");
+          // print(
+          //     "On Save Message, new message: ${_messages[0].data["content"]} message list length: ${_messages.length.toString()}");
           setState(() {});
         });
       }
@@ -755,5 +756,15 @@ class _chatRoomViewState extends State<chatRoomView>
     }
     //_focusNode.unfocus();
     _messageController.clear();
+  }
+
+  void ScrollToEnd() async {
+    if (_shouldScroll) {
+      _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+      _shouldScroll = false;
+      if (_unreadCount != 0) {
+        _unreadCount += 1;
+      }
+    }
   }
 }

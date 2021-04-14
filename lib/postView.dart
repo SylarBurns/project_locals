@@ -170,7 +170,7 @@ class _PostViewState extends State<PostView> {
                         "chatInit/${widget.writerUID}/${widget.boardType}";
                     return chatRoomView(
                       chatRoomID: chatRoomID,
-                      chatRoomName: "new message",
+                      chatRoomName: null,
                     );
                   }));
                   break;
@@ -1027,7 +1027,7 @@ class CommentTileState extends State<CommentTile> {
                                           builder: (context) => chatRoomView(
                                             chatRoomID:
                                                 "chatInit/$writerUID/${widget.boardType}",
-                                            chatRoomName: "new message",
+                                            chatRoomName: null,
                                           ),
                                         ));
                                     break;
@@ -1421,7 +1421,7 @@ class NestedCommentTileState extends State<NestedCommentTile> {
                                             builder: (context) => chatRoomView(
                                               chatRoomID:
                                                   "chatInit/$writerUID/${widget.boardType}",
-                                              chatRoomName: "new message",
+                                              chatRoomName: null,
                                             ),
                                           ));
                                       break;

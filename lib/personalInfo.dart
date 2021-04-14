@@ -10,6 +10,7 @@ import 'package:project_locals/naver_map.dart';
 import 'globals.dart' as globals;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'changeRegion.dart';
+import 'changeNickName.dart';
 
 final db = Firestore.instance;
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -24,6 +25,8 @@ class personalInfo extends StatefulWidget {
 }
 
 class personalInfoState extends State<personalInfo> {
+  int difference;
+
   Refresh() {
     setState(() {});
   }
@@ -47,6 +50,26 @@ class personalInfoState extends State<personalInfo> {
               onPressed: () => Navigator.pushNamed(context, '/likedList'),
               child: Text(
                 "좋아요 누른 글",
+                style: TextStyle(
+                    color: Theme.of(context).accentTextTheme.bodyText1.color),
+              ),
+            ),
+            FlatButton(
+              onPressed: () async {
+                if(await _isChangeable()) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChangeNickName(),
+                      )).then((value) {
+                    setState(() {});
+                    widget.refresh();
+                  });
+                }
+                else _showDialog(difference.toString() + '일 뒤에 변경하실 수 있습니다.');
+              },
+              child: Text(
+                "닉네임 변경",
                 style: TextStyle(
                     color: Theme.of(context).accentTextTheme.bodyText1.color),
               ),
@@ -93,6 +116,43 @@ class personalInfoState extends State<personalInfo> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<bool> _isChangeable() async {
+    DocumentReference docRef = db.collection('user').document(globals.dbUser.getUID());
+    DocumentSnapshot snapshot = await docRef.get();
+
+    Timestamp tt = snapshot['lastModified'];
+    DateTime dt = tt.toDate();
+
+    if(DateTime.now().difference(dt) < Duration(days: 7)) {
+      difference = 7 - DateTime.now().difference(dt).inDays;
+      return false;
+    }
+    else return true;
+  }
+
+  void _showDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        Future.delayed(Duration(seconds: 1), () {
+          Navigator.pop(context);
+        });
+
+        return AlertDialog(
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+          content: SizedBox(
+            width: 50,
+            height: 30,
+            child: Center(
+              child: Text('$message'),
+            ),
+          ),
+        );
+      },
     );
   }
 }

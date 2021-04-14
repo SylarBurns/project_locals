@@ -52,16 +52,17 @@ class _chatRoomListState extends State<chatRoomList> {
   }
 
   Widget _chatRoomList(BuildContext context, List<DocumentSnapshot> documents) {
-    return Container(
+    return Expanded(
       // height: MediaQuery.of(context).size.height,
-      alignment: Alignment.topCenter,
-      child: ListView.builder(
-          padding: EdgeInsets.all(10),
-          shrinkWrap: true,
-          itemCount: documents.length,
-          itemBuilder: (context, index) {
-            return _chatRoomItem(context, documents[index]);
-          }),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(15, 10, 15, 0),
+        child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: documents.length,
+            itemBuilder: (context, index) {
+              return _chatRoomItem(context, documents[index]);
+            }),
+      ),
     );
   }
 
